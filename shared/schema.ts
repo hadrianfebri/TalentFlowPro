@@ -59,28 +59,56 @@ export const departments = pgTable("departments", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Employees table
+// Employees table - Enhanced for Indonesian HR standards
 export const employees = pgTable("employees", {
   id: serial("id").primaryKey(),
   employeeId: varchar("employee_id").unique().notNull(),
   userId: varchar("user_id").unique(),
   companyId: varchar("company_id").notNull(),
-  departmentId: integer("department_id"),
+  
+  // Data Pribadi - Identitas Lengkap
   firstName: varchar("first_name").notNull(),
   lastName: varchar("last_name").notNull(),
-  email: varchar("email").unique().notNull(),
+  birthPlace: varchar("birth_place"),
+  birthDate: date("birth_date"),
+  gender: varchar("gender"), // L, P
+  maritalStatus: varchar("marital_status"), // single, married, divorced, widowed
+  nationality: varchar("nationality").default("Indonesia"),
+  religion: varchar("religion"), // Islam, Kristen, Katolik, Hindu, Buddha, Konghucu
+  
+  // Data Pribadi - Informasi Kontak
+  homeAddress: text("home_address"),
   phone: varchar("phone"),
-  position: varchar("position"),
-  hireDate: date("hire_date"),
-  salary: decimal("salary", { precision: 15, scale: 2 }),
-  status: varchar("status").default("active"), // active, inactive, terminated
+  personalEmail: varchar("personal_email"),
+  workEmail: varchar("work_email").unique().notNull(),
+  emergencyContact: jsonb("emergency_contact"), // {name, phone, relationship}
+  
+  // Data Pribadi - Data Identifikasi
+  nik: varchar("nik").unique(), // Nomor Induk Kependudukan
   npwp: varchar("npwp"),
-  bpjsHealth: varchar("bpjs_health"),
-  bpjsEmployment: varchar("bpjs_employment"),
+  bpjsHealthNumber: varchar("bpjs_health_number"),
+  bpjsEmploymentNumber: varchar("bpjs_employment_number"),
+  
+  // Data Pribadi - Riwayat Pendidikan
+  education: jsonb("education"), // {level, institution, major, graduationYear, gpa, certifications[]}
+  
+  // Data Pekerjaan
+  position: varchar("position").notNull(),
+  departmentId: integer("department_id"),
+  hireDate: date("hire_date").notNull(),
+  employmentStatus: varchar("employment_status").default("permanent"), // permanent, contract, internship, part_time
+  workLocation: varchar("work_location"), // head_office, branch, remote, hybrid
+  
+  // Data Finansial
+  basicSalary: decimal("basic_salary", { precision: 15, scale: 2 }),
   bankAccount: varchar("bank_account"),
   bankName: varchar("bank_name"),
-  address: text("address"),
-  emergencyContact: jsonb("emergency_contact"),
+  
+  // Status & Meta
+  status: varchar("status").default("active"), // active, inactive, terminated
+  terminationDate: date("termination_date"),
+  terminationReason: text("termination_reason"),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
