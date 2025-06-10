@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/hooks/usePermissions";
 import { 
   Users, 
   Clock, 
@@ -19,46 +20,64 @@ const navigationItems = [
     name: "Dashboard",
     href: "/",
     icon: LayoutDashboard,
+    resource: "dashboard",
+    allowedRoles: ["admin", "hr", "employee"],
   },
   {
     name: "Data Karyawan",
     href: "/employees",
     icon: Users,
+    resource: "employees",
+    allowedRoles: ["admin", "hr", "employee"],
   },
   {
     name: "Absensi & Timesheet",
     href: "/attendance",
     icon: Clock,
+    resource: "attendance",
+    allowedRoles: ["admin", "hr", "employee"],
   },
   {
     name: "Payroll & Slip Gaji",
     href: "/payroll",
     icon: DollarSign,
+    resource: "payroll",
+    allowedRoles: ["admin", "hr", "employee"],
   },
   {
     name: "Cuti & Izin",
     href: "/leaves",
     icon: Calendar,
+    resource: "leaves",
+    allowedRoles: ["admin", "hr", "employee"],
   },
   {
     name: "Dokumen & Template",
     href: "/documents",
     icon: FileText,
+    resource: "documents",
+    allowedRoles: ["admin", "hr", "employee"],
   },
   {
     name: "Reimbursement",
     href: "/reimbursement",
     icon: Receipt,
+    resource: "reimbursements",
+    allowedRoles: ["admin", "hr", "employee"],
   },
   {
     name: "Performance",
     href: "/performance",
     icon: BarChart3,
+    resource: "performance",
+    allowedRoles: ["admin", "hr", "employee"],
   },
   {
     name: "Recruitment",
     href: "/recruitment",
     icon: UserPlus,
+    resource: "recruitment",
+    allowedRoles: ["admin", "hr"], // Hanya Admin dan HR
   },
 ];
 

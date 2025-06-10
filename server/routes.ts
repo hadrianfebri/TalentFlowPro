@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/auth/user', isAuthenticated, getUserProfile, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/auth/user', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -231,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/employees', isAuthenticated, getUserProfile, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/employees', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
       const companyId = req.userProfile?.companyId;
       const userRole = req.userProfile?.role;
@@ -261,7 +261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/employees', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/employees', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const companyId = req.userProfile?.companyId;
 
