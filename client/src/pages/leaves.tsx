@@ -1,0 +1,509 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { 
+  Calendar, 
+  Plus, 
+  Check, 
+  X, 
+  Clock,
+  CalendarDays,
+  User
+} from "lucide-react";
+import { apiRequest } from "@/lib/api";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+
+interface LeaveRequest {
+  id: number;
+  employeeId: number;
+  leaveTypeId: number;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected';
+  approvedBy?: number;
+  approvedAt?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  employee: {
+    firstName: string;
+    lastName: string;
+    employeeId: string;
+  };
+}
+
+interface Employee {
+  id: number;
+  firstName: string;
+  lastName: string;
+  employeeId: string;
+}
+
+export default function Leaves() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const { data: leaves, isLoading } = useQuery<LeaveRequest[]>({
+    queryKey: ["/api/leaves"],
+    enabled: isAuthenticated,
+  });
+
+  const { data: employees } = useQuery<Employee[]>({
+    queryKey: ["/api/employees"],
+    enabled: isAuthenticated,
+  });
+
+  const createLeaveMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/leaves", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leaves"] });
+      setIsDialogOpen(false);
+      toast({
+        title: "Berhasil",
+        description: "Pengajuan cuti berhasil dibuat",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal membuat pengajuan cuti",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const approveLeaveMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("PUT", `/api/leaves/${id}/approve`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leaves"] });
+      toast({
+        title: "Berhasil",
+        description: "Pengajuan cuti telah disetujui",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal menyetujui pengajuan cuti",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectLeaveMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: number; reason: string }) => 
+      apiRequest("PUT", `/api/leaves/${id}/reject`, { rejectionReason: reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leaves"] });
+      toast({
+        title: "Berhasil",
+        description: "Pengajuan cuti telah ditolak",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal menolak pengajuan cuti",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const startDate = formData.get("startDate") as string;
+    const endDate = formData.get("endDate") as string;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    const leaveData = {
+      employeeId: parseInt(formData.get("employeeId") as string),
+      leaveTypeId: parseInt(formData.get("leaveTypeId") as string),
+      startDate,
+      endDate,
+      totalDays,
+      reason: formData.get("reason") as string,
+    };
+
+    createLeaveMutation.mutate(leaveData);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved":
+        return <Badge className="bg-green-100 text-green-800">Disetujui</Badge>;
+      case "rejected":
+        return <Badge variant="destructive">Ditolak</Badge>;
+      case "pending":
+        return <Badge className="bg-yellow-100 text-yellow-800">Menunggu</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar />
+      
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header pageTitle="Cuti & Izin" />
+        
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+            {/* Stats Cards */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Pengajuan</p>
+                    <p className="text-3xl font-bold text-foreground">{leaves?.length || 0}</p>
+                  </div>
+                  <CalendarDays className="h-8 w-8 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Menunggu Persetujuan</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {leaves?.filter(l => l.status === 'pending').length || 0}
+                    </p>
+                  </div>
+                  <Clock className="h-8 w-8 text-yellow-500" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Disetujui</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {leaves?.filter(l => l.status === 'approved').length || 0}
+                    </p>
+                  </div>
+                  <Check className="h-8 w-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Ditolak</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {leaves?.filter(l => l.status === 'rejected').length || 0}
+                    </p>
+                  </div>
+                  <X className="h-8 w-8 text-destructive" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-xl font-semibold">Daftar Pengajuan Cuti</CardTitle>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-primary hover:bg-primary/90">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajukan Cuti
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Pengajuan Cuti Baru</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="employeeId">Karyawan</Label>
+                          <Select name="employeeId" required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih karyawan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {employees?.map((emp) => (
+                                <SelectItem key={emp.id} value={emp.id.toString()}>
+                                  {emp.firstName} {emp.lastName} ({emp.employeeId})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="leaveTypeId">Jenis Cuti</Label>
+                          <Select name="leaveTypeId" required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih jenis cuti" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">Cuti Tahunan</SelectItem>
+                              <SelectItem value="2">Cuti Sakit</SelectItem>
+                              <SelectItem value="3">Cuti Melahirkan</SelectItem>
+                              <SelectItem value="4">Cuti Khusus</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="startDate">Tanggal Mulai</Label>
+                          <Input 
+                            id="startDate" 
+                            name="startDate" 
+                            type="date" 
+                            required 
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="endDate">Tanggal Selesai</Label>
+                          <Input 
+                            id="endDate" 
+                            name="endDate" 
+                            type="date" 
+                            required 
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="reason">Alasan Cuti</Label>
+                        <Textarea 
+                          id="reason" 
+                          name="reason" 
+                          placeholder="Masukkan alasan pengajuan cuti..."
+                          required 
+                        />
+                      </div>
+                      
+                      <div className="flex justify-end space-x-2 pt-4">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setIsDialogOpen(false)}
+                        >
+                          Batal
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          disabled={createLeaveMutation.isPending}
+                        >
+                          {createLeaveMutation.isPending ? "Menyimpan..." : "Ajukan Cuti"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : !leaves || leaves.length === 0 ? (
+                <div className="text-center py-12">
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground text-lg mb-2">
+                    Belum ada pengajuan cuti
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    Buat pengajuan cuti pertama Anda
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Karyawan</TableHead>
+                        <TableHead>Jenis Cuti</TableHead>
+                        <TableHead>Periode</TableHead>
+                        <TableHead>Durasi</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Alasan</TableHead>
+                        <TableHead className="text-right">Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {leaves.map((leave) => (
+                        <TableRow key={leave.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div>
+                                <p className="font-medium">
+                                  {leave.employee.firstName} {leave.employee.lastName}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {leave.employee.employeeId}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {leave.leaveTypeId === 1 ? "Cuti Tahunan" :
+                             leave.leaveTypeId === 2 ? "Cuti Sakit" :
+                             leave.leaveTypeId === 3 ? "Cuti Melahirkan" : "Cuti Khusus"}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div>{format(new Date(leave.startDate), 'dd MMM yyyy', { locale: id })}</div>
+                              <div className="text-muted-foreground">
+                                s/d {format(new Date(leave.endDate), 'dd MMM yyyy', { locale: id })}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {leave.totalDays} hari
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(leave.status)}</TableCell>
+                          <TableCell>
+                            <div className="max-w-xs truncate" title={leave.reason}>
+                              {leave.reason}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {leave.status === 'pending' && (
+                              <div className="flex justify-end space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-green-600 hover:text-green-700"
+                                  onClick={() => approveLeaveMutation.mutate(leave.id)}
+                                  disabled={approveLeaveMutation.isPending}
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive/80"
+                                  onClick={() => {
+                                    const reason = prompt("Alasan penolakan:");
+                                    if (reason) {
+                                      rejectLeaveMutation.mutate({ id: leave.id, reason });
+                                    }
+                                  }}
+                                  disabled={rejectLeaveMutation.isPending}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    </div>
+  );
+}
