@@ -10,9 +10,9 @@ export function usePermissions() {
   const { user } = useAuth();
 
   const userRole: UserRole = {
-    role: user?.role || "employee",
-    employeeId: user?.employeeId,
-    companyId: user?.companyId || "",
+    role: (user as any)?.role || "employee",
+    employeeId: (user as any)?.employeeId,
+    companyId: (user as any)?.companyId || "",
   };
 
   const hasPermission = (action: string, resource: string): boolean => {
