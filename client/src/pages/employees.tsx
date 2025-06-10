@@ -1059,7 +1059,7 @@ export default function Employees() {
                       onClick={() => setViewMode("list")}
                       className="rounded-r-none"
                     >
-                      <ListIcon className="h-4 w-4" />
+                      <List className="h-4 w-4" />
                     </Button>
                     <Button
                       variant={viewMode === "grid" ? "default" : "ghost"}
@@ -1067,7 +1067,7 @@ export default function Employees() {
                       onClick={() => setViewMode("grid")}
                       className="rounded-l-none"
                     >
-                      <GridIcon className="h-4 w-4" />
+                      <Grid3X3 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -1075,7 +1075,7 @@ export default function Employees() {
 
               <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>
-                  Menampilkan {filteredEmployees.length} dari {employees.length} karyawan
+                  Menampilkan {filteredEmployees.length} dari {(employees as Employee[]).length} karyawan
                 </span>
                 {contractExpiryNotifications.length > 0 && (
                   <span className="text-yellow-600 font-medium">
@@ -1103,8 +1103,10 @@ export default function Employees() {
                   </CardContent>
                 </Card>
               ) : (
+                <>
+                  {viewMode === "grid" ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {(employees as Employee[]).map((employee: Employee) => (
+                  {filteredEmployees.map((employee: Employee) => (
                     <Card key={employee.id} className="hover:shadow-md transition-shadow">
                       <CardHeader className="pb-3">
                         <div className="flex justify-between items-start">
@@ -1196,6 +1198,123 @@ export default function Employees() {
                       </CardContent>
                     </Card>
                   ))}
+                </div>
+              ) : (
+                // List/Table View
+                <div className="bg-white rounded-lg border">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Karyawan
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Posisi
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Lama Kerja
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Gaji
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Aksi
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {filteredEmployees.map((employee: Employee) => {
+                          const contractExpiry = checkContractExpiry(employee);
+                          return (
+                            <tr key={employee.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-10 w-10">
+                                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                      <span className="text-sm font-medium text-indigo-600">
+                                        {employee.firstName.charAt(0)}{employee.lastName.charAt(0)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {employee.firstName} {employee.lastName}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      {employee.employeeId} • {employee.workEmail}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {employee.position}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex flex-col gap-1">
+                                  {getStatusBadge(employee.status)}
+                                  {getEmploymentStatusBadge(employee.employmentStatus)}
+                                  {contractExpiry && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      Kontrak: {contractExpiry.daysLeft} hari
+                                    </Badge>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {calculateTenure(employee.hireDate)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {employee.basicSalary ? formatCurrency(employee.basicSalary) : "-"}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div className="flex gap-2 justify-end">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedEmployee(employee);
+                                      setIsViewDialogOpen(true);
+                                    }}
+                                  >
+                                    <EyeIcon className="w-4 h-4" />
+                                  </Button>
+                                  {isAdminOrHR() && (
+                                    <>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedEmployee(employee);
+                                          setIsEditDialogOpen(true);
+                                        }}
+                                      >
+                                        <EditIcon className="w-4 h-4" />
+                                      </Button>
+                                      <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => {
+                                          if (confirm(`Apakah Anda yakin ingin menghapus karyawan ${employee.firstName} ${employee.lastName}?`)) {
+                                            deleteEmployeeMutation.mutate(employee.id);
+                                          }
+                                        }}
+                                      >
+                                        <Trash2Icon className="w-4 h-4" />
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
