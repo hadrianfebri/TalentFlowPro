@@ -1,20 +1,25 @@
 import { Switch, Route } from "wouter";
+import { Suspense, lazy } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
-import NotFound from "@/pages/not-found";
+
+// Keep essential pages loaded immediately
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
-import Employees from "@/pages/employees";
-import Attendance from "@/pages/attendance";
-import Payroll from "@/pages/payroll";
-import Leaves from "@/pages/leaves";
-import Documents from "@/pages/documents";
-import Reimbursement from "@/pages/reimbursement";
-import Performance from "@/pages/performance";
-import Recruitment from "@/pages/recruitment";
+
+// Lazy load other pages for better performance
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Employees = lazy(() => import("@/pages/employees"));
+const Attendance = lazy(() => import("@/pages/attendance"));
+const Payroll = lazy(() => import("@/pages/payroll"));
+const Leaves = lazy(() => import("@/pages/leaves"));
+const Documents = lazy(() => import("@/pages/documents"));
+const Reimbursement = lazy(() => import("@/pages/reimbursement"));
+const Performance = lazy(() => import("@/pages/performance"));
+const Recruitment = lazy(() => import("@/pages/recruitment"));
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
