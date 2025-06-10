@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupSwagger } from "./swagger";
+import { getUserProfile, requireAdminOrHR, requireAdmin, requireEmployeeAccess, AuthenticatedRequest } from "./rbac";
 import {
   insertEmployeeSchema,
   insertAttendanceSchema,
@@ -28,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    * @swagger
    * /auth/user:
    *   get:
-   *     summary: Mendapatkan informasi user yang sedang login
+   *     summary: Mendapatkan informasi user yang sedang login dengan role
    *     tags: [Authentication]
    *     security:
    *       - ReplitAuth: []
@@ -38,17 +39,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *         content:
    *           application/json:
    *             schema:
-   *               $ref: '#/components/schemas/User'
+   *               type: object
+   *               properties:
+   *                 id:
+   *                   type: string
+   *                 email:
+   *                   type: string
+   *                 firstName:
+   *                   type: string
+   *                 lastName:
+   *                   type: string
+   *                 role:
+   *                   type: string
+   *                   enum: [admin, hr, employee]
+   *                 employeeId:
+   *                   type: integer
+   *                 companyId:
+   *                   type: string
    *       401:
    *         description: Unauthorized - User belum login
    *       500:
    *         description: Server error
    */
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, getUserProfile, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      res.json(user);
+      res.json({
+        ...user,
+        permissions: req.userProfile?.role
+      });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -211,15 +231,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/employees', isAuthenticated, async (req: any, res) => {
+  app.get('/api/employees', isAuthenticated, getUserProfile, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      if (!user?.companyId) {
+      const companyId = req.userProfile?.companyId;
+      const userRole = req.userProfile?.role;
+      const employeeId = req.userProfile?.employeeId;
+
+      if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const employees = await storage.getEmployees(user.companyId);
+      let employees;
+      if (userRole === "admin" || userRole === "hr") {
+        // Admin dan HR bisa lihat semua karyawan
+        employees = await storage.getEmployees(companyId);
+      } else {
+        // Employee hanya bisa lihat data mereka sendiri
+        if (!employeeId) {
+          return res.status(403).json({ message: "Employee profile not found" });
+        }
+        const employee = await storage.getEmployee(employeeId);
+        employees = employee ? [employee] : [];
+      }
+
       res.json(employees);
     } catch (error) {
       console.error("Error fetching employees:", error);
@@ -227,17 +261,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/employees', isAuthenticated, async (req: any, res) => {
+  app.post('/api/employees', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      if (!user?.companyId) {
+      const companyId = req.userProfile?.companyId;
+
+      if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
       const validatedData = insertEmployeeSchema.parse({
         ...req.body,
-        companyId: user.companyId,
+        companyId: companyId,
       });
       
       const employee = await storage.createEmployee(validatedData);
