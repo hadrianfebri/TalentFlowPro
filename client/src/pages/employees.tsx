@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, PlusIcon, EyeIcon, EditIcon, Trash2Icon, UserIcon, BriefcaseIcon, CreditCardIcon, FileTextIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, EyeIcon, EditIcon, Trash2Icon, UserIcon, BriefcaseIcon, CreditCardIcon, FileTextIcon, Search, List, Grid3X3, AlertTriangle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -290,7 +290,7 @@ export default function Employees() {
     return null;
   };
 
-  const filteredEmployees = employees.filter((employee: Employee) => {
+  const filteredEmployees = (employees as Employee[]).filter((employee: Employee) => {
     // Search filter
     const searchMatch = !searchQuery || 
       employee.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -331,9 +331,9 @@ export default function Employees() {
     return searchMatch && statusMatch && empStatusMatch && tenureMatch;
   });
 
-  const contractExpiryNotifications = employees
+  const contractExpiryNotifications = (employees as Employee[])
     .map((emp: Employee) => ({ employee: emp, expiry: checkContractExpiry(emp) }))
-    .filter(item => item.expiry?.expiring);
+    .filter((item: any) => item.expiry?.expiring);
 
   if (isLoading) {
     return (
@@ -977,7 +977,7 @@ export default function Employees() {
               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <AlertTriangleIcon className="h-5 w-5 text-yellow-400" />
+                    <AlertTriangle className="h-5 w-5 text-yellow-400" />
                   </div>
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-yellow-800">
@@ -985,7 +985,7 @@ export default function Employees() {
                     </h3>
                     <div className="mt-2 text-sm text-yellow-700">
                       <ul className="list-disc space-y-1 pl-5">
-                        {contractExpiryNotifications.map(({ employee, expiry }) => (
+                        {contractExpiryNotifications.map(({ employee, expiry }: any) => (
                           <li key={employee.id}>
                             <strong>{employee.firstName} {employee.lastName}</strong> ({employee.employeeId}) - 
                             Kontrak berakhir dalam {expiry?.daysLeft} hari ({format(expiry?.endDate || new Date(), "dd/MM/yyyy")})
@@ -1003,7 +1003,7 @@ export default function Employees() {
               <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
                 <div className="flex-1 max-w-md">
                   <div className="relative">
-                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       placeholder="Cari karyawan (nama, ID, posisi, email)..."
                       value={searchQuery}
