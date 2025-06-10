@@ -298,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/employees/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/employees/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
       const validatedData = insertEmployeeSchema.partial().parse(req.body);
@@ -308,6 +308,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating employee:", error);
       res.status(500).json({ message: "Failed to update employee" });
+    }
+  });
+
+  app.delete('/api/employees/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      await storage.deleteEmployee(parseInt(id));
+      res.json({ message: "Employee deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      res.status(500).json({ message: "Failed to delete employee" });
     }
   });
 

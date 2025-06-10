@@ -58,6 +58,7 @@ export interface IStorage {
   getEmployee(id: number): Promise<Employee | undefined>;
   createEmployee(employee: InsertEmployee): Promise<Employee>;
   updateEmployee(id: number, data: Partial<InsertEmployee>): Promise<Employee>;
+  deleteEmployee(id: number): Promise<void>;
   
   // Attendance operations
   getAttendance(companyId: string, date?: string, employeeId?: number): Promise<Attendance[]>;
@@ -308,6 +309,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(employees.id, id))
       .returning();
     return employee;
+  }
+
+  async deleteEmployee(id: number): Promise<void> {
+    await db.delete(employees).where(eq(employees.id, id));
   }
 
   // Attendance operations
