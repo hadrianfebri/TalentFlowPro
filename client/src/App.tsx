@@ -37,7 +37,11 @@ function Router() {
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
-        <>
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        }>
           <Route path="/" component={Dashboard} />
           <Route path="/employees" component={Employees} />
           <Route path="/attendance" component={Attendance} />
@@ -47,7 +51,7 @@ function Router() {
           <Route path="/reimbursement" component={Reimbursement} />
           <Route path="/performance" component={Performance} />
           <Route path="/recruitment" component={Recruitment} />
-        </>
+        </Suspense>
       )}
       <Route component={NotFound} />
     </Switch>
