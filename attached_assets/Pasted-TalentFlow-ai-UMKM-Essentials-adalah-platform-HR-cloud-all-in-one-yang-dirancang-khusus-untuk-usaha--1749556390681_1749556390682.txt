@@ -1,0 +1,16 @@
+TalentFlow.ai UMKM Essentials adalah platform HR cloud all-in-one yang dirancang khusus untuk usaha kecil-menengah (≤ 100 karyawan). Produk ini mengganti pengelolaan SDM berbasis Excel, mesin absensi konvensional, dan slip gaji kertas dengan satu aplikasi SaaS aman, murah, serta mudah dipakai.
+
+| # | Modul                   | Fitur Kunci                                                                                          | Sentuhan AI/Otomasi                                  |
+| - | ----------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 1 | **Employee Core**       | Master data SDM, kontrak, BPJS/NPWP, file repository, self-service karyawan                          | –                                                    |
+| 2 | **Absensi & Timesheet** | Mobile check-in GPS + selfie, hitung telat/lembur, dashboard hadir                                   | Face-Match ≥ 95 % & geo-fence, anomaly alert         |
+| 3 | **Payroll & Slip**      | Rumus gaji pokok + lembur, BPJS & PPh 21, slip PDF, file bank                                        | 1-klik batch, integrasi Reward Wallet                |
+| 4 | **Cuti & Izin**         | Pengajuan via app, multi-approval, saldo otomatis, kalender cuti                                     | Chatbot WA (roadmap)                                 |
+| 5 | **Dokumen & Template**  | Kontrak/surat variabel, e-sign, arsip digital                                                        | GPT draft dokumen (fase 2)                           |
+| 6 | **Reimbursement**       | Foto struk, OCR nominal/kategori, plafon, approval ke payroll                                        | OCR + auto-classify                                  |
+| 7 | **Performance Mini**    | Target bulanan, progres, rating 1-5, histori 24 bln                                                  | Korelasi kinerja-absensi di Analytics                |
+| 8 | **Recruitment Mini**    | Form lamaran, parser CV, pipeline 3-tahap, auto-hire → Employee                                      | NLP keyword-scoring                                  |
+| ★ | **Momentum Loop™**      | Micro-feedback Pulse, Dynamic Reward Wallet, Predictive Stay-Bot, AR Career Simulator, ROI Dashboard | ML churn model, GPT micro-coaching, real-time reward |
+
+
+Aplikasi ini Akan kita Develop berbasis SaaS, untuk AI kita akan menggunakan API dari deepseek. referensi platform seperti Talenta coba contek itu.
