@@ -117,6 +117,11 @@ export default function Employees() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [employmentStatusFilter, setEmploymentStatusFilter] = useState<string>("all");
+  const [tenureFilter, setTenureFilter] = useState<string>("all");
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const { isAdminOrHR } = usePermissions();
@@ -245,6 +250,90 @@ export default function Employees() {
       minimumFractionDigits: 0,
     }).format(Number(amount));
   };
+
+  const calculateTenure = (hireDate: string) => {
+    const hire = new Date(hireDate);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - hire.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const years = Math.floor(diffDays / 365);
+    const months = Math.floor((diffDays % 365) / 30);
+    
+    if (years > 0) {
+      return `${years} tahun ${months} bulan`;
+    } else {
+      return `${months} bulan`;
+    }
+  };
+
+  const checkContractExpiry = (employee: Employee) => {
+    if (employee.employmentStatus !== 'contract') return null;
+    
+    // Assuming contract is 1 year from hire date for demo
+    const hireDate = new Date(employee.hireDate);
+    const contractEndDate = new Date(hireDate);
+    contractEndDate.setFullYear(contractEndDate.getFullYear() + 1);
+    
+    const now = new Date();
+    const oneMonthFromNow = new Date();
+    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+    
+    if (contractEndDate <= oneMonthFromNow && contractEndDate > now) {
+      const daysLeft = Math.ceil((contractEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        expiring: true,
+        daysLeft,
+        endDate: contractEndDate
+      };
+    }
+    
+    return null;
+  };
+
+  const filteredEmployees = employees.filter((employee: Employee) => {
+    // Search filter
+    const searchMatch = !searchQuery || 
+      employee.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      employee.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      employee.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      employee.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      employee.workEmail.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Status filter
+    const statusMatch = statusFilter === "all" || employee.status === statusFilter;
+
+    // Employment status filter
+    const empStatusMatch = employmentStatusFilter === "all" || employee.employmentStatus === employmentStatusFilter;
+
+    // Tenure filter
+    let tenureMatch = true;
+    if (tenureFilter !== "all") {
+      const hireDate = new Date(employee.hireDate);
+      const now = new Date();
+      const diffMonths = (now.getFullYear() - hireDate.getFullYear()) * 12 + now.getMonth() - hireDate.getMonth();
+      
+      switch (tenureFilter) {
+        case "new": // < 6 months
+          tenureMatch = diffMonths < 6;
+          break;
+        case "junior": // 6 months - 2 years
+          tenureMatch = diffMonths >= 6 && diffMonths <= 24;
+          break;
+        case "senior": // 2-5 years
+          tenureMatch = diffMonths > 24 && diffMonths <= 60;
+          break;
+        case "veteran": // > 5 years
+          tenureMatch = diffMonths > 60;
+          break;
+      }
+    }
+
+    return searchMatch && statusMatch && empStatusMatch && tenureMatch;
+  });
+
+  const contractExpiryNotifications = employees
+    .map((emp: Employee) => ({ employee: emp, expiry: checkContractExpiry(emp) }))
+    .filter(item => item.expiry?.expiring);
 
   if (isLoading) {
     return (
@@ -883,8 +972,121 @@ export default function Employees() {
               )}
             </div>
 
+            {/* Contract Expiry Notifications */}
+            {contractExpiryNotifications.length > 0 && (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <AlertTriangleIcon className="h-5 w-5 text-yellow-400" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-yellow-800">
+                      Peringatan Kontrak Berakhir
+                    </h3>
+                    <div className="mt-2 text-sm text-yellow-700">
+                      <ul className="list-disc space-y-1 pl-5">
+                        {contractExpiryNotifications.map(({ employee, expiry }) => (
+                          <li key={employee.id}>
+                            <strong>{employee.firstName} {employee.lastName}</strong> ({employee.employeeId}) - 
+                            Kontrak berakhir dalam {expiry?.daysLeft} hari ({format(expiry?.endDate || new Date(), "dd/MM/yyyy")})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Search and Filters */}
+            <div className="bg-white p-4 rounded-lg border space-y-4">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex-1 max-w-md">
+                  <div className="relative">
+                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Cari karyawan (nama, ID, posisi, email)..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 items-center">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Status</SelectItem>
+                      <SelectItem value="active">Aktif</SelectItem>
+                      <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                      <SelectItem value="terminated">Berhenti</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={employmentStatusFilter} onValueChange={setEmploymentStatusFilter}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Tipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Tipe</SelectItem>
+                      <SelectItem value="permanent">Tetap</SelectItem>
+                      <SelectItem value="contract">Kontrak</SelectItem>
+                      <SelectItem value="internship">Magang</SelectItem>
+                      <SelectItem value="part_time">Paruh Waktu</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={tenureFilter} onValueChange={setTenureFilter}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Lama Kerja" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="new">Baru (&lt; 6 bulan)</SelectItem>
+                      <SelectItem value="junior">Junior (6 bulan - 2 tahun)</SelectItem>
+                      <SelectItem value="senior">Senior (2-5 tahun)</SelectItem>
+                      <SelectItem value="veteran">Veteran (&gt; 5 tahun)</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <div className="flex border rounded-md">
+                    <Button
+                      variant={viewMode === "list" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("list")}
+                      className="rounded-r-none"
+                    >
+                      <ListIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "grid" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("grid")}
+                      className="rounded-l-none"
+                    >
+                      <GridIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center text-sm text-muted-foreground">
+                <span>
+                  Menampilkan {filteredEmployees.length} dari {employees.length} karyawan
+                </span>
+                {contractExpiryNotifications.length > 0 && (
+                  <span className="text-yellow-600 font-medium">
+                    {contractExpiryNotifications.length} kontrak akan berakhir bulan ini
+                  </span>
+                )}
+              </div>
+            </div>
+
             <div className="grid gap-6">
-              {(employees as Employee[]).length === 0 ? (
+              {filteredEmployees.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
                     <UserIcon className="h-12 w-12 text-muted-foreground mb-4" />
