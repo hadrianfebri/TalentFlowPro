@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,9 @@ import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/hooks/useAuth";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 
 interface Employee {
   id: number;
@@ -54,6 +57,7 @@ interface Employee {
   bankName?: string;
   status: string;
   companyId: string;
+  notes?: string;
   createdAt: string;
 }
 
@@ -114,11 +118,26 @@ export default function Employees() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
-  const { canManageEmployees } = usePermissions();
+  const { isAuthenticated, isLoading } = useAuth();
+  const { isAdminOrHR } = usePermissions();
 
-  const { data: employees = [], isLoading } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
     queryKey: ["/api/employees"],
   });
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+  }, [isAuthenticated, isLoading, toast]);
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
@@ -174,29 +193,29 @@ export default function Employees() {
   });
 
   const getStatusBadge = (status: string) => {
-    const variants = {
+    const variants: Record<string, "default" | "destructive" | "secondary" | "outline"> = {
       active: "default",
       inactive: "secondary",
       terminated: "destructive",
     };
-    return <Badge variant={variants[status as keyof typeof variants] || "secondary"}>{status}</Badge>;
+    return <Badge variant={variants[status] || "secondary"}>{status}</Badge>;
   };
 
   const getEmploymentStatusBadge = (status: string) => {
-    const variants = {
+    const variants: Record<string, "default" | "destructive" | "secondary" | "outline"> = {
       permanent: "default",
       contract: "secondary",
       internship: "outline",
       part_time: "outline",
     };
-    const labels = {
+    const labels: Record<string, string> = {
       permanent: "Tetap",
       contract: "Kontrak", 
       internship: "Magang",
       part_time: "Paruh Waktu",
     };
-    return <Badge variant={variants[status as keyof typeof variants] || "secondary"}>
-      {labels[status as keyof typeof labels] || status}
+    return <Badge variant={variants[status] || "secondary"}>
+      {labels[status] || status}
     </Badge>;
   };
 
@@ -210,25 +229,50 @@ export default function Employees() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Memuat data karyawan...</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (isLoadingEmployees) {
+    return (
+      <div className="flex h-screen overflow-hidden bg-background">
+        <Sidebar />
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <Header pageTitle="Data Karyawan" />
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-muted-foreground">Memuat data karyawan...</p>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Data Karyawan</h1>
-          <p className="text-muted-foreground">Kelola informasi karyawan sesuai standar HR Indonesia</p>
-        </div>
-        {canManageEmployees && (
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar />
+      
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header pageTitle="Data Karyawan" />
+        
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold">Data Karyawan</h1>
+                <p className="text-muted-foreground">Kelola informasi karyawan sesuai standar HR Indonesia</p>
+              </div>
+              {isAdminOrHR() && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -899,26 +943,26 @@ export default function Employees() {
         )}
       </div>
 
-      <div className="grid gap-6">
-        {employees.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <UserIcon className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Belum Ada Data Karyawan</h3>
-              <p className="text-muted-foreground text-center mb-4">
-                Mulai dengan menambahkan karyawan pertama Anda
-              </p>
-              {canManageEmployees && (
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  Tambah Karyawan
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {employees.map((employee: Employee) => (
+            <div className="grid gap-6">
+              {(employees as Employee[]).length === 0 ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <UserIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Belum Ada Data Karyawan</h3>
+                    <p className="text-muted-foreground text-center mb-4">
+                      Mulai dengan menambahkan karyawan pertama Anda
+                    </p>
+                    {isAdminOrHR() && (
+                      <Button onClick={() => setIsAddDialogOpen(true)}>
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        Tambah Karyawan
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {(employees as Employee[]).map((employee: Employee) => (
               <Card key={employee.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
