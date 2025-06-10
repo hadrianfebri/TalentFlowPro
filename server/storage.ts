@@ -312,7 +312,17 @@ export class DatabaseStorage implements IStorage {
 
   // Attendance operations
   async getAttendance(companyId: string, date?: string, employeeId?: number): Promise<Attendance[]> {
-    let query = db
+    let conditions = [eq(employees.companyId, companyId)];
+    
+    if (date) {
+      conditions.push(eq(attendance.date, date));
+    }
+
+    if (employeeId) {
+      conditions.push(eq(attendance.employeeId, employeeId));
+    }
+
+    return db
       .select({
         id: attendance.id,
         employeeId: attendance.employeeId,
@@ -336,17 +346,8 @@ export class DatabaseStorage implements IStorage {
       })
       .from(attendance)
       .innerJoin(employees, eq(attendance.employeeId, employees.id))
-      .where(eq(employees.companyId, companyId));
-
-    if (date) {
-      query = query.where(and(eq(employees.companyId, companyId), eq(attendance.date, date)));
-    }
-
-    if (employeeId) {
-      query = query.where(and(eq(employees.companyId, companyId), eq(attendance.employeeId, employeeId)));
-    }
-
-    return query.orderBy(desc(attendance.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(attendance.createdAt));
   }
 
   async checkIn(data: InsertAttendance): Promise<Attendance> {
@@ -460,14 +461,43 @@ export class DatabaseStorage implements IStorage {
         }
       })
       .from(payroll)
-      .innerJoin(employees, eq(payroll.employeeId, employees.id))
-      .where(eq(employees.companyId, companyId));
+      .innerJoin(employees, eq(payroll.employeeId, employees.id));
 
+    let conditions = [eq(employees.companyId, companyId)];
+    
     if (period) {
-      query = query.where(and(eq(employees.companyId, companyId), eq(payroll.period, period)));
+      conditions.push(eq(payroll.period, period));
     }
 
-    return query.orderBy(desc(payroll.createdAt));
+    return db
+      .select({
+        id: payroll.id,
+        employeeId: payroll.employeeId,
+        period: payroll.period,
+        basicSalary: payroll.basicSalary,
+        overtimePay: payroll.overtimePay,
+        allowances: payroll.allowances,
+        deductions: payroll.deductions,
+        grossSalary: payroll.grossSalary,
+        netSalary: payroll.netSalary,
+        bpjsHealth: payroll.bpjsHealth,
+        bpjsEmployment: payroll.bpjsEmployment,
+        pph21: payroll.pph21,
+        status: payroll.status,
+        processedAt: payroll.processedAt,
+        paidAt: payroll.paidAt,
+        slipGenerated: payroll.slipGenerated,
+        createdAt: payroll.createdAt,
+        employee: {
+          firstName: employees.firstName,
+          lastName: employees.lastName,
+          employeeId: employees.employeeId,
+        }
+      })
+      .from(payroll)
+      .innerJoin(employees, eq(payroll.employeeId, employees.id))
+      .where(and(...conditions))
+      .orderBy(desc(payroll.createdAt));
   }
 
   async calculatePayroll(companyId: string, period: string, employeeId?: number): Promise<Payroll[]> {
