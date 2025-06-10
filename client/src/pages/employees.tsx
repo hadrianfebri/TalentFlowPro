@@ -8,10 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, PlusIcon, EditIcon, EyeIcon, UserIcon, BriefcaseIcon, CreditCardIcon, FileTextIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, EyeIcon, UserIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,92 +28,33 @@ interface Employee {
   employeeId: string;
   firstName: string;
   lastName: string;
-  birthPlace?: string;
-  birthDate?: string;
-  gender?: string;
-  maritalStatus?: string;
-  nationality?: string;
-  religion?: string;
-  homeAddress?: string;
-  phone?: string;
-  personalEmail?: string;
   workEmail: string;
-  emergencyContact?: any;
-  nik?: string;
-  npwp?: string;
-  bpjsHealthNumber?: string;
-  bpjsEmploymentNumber?: string;
-  education?: any;
   position: string;
-  departmentId?: number;
   hireDate: string;
   employmentStatus: string;
-  workLocation?: string;
   basicSalary?: string;
-  bankAccount?: string;
-  bankName?: string;
+  phone?: string;
   status: string;
   companyId: string;
-  notes?: string;
   createdAt: string;
 }
 
 const employeeFormSchema = z.object({
-  // Data Pribadi - Identitas
   employeeId: z.string().min(1, "ID Karyawan wajib diisi"),
   firstName: z.string().min(1, "Nama depan wajib diisi"),
   lastName: z.string().min(1, "Nama belakang wajib diisi"),
-  birthPlace: z.string().optional(),
-  birthDate: z.date().optional(),
-  gender: z.enum(["L", "P"]).optional(),
-  maritalStatus: z.enum(["single", "married", "divorced", "widowed"]).optional(),
-  nationality: z.string().default("Indonesia"),
-  religion: z.enum(["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu"]).optional(),
-  
-  // Data Pribadi - Kontak
-  homeAddress: z.string().optional(),
-  phone: z.string().optional(),
-  personalEmail: z.string().email().optional().or(z.literal("")),
   workEmail: z.string().email("Email kerja wajib valid"),
-  emergencyContactName: z.string().optional(),
-  emergencyContactPhone: z.string().optional(),
-  emergencyContactRelation: z.string().optional(),
-  
-  // Data Pribadi - Identifikasi
-  nik: z.string().optional(),
-  npwp: z.string().optional(),
-  bpjsHealthNumber: z.string().optional(),
-  bpjsEmploymentNumber: z.string().optional(),
-  
-  // Data Pribadi - Pendidikan
-  educationLevel: z.string().optional(),
-  educationInstitution: z.string().optional(),
-  educationMajor: z.string().optional(),
-  educationYear: z.string().optional(),
-  certifications: z.string().optional(),
-  
-  // Data Pekerjaan
   position: z.string().min(1, "Posisi wajib diisi"),
   hireDate: z.date(),
   employmentStatus: z.enum(["permanent", "contract", "internship", "part_time"]),
-  workLocation: z.enum(["head_office", "branch", "remote", "hybrid"]).optional(),
-  
-  // Data Finansial
   basicSalary: z.string().optional(),
-  bankAccount: z.string().optional(),
-  bankName: z.string().optional(),
-  
-  // Meta
-  notes: z.string().optional(),
+  phone: z.string().optional(),
 });
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 
 export default function Employees() {
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const { isAdminOrHR } = usePermissions();
@@ -142,7 +80,6 @@ export default function Employees() {
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
     defaultValues: {
-      nationality: "Indonesia",
       employmentStatus: "permanent",
     },
   });
@@ -151,28 +88,10 @@ export default function Employees() {
     mutationFn: async (data: EmployeeFormData) => {
       const payload = {
         ...data,
-        birthDate: data.birthDate?.toISOString().split('T')[0],
         hireDate: data.hireDate.toISOString().split('T')[0],
-        emergencyContact: data.emergencyContactName ? {
-          name: data.emergencyContactName,
-          phone: data.emergencyContactPhone,
-          relationship: data.emergencyContactRelation,
-        } : null,
-        education: data.educationLevel ? {
-          level: data.educationLevel,
-          institution: data.educationInstitution,
-          major: data.educationMajor,
-          graduationYear: data.educationYear,
-          certifications: data.certifications?.split(',').map(c => c.trim()).filter(Boolean) || [],
-        } : null,
       };
       
-      // Remove form-specific fields
-      const { emergencyContactName, emergencyContactPhone, emergencyContactRelation, 
-              educationLevel, educationInstitution, educationMajor, educationYear, certifications, 
-              ...finalPayload } = payload;
-      
-      return apiRequest("POST", "/api/employees", finalPayload);
+      return apiRequest("POST", "/api/employees", payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
@@ -273,251 +192,173 @@ export default function Employees() {
                 <p className="text-muted-foreground">Kelola informasi karyawan sesuai standar HR Indonesia</p>
               </div>
               {isAdminOrHR() && (
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusIcon className="w-4 h-4 mr-2" />
-                Tambah Karyawan
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Tambah Karyawan Baru</DialogTitle>
-                <DialogDescription>
-                  Lengkapi data karyawan sesuai standar HR Indonesia
-                </DialogDescription>
-              </DialogHeader>
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <PlusIcon className="w-4 h-4 mr-2" />
+                      Tambah Karyawan
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Tambah Karyawan Baru</DialogTitle>
+                      <DialogDescription>
+                        Lengkapi data karyawan dasar
+                      </DialogDescription>
+                    </DialogHeader>
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit((data) => createEmployeeMutation.mutate(data))} className="space-y-6">
-                  <Tabs defaultValue="personal" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="personal" className="flex items-center gap-2">
-                        <UserIcon className="h-4 w-4" />
-                        Data Pribadi
-                      </TabsTrigger>
-                      <TabsTrigger value="job" className="flex items-center gap-2">
-                        <BriefcaseIcon className="h-4 w-4" />
-                        Data Pekerjaan
-                      </TabsTrigger>
-                      <TabsTrigger value="financial" className="flex items-center gap-2">
-                        <CreditCardIcon className="h-4 w-4" />
-                        Data Finansial
-                      </TabsTrigger>
-                      <TabsTrigger value="additional" className="flex items-center gap-2">
-                        <FileTextIcon className="h-4 w-4" />
-                        Tambahan
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="personal" className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="employeeId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>ID Karyawan *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="EMP001" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div></div>
-                        
-                        <FormField
-                          control={form.control}
-                          name="firstName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nama Depan *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ahmad" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="lastName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nama Belakang *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Santoso" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="birthPlace"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tempat Lahir</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Jakarta" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="birthDate"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>Tanggal Lahir</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn(
-                                        "w-full pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                    >
-                                      {field.value ? (
-                                        format(field.value, "dd/MM/yyyy")
-                                      ) : (
-                                        <span>Pilih tanggal</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                      date > new Date() || date < new Date("1900-01-01")
-                                    }
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="gender"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Jenis Kelamin</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Pilih jenis kelamin" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="L">Laki-laki</SelectItem>
-                                  <SelectItem value="P">Perempuan</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="maritalStatus"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Status Pernikahan</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Pilih status" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="single">Belum Menikah</SelectItem>
-                                  <SelectItem value="married">Menikah</SelectItem>
-                                  <SelectItem value="divorced">Cerai</SelectItem>
-                                  <SelectItem value="widowed">Janda/Duda</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="religion"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Agama</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Pilih agama" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Islam">Islam</SelectItem>
-                                  <SelectItem value="Kristen">Kristen</SelectItem>
-                                  <SelectItem value="Katolik">Katolik</SelectItem>
-                                  <SelectItem value="Hindu">Hindu</SelectItem>
-                                  <SelectItem value="Buddha">Buddha</SelectItem>
-                                  <SelectItem value="Konghucu">Konghucu</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="nationality"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Kewarganegaraan</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Informasi Kontak</h4>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit((data) => createEmployeeMutation.mutate(data))} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="col-span-2">
-                            <FormField
-                              control={form.control}
-                              name="homeAddress"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Alamat Rumah</FormLabel>
+                          <FormField
+                            control={form.control}
+                            name="employeeId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>ID Karyawan *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="EMP006" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="firstName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nama Depan *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ahmad" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="lastName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nama Belakang *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Santoso" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="workEmail"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email Kerja *</FormLabel>
+                                <FormControl>
+                                  <Input type="email" placeholder="ahmad@talentflow.co.id" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="position"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Posisi/Jabatan *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Software Engineer" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="hireDate"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Tanggal Mulai Kerja *</FormLabel>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                          "w-full pl-3 text-left font-normal",
+                                          !field.value && "text-muted-foreground"
+                                        )}
+                                      >
+                                        {field.value ? (
+                                          format(field.value, "dd/MM/yyyy")
+                                        ) : (
+                                          <span>Pilih tanggal</span>
+                                        )}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                      </Button>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={field.onChange}
+                                      disabled={(date) =>
+                                        date > new Date() || date < new Date("2000-01-01")
+                                      }
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="employmentStatus"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Status Karyawan *</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
-                                    <Textarea placeholder="Jl. Sudirman No. 123, Jakarta Selatan" {...field} />
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Pilih status" />
+                                    </SelectTrigger>
                                   </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
+                                  <SelectContent>
+                                    <SelectItem value="permanent">Karyawan Tetap</SelectItem>
+                                    <SelectItem value="contract">Kontrak</SelectItem>
+                                    <SelectItem value="internship">Magang</SelectItem>
+                                    <SelectItem value="part_time">Paruh Waktu</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="basicSalary"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Gaji Pokok</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="8000000" type="number" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                           
                           <FormField
                             control={form.control}
@@ -532,416 +373,22 @@ export default function Employees() {
                               </FormItem>
                             )}
                           />
-                          
-                          <FormField
-                            control={form.control}
-                            name="personalEmail"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Email Pribadi</FormLabel>
-                                <FormControl>
-                                  <Input type="email" placeholder="ahmad@gmail.com" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="workEmail"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Email Kerja *</FormLabel>
-                                <FormControl>
-                                  <Input type="email" placeholder="ahmad@perusahaan.com" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
                         </div>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Kontak Darurat</h4>
-                        <div className="grid grid-cols-3 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="emergencyContactName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Nama</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Siti Ahmad" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="emergencyContactPhone"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>No. Telepon</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="+62-813-9876-5432" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="emergencyContactRelation"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Hubungan</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Istri/Suami/Orang Tua" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+
+                        <div className="flex justify-end space-x-4">
+                          <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                            Batal
+                          </Button>
+                          <Button type="submit" disabled={createEmployeeMutation.isPending}>
+                            {createEmployeeMutation.isPending ? "Menyimpan..." : "Simpan Karyawan"}
+                          </Button>
                         </div>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Data Identifikasi</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="nik"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>NIK (Nomor Induk Kependudukan)</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="3171051505900001" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="npwp"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>NPWP</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="12.345.678.9-012.000" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="bpjsHealthNumber"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>No. BPJS Kesehatan</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="0001234567890" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="bpjsEmploymentNumber"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>No. BPJS Ketenagakerjaan</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="13010001234567" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Riwayat Pendidikan</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="educationLevel"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Jenjang Pendidikan</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="S1/S2/S3/D3/SMA" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="educationInstitution"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Nama Institusi</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Universitas Indonesia" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="educationMajor"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Jurusan</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Teknik Informatika" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="educationYear"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Tahun Lulus</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="2020" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <div className="col-span-2">
-                            <FormField
-                              control={form.control}
-                              name="certifications"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Sertifikasi (pisahkan dengan koma)</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="PMP, AWS Certified, Oracle Certified" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="job" className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="position"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Posisi/Jabatan *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Software Engineer" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="hireDate"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>Tanggal Mulai Kerja *</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn(
-                                        "w-full pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                    >
-                                      {field.value ? (
-                                        format(field.value, "dd/MM/yyyy")
-                                      ) : (
-                                        <span>Pilih tanggal</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                      date > new Date() || date < new Date("2000-01-01")
-                                    }
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="employmentStatus"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Status Karyawan *</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Pilih status" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="permanent">Karyawan Tetap</SelectItem>
-                                  <SelectItem value="contract">Kontrak</SelectItem>
-                                  <SelectItem value="internship">Magang</SelectItem>
-                                  <SelectItem value="part_time">Paruh Waktu</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="workLocation"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Lokasi Kerja</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Pilih lokasi" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="head_office">Kantor Pusat</SelectItem>
-                                  <SelectItem value="branch">Cabang</SelectItem>
-                                  <SelectItem value="remote">Remote</SelectItem>
-                                  <SelectItem value="hybrid">Hybrid</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="financial" className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="basicSalary"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Gaji Pokok</FormLabel>
-                              <FormControl>
-                                <Input placeholder="8000000" type="number" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <div></div>
-                        
-                        <FormField
-                          control={form.control}
-                          name="bankName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nama Bank</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Bank Mandiri" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="bankAccount"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>No. Rekening</FormLabel>
-                              <FormControl>
-                                <Input placeholder="1234567890" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="additional" className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Catatan Tambahan</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="Catatan khusus tentang karyawan..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TabsContent>
-                  </Tabs>
-
-                  <div className="flex justify-end space-x-4">
-                    <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                      Batal
-                    </Button>
-                    <Button type="submit" disabled={createEmployeeMutation.isPending}>
-                      {createEmployeeMutation.isPending ? "Menyimpan..." : "Simpan Karyawan"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
 
             <div className="grid gap-6">
               {(employees as Employee[]).length === 0 ? (
@@ -963,311 +410,70 @@ export default function Employees() {
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {(employees as Employee[]).map((employee: Employee) => (
-              <Card key={employee.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">
-                        {employee.firstName} {employee.lastName}
-                      </CardTitle>
-                      <CardDescription>{employee.position}</CardDescription>
-                    </div>
-                    <div className="flex gap-2">
-                      {getStatusBadge(employee.status)}
-                      {getEmploymentStatusBadge(employee.employmentStatus)}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">ID Karyawan:</span>
-                      <span className="font-medium">{employee.employeeId}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Email:</span>
-                      <span className="font-medium truncate ml-2">{employee.workEmail}</span>
-                    </div>
-                    {employee.phone && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Telepon:</span>
-                        <span className="font-medium">{employee.phone}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Bergabung:</span>
-                      <span className="font-medium">
-                        {format(new Date(employee.hireDate), "dd/MM/yyyy")}
-                      </span>
-                    </div>
-                    {employee.basicSalary && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Gaji:</span>
-                        <span className="font-medium">{formatCurrency(employee.basicSalary)}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedEmployee(employee);
-                        setIsViewDialogOpen(true);
-                      }}
-                      className="flex-1"
-                    >
-                      <EyeIcon className="w-4 h-4 mr-1" />
-                      Lihat
-                    </Button>
-                    {canManageEmployees && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedEmployee(employee);
-                          setIsEditDialogOpen(true);
-                        }}
-                        className="flex-1"
-                      >
-                        <EditIcon className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* View Employee Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Detail Karyawan</DialogTitle>
-            <DialogDescription>
-              Informasi lengkap {selectedEmployee?.firstName} {selectedEmployee?.lastName}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedEmployee && (
-            <ScrollArea className="h-full max-h-[70vh]">
-              <Tabs defaultValue="personal" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="personal">Data Pribadi</TabsTrigger>
-                  <TabsTrigger value="job">Data Pekerjaan</TabsTrigger>
-                  <TabsTrigger value="financial">Data Finansial</TabsTrigger>
-                  <TabsTrigger value="additional">Tambahan</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="personal" className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">ID Karyawan</label>
-                      <p className="text-sm font-medium">{selectedEmployee.employeeId}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Nama Lengkap</label>
-                      <p className="text-sm font-medium">{selectedEmployee.firstName} {selectedEmployee.lastName}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Tempat Lahir</label>
-                      <p className="text-sm font-medium">{selectedEmployee.birthPlace || "-"}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Tanggal Lahir</label>
-                      <p className="text-sm font-medium">
-                        {selectedEmployee.birthDate ? format(new Date(selectedEmployee.birthDate), "dd/MM/yyyy") : "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Jenis Kelamin</label>
-                      <p className="text-sm font-medium">
-                        {selectedEmployee.gender === "L" ? "Laki-laki" : selectedEmployee.gender === "P" ? "Perempuan" : "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Status Pernikahan</label>
-                      <p className="text-sm font-medium">
-                        {selectedEmployee.maritalStatus === "single" ? "Belum Menikah" :
-                         selectedEmployee.maritalStatus === "married" ? "Menikah" :
-                         selectedEmployee.maritalStatus === "divorced" ? "Cerai" :
-                         selectedEmployee.maritalStatus === "widowed" ? "Janda/Duda" : "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Kewarganegaraan</label>
-                      <p className="text-sm font-medium">{selectedEmployee.nationality || "-"}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Agama</label>
-                      <p className="text-sm font-medium">{selectedEmployee.religion || "-"}</p>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Informasi Kontak</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <label className="text-sm font-medium text-muted-foreground">Alamat Rumah</label>
-                        <p className="text-sm font-medium">{selectedEmployee.homeAddress || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">No. Telepon</label>
-                        <p className="text-sm font-medium">{selectedEmployee.phone || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Email Pribadi</label>
-                        <p className="text-sm font-medium">{selectedEmployee.personalEmail || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Email Kerja</label>
-                        <p className="text-sm font-medium">{selectedEmployee.workEmail}</p>
-                      </div>
-                    </div>
-                    
-                    {selectedEmployee.emergencyContact && (
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Kontak Darurat</label>
-                        <p className="text-sm font-medium">
-                          {selectedEmployee.emergencyContact.name} ({selectedEmployee.emergencyContact.relationship}) - {selectedEmployee.emergencyContact.phone}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Data Identifikasi</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">NIK</label>
-                        <p className="text-sm font-medium">{selectedEmployee.nik || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">NPWP</label>
-                        <p className="text-sm font-medium">{selectedEmployee.npwp || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">No. BPJS Kesehatan</label>
-                        <p className="text-sm font-medium">{selectedEmployee.bpjsHealthNumber || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">No. BPJS Ketenagakerjaan</label>
-                        <p className="text-sm font-medium">{selectedEmployee.bpjsEmploymentNumber || "-"}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {selectedEmployee.education && (
-                    <>
-                      <Separator />
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Riwayat Pendidikan</h4>
-                        <div className="grid grid-cols-2 gap-4">
+                    <Card key={employee.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
                           <div>
-                            <label className="text-sm font-medium text-muted-foreground">Jenjang</label>
-                            <p className="text-sm font-medium">{selectedEmployee.education.level || "-"}</p>
+                            <CardTitle className="text-lg">
+                              {employee.firstName} {employee.lastName}
+                            </CardTitle>
+                            <CardDescription>{employee.position}</CardDescription>
                           </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Institusi</label>
-                            <p className="text-sm font-medium">{selectedEmployee.education.institution || "-"}</p>
+                          <div className="flex gap-2">
+                            {getStatusBadge(employee.status)}
+                            {getEmploymentStatusBadge(employee.employmentStatus)}
                           </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Jurusan</label>
-                            <p className="text-sm font-medium">{selectedEmployee.education.major || "-"}</p>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">ID Karyawan:</span>
+                            <span className="font-medium">{employee.employeeId}</span>
                           </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Tahun Lulus</label>
-                            <p className="text-sm font-medium">{selectedEmployee.education.graduationYear || "-"}</p>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Email:</span>
+                            <span className="font-medium truncate ml-2">{employee.workEmail}</span>
                           </div>
-                          {selectedEmployee.education.certifications && selectedEmployee.education.certifications.length > 0 && (
-                            <div className="col-span-2">
-                              <label className="text-sm font-medium text-muted-foreground">Sertifikasi</label>
-                              <div className="flex flex-wrap gap-2 mt-1">
-                                {selectedEmployee.education.certifications.map((cert: string, index: number) => (
-                                  <Badge key={index} variant="secondary">{cert}</Badge>
-                                ))}
-                              </div>
+                          {employee.phone && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Telepon:</span>
+                              <span className="font-medium">{employee.phone}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Bergabung:</span>
+                            <span className="font-medium">
+                              {format(new Date(employee.hireDate), "dd/MM/yyyy")}
+                            </span>
+                          </div>
+                          {employee.basicSalary && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Gaji:</span>
+                              <span className="font-medium">{formatCurrency(employee.basicSalary)}</span>
                             </div>
                           )}
                         </div>
-                      </div>
-                    </>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="job" className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Posisi/Jabatan</label>
-                      <p className="text-sm font-medium">{selectedEmployee.position}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Tanggal Mulai Kerja</label>
-                      <p className="text-sm font-medium">{format(new Date(selectedEmployee.hireDate), "dd/MM/yyyy")}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Status Karyawan</label>
-                      <div className="mt-1">{getEmploymentStatusBadge(selectedEmployee.employmentStatus)}</div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Lokasi Kerja</label>
-                      <p className="text-sm font-medium">
-                        {selectedEmployee.workLocation === "head_office" ? "Kantor Pusat" :
-                         selectedEmployee.workLocation === "branch" ? "Cabang" :
-                         selectedEmployee.workLocation === "remote" ? "Remote" :
-                         selectedEmployee.workLocation === "hybrid" ? "Hybrid" : "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Status</label>
-                      <div className="mt-1">{getStatusBadge(selectedEmployee.status)}</div>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="financial" className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Gaji Pokok</label>
-                      <p className="text-sm font-medium">
-                        {selectedEmployee.basicSalary ? formatCurrency(selectedEmployee.basicSalary) : "-"}
-                      </p>
-                    </div>
-                    <div></div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Nama Bank</label>
-                      <p className="text-sm font-medium">{selectedEmployee.bankName || "-"}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">No. Rekening</label>
-                      <p className="text-sm font-medium">{selectedEmployee.bankAccount || "-"}</p>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="additional" className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Catatan</label>
-                    <p className="text-sm font-medium">{selectedEmployee.notes || "Tidak ada catatan"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Tanggal Dibuat</label>
-                    <p className="text-sm font-medium">{format(new Date(selectedEmployee.createdAt), "dd/MM/yyyy HH:mm")}</p>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </ScrollArea>
-          )}
-        </DialogContent>
-      </Dialog>
+                        
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                          >
+                            <EyeIcon className="w-4 h-4 mr-1" />
+                            Lihat Detail
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
