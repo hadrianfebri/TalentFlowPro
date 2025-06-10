@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupSwagger } from "./swagger";
 import {
   insertEmployeeSchema,
   insertAttendanceSchema,
@@ -16,10 +17,33 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Swagger documentation
+  setupSwagger(app);
+  
   // Auth middleware
   await setupAuth(app);
 
   // Auth routes
+  /**
+   * @swagger
+   * /auth/user:
+   *   get:
+   *     summary: Mendapatkan informasi user yang sedang login
+   *     tags: [Authentication]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Data user berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/User'
+   *       401:
+   *         description: Unauthorized - User belum login
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -32,6 +56,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard API
+  /**
+   * @swagger
+   * /dashboard/stats:
+   *   get:
+   *     summary: Mendapatkan statistik dashboard perusahaan
+   *     tags: [Dashboard]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Statistik dashboard berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 totalEmployees:
+   *                   type: integer
+   *                 attendanceToday:
+   *                   type: integer
+   *                 pendingLeaves:
+   *                   type: integer
+   *                 monthlyPayroll:
+   *                   type: number
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       401:
+   *         description: Unauthorized
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/dashboard/stats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -81,6 +136,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Employee Management API
+  /**
+   * @swagger
+   * /employees:
+   *   get:
+   *     summary: Mendapatkan daftar semua karyawan
+   *     tags: [Employee Management]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Daftar karyawan berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Employee'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       401:
+   *         description: Unauthorized
+   *       500:
+   *         description: Server error
+   *   post:
+   *     summary: Menambah karyawan baru
+   *     tags: [Employee Management]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - employeeId
+   *               - firstName
+   *               - lastName
+   *               - email
+   *               - position
+   *               - hireDate
+   *             properties:
+   *               employeeId:
+   *                 type: string
+   *               firstName:
+   *                 type: string
+   *               lastName:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               phone:
+   *                 type: string
+   *               position:
+   *                 type: string
+   *               department:
+   *                 type: string
+   *               hireDate:
+   *                 type: string
+   *                 format: date
+   *               salary:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Karyawan berhasil ditambahkan
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Employee'
+   *       400:
+   *         description: Data tidak valid atau user tidak terkait dengan perusahaan
+   *       401:
+   *         description: Unauthorized
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/employees', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
