@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Settings, Key, ExternalLink, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("integrations");
@@ -137,15 +139,22 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Pengaturan</h1>
-        <p className="text-muted-foreground">
-          Kelola integrasi platform eksternal dan pengaturan sistem
-        </p>
-      </div>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar />
+      
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header pageTitle="Pengaturan" />
+        
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Pengaturan</h1>
+              <p className="text-muted-foreground">
+                Kelola integrasi platform eksternal dan pengaturan sistem
+              </p>
+            </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="integrations">Integrasi Platform</TabsTrigger>
           <TabsTrigger value="general">Pengaturan Umum</TabsTrigger>
@@ -356,6 +365,9 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
