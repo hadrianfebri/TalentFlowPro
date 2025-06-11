@@ -817,6 +817,167 @@ export default function Performance() {
               )}
             </DialogContent>
           </Dialog>
+
+          {/* Edit Dialog */}
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit Performance Review</DialogTitle>
+              </DialogHeader>
+              {selectedReview && (
+                <form onSubmit={handleEditSubmit} className="space-y-6">
+                  {/* Employee Info - Read Only */}
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Karyawan</Label>
+                      <p className="text-lg font-semibold">
+                        {selectedReview.employee.firstName} {selectedReview.employee.lastName}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Periode</Label>
+                      <p className="text-lg font-semibold">{selectedReview.period}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Dynamic KPI Fields */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-lg font-semibold">Target & KPI</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addKpiField}>
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        Tambah KPI
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      {kpiFields.map((field, index) => (
+                        <div key={index} className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <Label>Nama KPI</Label>
+                            <Input
+                              value={field.key}
+                              onChange={(e) => updateKpiField(index, 'key', e.target.value)}
+                              placeholder="Contoh: Target Penjualan"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <Label>Target</Label>
+                            <Input
+                              value={field.value}
+                              onChange={(e) => updateKpiField(index, 'value', e.target.value)}
+                              placeholder="Contoh: 100 unit per bulan"
+                            />
+                          </div>
+                          {kpiFields.length > 1 && (
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => removeKpiField(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Dynamic Achievement Fields */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-lg font-semibold">Pencapaian</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addAchievementField}>
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        Tambah Pencapaian
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      {achievementFields.map((field, index) => (
+                        <div key={index} className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <Label>Nama Pencapaian</Label>
+                            <Input
+                              value={field.key}
+                              onChange={(e) => updateAchievementField(index, 'key', e.target.value)}
+                              placeholder="Contoh: Penjualan Tercapai"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <Label>Hasil</Label>
+                            <Input
+                              value={field.value}
+                              onChange={(e) => updateAchievementField(index, 'value', e.target.value)}
+                              placeholder="Contoh: 120 unit (120%)"
+                            />
+                          </div>
+                          {achievementFields.length > 1 && (
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => removeAchievementField(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="rating">Rating (1-5)</Label>
+                      <Input
+                        name="rating"
+                        type="number"
+                        min="1"
+                        max="5"
+                        step="0.1"
+                        defaultValue={selectedReview.rating?.toString() || ''}
+                        placeholder="4.5"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="status">Status</Label>
+                      <Select name="status" defaultValue={selectedReview.status}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="feedback">Feedback & Saran</Label>
+                    <Textarea
+                      name="feedback"
+                      defaultValue={selectedReview.feedback || ''}
+                      placeholder="Berikan feedback dan saran untuk perbaikan..."
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                      Batal
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={updatePerformanceMutation.isPending}
+                    >
+                      {updatePerformanceMutation.isPending ? "Menyimpan..." : "Simpan Perubahan"}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>

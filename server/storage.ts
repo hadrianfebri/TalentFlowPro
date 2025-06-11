@@ -96,6 +96,7 @@ export interface IStorage {
   // Performance operations
   getPerformanceReviews(companyId: string): Promise<PerformanceReview[]>;
   createPerformanceReview(data: InsertPerformanceReview): Promise<PerformanceReview>;
+  updatePerformanceReview(id: number, data: Partial<InsertPerformanceReview>): Promise<PerformanceReview>;
   
   // Recruitment operations
   getJobs(companyId: string): Promise<Job[]>;
@@ -810,6 +811,20 @@ export class DatabaseStorage implements IStorage {
       .values(data)
       .returning();
     return review;
+  }
+
+  async updatePerformanceReview(id: number, data: Partial<InsertPerformanceReview>): Promise<PerformanceReview> {
+    const [updatedReview] = await db
+      .update(performanceReviews)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(performanceReviews.id, id))
+      .returning();
+    
+    if (!updatedReview) {
+      throw new Error('Performance review not found');
+    }
+    
+    return updatedReview;
   }
 
   // Recruitment operations

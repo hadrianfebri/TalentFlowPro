@@ -1293,6 +1293,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/performance/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertPerformanceReviewSchema.partial().parse(req.body);
+      const performance = await storage.updatePerformanceReview(parseInt(id), validatedData);
+      res.json(performance);
+    } catch (error) {
+      console.error("Error updating performance review:", error);
+      res.status(500).json({ message: "Failed to update performance review" });
+    }
+  });
+
   // Recruitment API
   app.get('/api/jobs', isAuthenticated, async (req: any, res) => {
     try {
