@@ -445,8 +445,18 @@ export default function AddApplicantPage() {
                             <FormControl>
                               <Input
                                 type="file"
-                                accept=".pdf,.doc,.docx"
-                                onChange={(e) => onChange(e.target.files)}
+                                accept="application/pdf,.pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.doc,.docx"
+                                onChange={(e) => {
+                                  const files = e.target.files;
+                                  if (files && files[0]) {
+                                    console.log("File selected:", {
+                                      name: files[0].name,
+                                      type: files[0].type,
+                                      size: files[0].size
+                                    });
+                                  }
+                                  onChange(files);
+                                }}
                                 {...field}
                                 value=""
                               />
@@ -454,6 +464,19 @@ export default function AddApplicantPage() {
                             <p className="text-xs text-muted-foreground">
                               Format yang didukung: PDF, Word (.doc/.docx). Maksimal 10MB
                             </p>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+                                console.log("File input element:", input);
+                                console.log("Accept attribute:", input?.accept);
+                                console.log("Files in input:", input?.files);
+                              }}
+                            >
+                              Test File Detection
+                            </Button>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -472,8 +495,18 @@ export default function AddApplicantPage() {
                               <Input
                                 type="file"
                                 multiple
-                                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                                onChange={(e) => onChange(e.target.files)}
+                                accept="application/pdf,.pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.doc,.docx,image/jpeg,image/jpg,image/png,.jpg,.jpeg,.png"
+                                onChange={(e) => {
+                                  const files = e.target.files;
+                                  if (files) {
+                                    console.log("Portfolio files selected:", Array.from(files).map(f => ({
+                                      name: f.name,
+                                      type: f.type,
+                                      size: f.size
+                                    })));
+                                  }
+                                  onChange(files);
+                                }}
                                 {...field}
                                 value=""
                               />
