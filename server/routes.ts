@@ -729,6 +729,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * @swagger
+   * /employees/{id}:
+   *   put:
+   *     summary: Update data karyawan
+   *     tags: [Employees]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID karyawan
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               employeeId:
+   *                 type: string
+   *               firstName:
+   *                 type: string
+   *               lastName:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               phone:
+   *                 type: string
+   *               position:
+   *                 type: string
+   *               department:
+   *                 type: string
+   *               hireDate:
+   *                 type: string
+   *                 format: date
+   *               salary:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Data karyawan berhasil diupdate
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Employee'
+   *       400:
+   *         description: Data tidak valid
+   *       404:
+   *         description: Karyawan tidak ditemukan
+   *       500:
+   *         description: Server error
+   *   delete:
+   *     summary: Hapus karyawan
+   *     tags: [Employees]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID karyawan
+   *     responses:
+   *       200:
+   *         description: Karyawan berhasil dihapus
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "Employee deleted successfully"
+   *       404:
+   *         description: Karyawan tidak ditemukan
+   *       500:
+   *         description: Server error
+   */
   app.put('/api/employees/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
@@ -1333,6 +1415,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   /**
    * @swagger
+   * /leaves/{id}:
+   *   put:
+   *     summary: Update pengajuan cuti
+   *     tags: [Leave]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID pengajuan cuti
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               leaveTypeId:
+   *                 type: integer
+   *               startDate:
+   *                 type: string
+   *                 format: date
+   *               endDate:
+   *                 type: string
+   *                 format: date
+   *               reason:
+   *                 type: string
+   *               status:
+   *                 type: string
+   *                 enum: [pending, approved, rejected]
+   *     responses:
+   *       200:
+   *         description: Pengajuan cuti berhasil diupdate
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/LeaveRequest'
+   *       400:
+   *         description: Data tidak valid
+   *       404:
+   *         description: Pengajuan cuti tidak ditemukan
+   *       500:
+   *         description: Server error
+   *   delete:
+   *     summary: Hapus pengajuan cuti
+   *     tags: [Leave]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID pengajuan cuti
+   *     responses:
+   *       200:
+   *         description: Pengajuan cuti berhasil dihapus
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "Leave request deleted successfully"
+   *       404:
+   *         description: Pengajuan cuti tidak ditemukan
+   *       500:
+   *         description: Server error
+   * /leaves/{id}/approve:
+   *   patch:
+   *     summary: Approve pengajuan cuti
+   *     tags: [Leave]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID pengajuan cuti
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               approverNotes:
+   *                 type: string
+   *                 description: Catatan dari approver
+   *     responses:
+   *       200:
+   *         description: Pengajuan cuti berhasil diapprove
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/LeaveRequest'
+   *       404:
+   *         description: Pengajuan cuti tidak ditemukan
+   *       500:
+   *         description: Server error
+   * /leaves/{id}/reject:
+   *   patch:
+   *     summary: Reject pengajuan cuti
+   *     tags: [Leave]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID pengajuan cuti
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - reason
+   *             properties:
+   *               reason:
+   *                 type: string
+   *                 description: Alasan penolakan
+   *     responses:
+   *       200:
+   *         description: Pengajuan cuti berhasil ditolak
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/LeaveRequest'
+   *       404:
+   *         description: Pengajuan cuti tidak ditemukan
+   *       500:
+   *         description: Server error
    * /leaves:
    *   get:
    *     summary: Mendapatkan daftar semua pengajuan cuti
@@ -1616,6 +1840,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * @swagger
+   * /documents/{id}:
+   *   put:
+   *     summary: Update dokumen
+   *     tags: [Documents]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID dokumen
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               title:
+   *                 type: string
+   *               category:
+   *                 type: string
+   *               description:
+   *                 type: string
+   *               status:
+   *                 type: string
+   *                 enum: [draft, approved, rejected]
+   *     responses:
+   *       200:
+   *         description: Dokumen berhasil diupdate
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Document'
+   *       400:
+   *         description: Data tidak valid
+   *       404:
+   *         description: Dokumen tidak ditemukan
+   *       500:
+   *         description: Server error
+   *   delete:
+   *     summary: Hapus dokumen
+   *     tags: [Documents]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID dokumen
+   *     responses:
+   *       200:
+   *         description: Dokumen berhasil dihapus
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "Document deleted successfully"
+   *       404:
+   *         description: Dokumen tidak ditemukan
+   *       500:
+   *         description: Server error
+   */
   app.post('/api/documents', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1749,6 +2045,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * @swagger
+   * /reimbursements/{id}:
+   *   put:
+   *     summary: Update pengajuan reimbursement
+   *     tags: [Reimbursements]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID reimbursement
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               title:
+   *                 type: string
+   *               description:
+   *                 type: string
+   *               amount:
+   *                 type: string
+   *               category:
+   *                 type: string
+   *               receiptUrl:
+   *                 type: string
+   *               status:
+   *                 type: string
+   *                 enum: [pending, approved, rejected]
+   *     responses:
+   *       200:
+   *         description: Reimbursement berhasil diupdate
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Reimbursement'
+   *       400:
+   *         description: Data tidak valid
+   *       404:
+   *         description: Reimbursement tidak ditemukan
+   *       500:
+   *         description: Server error
+   *   delete:
+   *     summary: Hapus pengajuan reimbursement
+   *     tags: [Reimbursements]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID reimbursement
+   *     responses:
+   *       200:
+   *         description: Reimbursement berhasil dihapus
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "Reimbursement deleted successfully"
+   *       404:
+   *         description: Reimbursement tidak ditemukan
+   *       500:
+   *         description: Server error
+   * /reimbursements/{id}/approve:
+   *   patch:
+   *     summary: Approve reimbursement
+   *     tags: [Reimbursements]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID reimbursement
+   *     responses:
+   *       200:
+   *         description: Reimbursement berhasil diapprove
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Reimbursement'
+   *       404:
+   *         description: Reimbursement tidak ditemukan
+   *       500:
+   *         description: Server error
+   * /reimbursements/{id}/reject:
+   *   patch:
+   *     summary: Reject reimbursement
+   *     tags: [Reimbursements]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID reimbursement
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               reason:
+   *                 type: string
+   *                 description: Alasan penolakan (opsional)
+   *     responses:
+   *       200:
+   *         description: Reimbursement berhasil ditolak
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Reimbursement'
+   *       404:
+   *         description: Reimbursement tidak ditemukan
+   *       500:
+   *         description: Server error
+   */
   app.patch('/api/reimbursements/:id/approve', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
@@ -1977,6 +2406,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update job
+  /**
+   * @swagger
+   * /jobs/{id}:
+   *   put:
+   *     summary: Update lowongan kerja
+   *     tags: [Jobs]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID lowongan kerja
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               title:
+   *                 type: string
+   *               department:
+   *                 type: string
+   *               location:
+   *                 type: string
+   *               type:
+   *                 type: string
+   *               description:
+   *                 type: string
+   *               requirements:
+   *                 type: string
+   *               salaryMin:
+   *                 type: string
+   *               salaryMax:
+   *                 type: string
+   *               status:
+   *                 type: string
+   *                 enum: [draft, active, closed]
+   *               expiryDate:
+   *                 type: string
+   *                 format: date
+   *     responses:
+   *       200:
+   *         description: Lowongan kerja berhasil diupdate
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Job'
+   *       400:
+   *         description: Data tidak valid
+   *       404:
+   *         description: Lowongan kerja tidak ditemukan
+   *       500:
+   *         description: Server error
+   *   delete:
+   *     summary: Hapus lowongan kerja
+   *     tags: [Jobs]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID lowongan kerja
+   *     responses:
+   *       200:
+   *         description: Lowongan kerja berhasil dihapus
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "Job deleted successfully"
+   *       404:
+   *         description: Lowongan kerja tidak ditemukan
+   *       500:
+   *         description: Server error
+   */
   app.put('/api/jobs/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
