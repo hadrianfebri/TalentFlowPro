@@ -1031,6 +1031,185 @@ export default function Recruitment() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit Job Dialog */}
+      <Dialog open={isEditJobDialogOpen} onOpenChange={setIsEditJobDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Lowongan Pekerjaan</DialogTitle>
+          </DialogHeader>
+          {selectedJob && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const jobData = {
+                id: selectedJob.id,
+                title: formData.get("title"),
+                description: formData.get("description"),
+                requirements: formData.get("requirements"),
+                location: formData.get("location"),
+                salaryRange: formData.get("salaryRange"),
+                type: formData.get("type"),
+                openings: parseInt(formData.get("openings") as string),
+              };
+              updateJobMutation.mutate(jobData);
+            }} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Posisi</Label>
+                  <Input name="title" defaultValue={selectedJob.title} required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="type">Tipe Pekerjaan</Label>
+                  <Select name="type" defaultValue={selectedJob.type}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih tipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full-time">Full Time</SelectItem>
+                      <SelectItem value="part-time">Part Time</SelectItem>
+                      <SelectItem value="contract">Kontrak</SelectItem>
+                      <SelectItem value="internship">Magang</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="location">Lokasi</Label>
+                  <Input name="location" defaultValue={selectedJob.location || ""} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="salaryRange">Rentang Gaji</Label>
+                  <Input name="salaryRange" defaultValue={selectedJob.salaryRange || ""} placeholder="Rp 5.000.000 - Rp 8.000.000" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="openings">Jumlah Posisi</Label>
+                  <Input name="openings" type="number" defaultValue={selectedJob.openings} min="1" required />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Deskripsi Pekerjaan</Label>
+                <Textarea 
+                  name="description" 
+                  defaultValue={selectedJob.description || ""} 
+                  rows={4} 
+                  placeholder="Deskripsikan tanggung jawab dan tugas utama..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="requirements">Persyaratan</Label>
+                <Textarea 
+                  name="requirements" 
+                  defaultValue={selectedJob.requirements || ""} 
+                  rows={4} 
+                  placeholder="Tuliskan kualifikasi dan persyaratan yang dibutuhkan..."
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsEditJobDialogOpen(false)}
+                >
+                  Batal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateJobMutation.isPending}
+                >
+                  {updateJobMutation.isPending ? "Menyimpan..." : "Perbarui Lowongan"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Post to External Platforms Dialog */}
+      <Dialog open={isPostExternalDialogOpen} onOpenChange={setIsPostExternalDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Posting ke Platform Eksternal</DialogTitle>
+          </DialogHeader>
+          {selectedJob && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const selectedPlatforms = [];
+              if (formData.get("jobstreet")) selectedPlatforms.push("jobstreet");
+              if (formData.get("indeed")) selectedPlatforms.push("indeed");
+              if (formData.get("linkedin")) selectedPlatforms.push("linkedin");
+              if (formData.get("glints")) selectedPlatforms.push("glints");
+              if (formData.get("kalibrr")) selectedPlatforms.push("kalibrr");
+              
+              if (selectedPlatforms.length === 0) {
+                toast({
+                  title: "Error",
+                  description: "Pilih minimal satu platform",
+                  variant: "destructive",
+                });
+                return;
+              }
+              
+              postExternalMutation.mutate({
+                id: selectedJob.id,
+                platforms: selectedPlatforms
+              });
+            }} className="space-y-4">
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Pilih platform untuk memposting lowongan "{selectedJob.title}":
+                </p>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" name="jobstreet" id="jobstreet" className="rounded" />
+                    <label htmlFor="jobstreet" className="text-sm">JobStreet Indonesia</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" name="indeed" id="indeed" className="rounded" />
+                    <label htmlFor="indeed" className="text-sm">Indeed</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" name="linkedin" id="linkedin" className="rounded" />
+                    <label htmlFor="linkedin" className="text-sm">LinkedIn Jobs</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" name="glints" id="glints" className="rounded" />
+                    <label htmlFor="glints" className="text-sm">Glints</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" name="kalibrr" id="kalibrr" className="rounded" />
+                    <label htmlFor="kalibrr" className="text-sm">Kalibrr</label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsPostExternalDialogOpen(false)}
+                >
+                  Batal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={postExternalMutation.isPending}
+                >
+                  {postExternalMutation.isPending ? "Posting..." : "Posting Lowongan"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
