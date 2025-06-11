@@ -669,7 +669,7 @@ export default function Employees() {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Status Kepegawaian</label>
-                      <p className="text-sm font-medium">{getEmploymentStatusBadge(selectedEmployee.employmentStatus)}</p>
+                      <div className="text-sm font-medium">{getEmploymentStatusBadge(selectedEmployee.employmentStatus)}</div>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Tanggal Masuk</label>
@@ -685,7 +685,7 @@ export default function Employees() {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Status</label>
-                      <p className="text-sm font-medium">{getStatusBadge(selectedEmployee.status)}</p>
+                      <div className="text-sm font-medium">{getStatusBadge(selectedEmployee.status)}</div>
                     </div>
                   </div>
                 </TabsContent>
