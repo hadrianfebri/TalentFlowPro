@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -73,8 +73,15 @@ export default function SalaryComponents() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: SalaryComponentFormData) =>
-      apiRequest("/api/salary-components", { method: "POST", body: JSON.stringify(data) }),
+    mutationFn: async (data: SalaryComponentFormData) => {
+      const response = await fetch("/api/salary-components", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to create component");
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/salary-components"] });
       toast({ title: "Komponen gaji berhasil ditambahkan" });
@@ -87,8 +94,15 @@ export default function SalaryComponents() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: SalaryComponentFormData }) =>
-      apiRequest(`/api/salary-components/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    mutationFn: async ({ id, data }: { id: number; data: SalaryComponentFormData }) => {
+      const response = await fetch(`/api/salary-components/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to update component");
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/salary-components"] });
       toast({ title: "Komponen gaji berhasil diperbarui" });
@@ -102,8 +116,13 @@ export default function SalaryComponents() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) =>
-      apiRequest(`/api/salary-components/${id}`, { method: "DELETE" }),
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/salary-components/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete component");
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/salary-components"] });
       toast({ title: "Komponen gaji berhasil dihapus" });

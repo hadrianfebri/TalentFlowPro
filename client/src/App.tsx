@@ -20,6 +20,7 @@ const Documents = lazy(() => import("@/pages/documents"));
 const Reimbursement = lazy(() => import("@/pages/reimbursement"));
 const Performance = lazy(() => import("@/pages/performance"));
 const Recruitment = lazy(() => import("@/pages/recruitment"));
+const SalaryComponents = lazy(() => import("@/pages/salary-components"));
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -51,6 +52,7 @@ function Router() {
           <Route path="/reimbursement" component={Reimbursement} />
           <Route path="/performance" component={Performance} />
           <Route path="/recruitment" component={Recruitment} />
+          <Route path="/salary-components" component={SalaryComponents} />
         </Suspense>
       )}
       <Route component={NotFound} />

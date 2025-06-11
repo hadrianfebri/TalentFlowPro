@@ -6,6 +6,8 @@ import {
   attendance,
   leaveTypes,
   leaveRequests,
+  salaryComponents,
+  employeeSalaryComponents,
   payroll,
   documents,
   reimbursements,
@@ -37,6 +39,10 @@ import {
   type InsertJobApplication,
   type RewardWallet,
   type AIInsight,
+  type SalaryComponent,
+  type InsertSalaryComponent,
+  type EmployeeSalaryComponent,
+  type InsertEmployeeSalaryComponent,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql } from "drizzle-orm";
