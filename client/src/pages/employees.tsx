@@ -10,8 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format, differenceInDays, parseISO, isAfter, addDays } from "date-fns";
+import { cn } from "@/lib/utils";
 import { 
   PlusIcon, 
   UserIcon, 
@@ -23,7 +30,8 @@ import {
   List,
   Grid3X3,
   Search,
-  FilterIcon
+  FilterIcon,
+  CalendarIcon
 } from "lucide-react";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
@@ -32,29 +40,28 @@ import { z } from "zod";
 
 // Define form schema for employee data
 const employeeFormSchema = z.object({
-  firstName: z.string().min(1, "Nama depan harus diisi"),
-  lastName: z.string().min(1, "Nama belakang harus diisi"),
-  employeeId: z.string().min(1, "ID karyawan harus diisi"),
-  workEmail: z.string().email("Format email tidak valid"),
-  position: z.string().min(1, "Posisi harus diisi"),
-  hireDate: z.string().min(1, "Tanggal masuk harus diisi"),
-  employmentStatus: z.string().min(1, "Status kepegawaian harus diisi"),
-  status: z.string().min(1, "Status harus diisi"),
-  basicSalary: z.string().optional(),
+  employeeId: z.string().min(1, "ID Karyawan wajib diisi"),
+  firstName: z.string().min(1, "Nama depan wajib diisi"),
+  lastName: z.string().min(1, "Nama belakang wajib diisi"),
+  workEmail: z.string().email("Email kerja wajib valid"),
+  position: z.string().min(1, "Posisi wajib diisi"),
+  hireDate: z.date(),
+  employmentStatus: z.enum(["permanent", "contract", "internship", "part_time"]),
   birthPlace: z.string().optional(),
-  birthDate: z.string().optional(),
-  gender: z.string().optional(),
-  maritalStatus: z.string().optional(),
-  nationality: z.string().optional(),
-  religion: z.string().optional(),
+  birthDate: z.date().optional(),
+  gender: z.enum(["L", "P"]).optional(),
+  maritalStatus: z.enum(["single", "married", "divorced", "widowed"]).optional(),
+  nationality: z.string().default("Indonesia"),
+  religion: z.enum(["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu"]).optional(),
   homeAddress: z.string().optional(),
   phone: z.string().optional(),
-  personalEmail: z.string().optional(),
+  personalEmail: z.string().email().optional().or(z.literal("")),
   nik: z.string().optional(),
   npwp: z.string().optional(),
   bpjsHealthNumber: z.string().optional(),
   bpjsEmploymentNumber: z.string().optional(),
-  workLocation: z.string().optional(),
+  workLocation: z.enum(["head_office", "branch", "remote", "hybrid"]).optional(),
+  basicSalary: z.string().optional(),
   bankAccount: z.string().optional(),
   bankName: z.string().optional(),
   notes: z.string().optional(),
