@@ -49,14 +49,28 @@ const upload = multer({
   storage: multerStorage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|pdf|doc|docx|csv/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/jpg', 
+      'image/png',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
     
-    if (mimetype && extname) {
+    const allowedExtensions = /\.(jpeg|jpg|png|pdf|doc|docx|csv|xls|xlsx)$/i;
+    
+    const hasValidExtension = allowedExtensions.test(file.originalname);
+    const hasValidMimeType = allowedMimeTypes.includes(file.mimetype);
+    
+    if (hasValidExtension && hasValidMimeType) {
       return cb(null, true);
     } else {
-      cb(new Error('Only images, PDFs, Word documents, and CSV files are allowed'));
+      console.log(`File rejected: ${file.originalname}, MIME: ${file.mimetype}`);
+      cb(new Error(`File type tidak didukung. Hanya boleh upload: PDF, Word (.doc/.docx), gambar (.jpg/.png), dan CSV`));
     }
   }
 });
@@ -1599,6 +1613,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "User not associated with company" });
         }
 
+        // Debug logging for file uploads
+        console.log("Files received:", req.files);
+        console.log("Body received:", req.body);
+
         // Handle file uploads
         const files = req.files as { [fieldname: string]: Express.Multer.File[] };
         let resumePath = null;
@@ -1607,10 +1625,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (files.resume_file?.[0]) {
           resumePath = files.resume_file[0].filename;
+          console.log("Resume file uploaded:", resumePath);
         }
 
         if (files.photo_file?.[0]) {
           photoPath = files.photo_file[0].filename;
+          console.log("Photo file uploaded:", photoPath);
         }
 
         // Handle multiple portfolio files

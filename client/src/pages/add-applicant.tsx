@@ -434,6 +434,9 @@ export default function AddApplicantPage() {
                                 value=""
                               />
                             </FormControl>
+                            <p className="text-xs text-muted-foreground">
+                              Format yang didukung: PDF, Word (.doc/.docx). Maksimal 10MB
+                            </p>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -458,6 +461,9 @@ export default function AddApplicantPage() {
                                 value=""
                               />
                             </FormControl>
+                            <p className="text-xs text-muted-foreground">
+                              Format yang didukung: PDF, Word (.doc/.docx), gambar (.jpg/.png). Maksimal 10MB per file
+                            </p>
                             <FormMessage />
                           </FormItem>
                         )}
