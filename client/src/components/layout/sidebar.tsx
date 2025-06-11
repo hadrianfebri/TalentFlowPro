@@ -13,7 +13,8 @@ import {
   Brain, 
   Gift,
   LayoutDashboard,
-  Settings
+  Settings,
+  UserCheck
 } from "lucide-react";
 
 const navigationItems = [
@@ -90,7 +91,7 @@ const navigationItems = [
   {
     name: "Tambah Pelamar",
     href: "/add-applicant",
-    icon: UserPlus,
+    icon: UserCheck,
     resource: "add-applicant",
     allowedRoles: ["admin", "hr"], // Hanya Admin dan HR
   },
