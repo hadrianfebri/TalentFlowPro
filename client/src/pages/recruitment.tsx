@@ -111,6 +111,9 @@ export default function Recruitment() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
+  const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
+  const [isJobStatusDialogOpen, setIsJobStatusDialogOpen] = useState(false);
 
   const { data: jobs, isLoading: jobsLoading } = useQuery<Job[]>({
     queryKey: ["/api/jobs"],
@@ -147,6 +150,70 @@ export default function Recruitment() {
       toast({
         title: "Error",
         description: "Gagal membuat lowongan pekerjaan",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateApplicationMutation = useMutation({
+    mutationFn: (data: { id: number; stage: string; notes?: string; interviewDate?: string; offerAmount?: string }) => 
+      apiRequest("PATCH", `/api/job-applications/${data.id}/status`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/job-applications"] });
+      setIsApplicationDialogOpen(false);
+      setSelectedApplication(null);
+      toast({
+        title: "Berhasil",
+        description: "Status lamaran berhasil diperbarui",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal memperbarui status lamaran",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateJobStatusMutation = useMutation({
+    mutationFn: (data: { id: number; status: string }) => 
+      apiRequest("PATCH", `/api/jobs/${data.id}/status`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+      setIsJobStatusDialogOpen(false);
+      setSelectedJob(null);
+      toast({
+        title: "Berhasil",
+        description: "Status lowongan berhasil diperbarui",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal memperbarui status lowongan",
         variant: "destructive",
       });
     },

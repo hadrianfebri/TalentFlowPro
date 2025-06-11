@@ -1371,6 +1371,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update job application status
+  app.patch('/api/job-applications/:id/status', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { stage, notes, interviewDate, offerAmount } = req.body;
+
+      const updateData: any = { stage, updatedAt: new Date() };
+      if (notes) updateData.notes = notes;
+      if (interviewDate) updateData.interviewDate = new Date(interviewDate);
+      if (offerAmount) updateData.offerAmount = offerAmount.toString();
+      if (stage === 'hired') updateData.hiredDate = new Date();
+
+      const [updatedApplication] = await db
+        .update(jobApplications)
+        .set(updateData)
+        .where(eq(jobApplications.id, parseInt(id)))
+        .returning();
+
+      if (!updatedApplication) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error updating application status:", error);
+      res.status(500).json({ message: "Failed to update application status" });
+    }
+  });
+
+  // Update job status
+  app.patch('/api/jobs/:id/status', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const [updatedJob] = await db
+        .update(jobs)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(jobs.id, parseInt(id)))
+        .returning();
+
+      if (!updatedJob) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+
+      res.json(updatedJob);
+    } catch (error) {
+      console.error("Error updating job status:", error);
+      res.status(500).json({ message: "Failed to update job status" });
+    }
+  });
+
   // AI Integration API
   app.post('/api/ai/generate-insights', isAuthenticated, async (req: any, res) => {
     try {
