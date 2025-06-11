@@ -526,6 +526,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * @swagger
+   * /dashboard/activities:
+   *   get:
+   *     summary: Mendapatkan aktivitas terbaru perusahaan
+   *     tags: [Dashboard]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Daftar aktivitas terbaru
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   id: { type: string }
+   *                   type: { type: string }
+   *                   title: { type: string }
+   *                   description: { type: string }
+   *                   timestamp: { type: string, format: date-time }
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/dashboard/activities', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1440,7 +1468,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Recruitment API
+  /**
+   * @swagger
+   * /jobs:
+   *   get:
+   *     summary: Mendapatkan daftar semua lowongan kerja
+   *     tags: [Jobs]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Daftar lowongan kerja berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Job'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/jobs', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1457,6 +1506,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * @swagger
+   * /jobs:
+   *   post:
+   *     summary: Membuat lowongan kerja baru
+   *     tags: [Jobs]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/InsertJob'
+   *     responses:
+   *       201:
+   *         description: Lowongan berhasil dibuat
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Job'
+   *       400:
+   *         description: Data tidak valid
+   *       500:
+   *         description: Server error
+   */
   app.post('/api/jobs', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1649,7 +1724,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create job application with file uploads
+  /**
+   * @swagger
+   * /job-applications:
+   *   post:
+   *     summary: Membuat lamaran kerja baru dengan upload file
+   *     tags: [Job Applications]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - jobId
+   *               - applicantName
+   *               - applicantEmail
+   *             properties:
+   *               jobId:
+   *                 type: integer
+   *                 description: ID lowongan kerja
+   *               applicantName:
+   *                 type: string
+   *                 description: Nama lengkap pelamar
+   *               applicantEmail:
+   *                 type: string
+   *                 format: email
+   *                 description: Email pelamar
+   *               applicantPhone:
+   *                 type: string
+   *                 description: Nomor telepon pelamar
+   *               resume_file:
+   *                 type: string
+   *                 format: binary
+   *                 description: File CV/Resume (PDF atau DOC)
+   *               photo_file:
+   *                 type: string
+   *                 format: binary
+   *                 description: Foto pelamar
+   *               coverLetter:
+   *                 type: string
+   *                 description: Surat lamaran
+   *     responses:
+   *       201:
+   *         description: Lamaran berhasil dibuat
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/JobApplication'
+   *       400:
+   *         description: Data tidak valid
+   *       500:
+   *         description: Server error
+   */
   app.post('/api/job-applications', 
     isAuthenticated, 
     getUserProfile, 
