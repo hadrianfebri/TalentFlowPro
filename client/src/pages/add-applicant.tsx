@@ -149,10 +149,18 @@ export default function AddApplicantPage() {
       const formData = new FormData();
       formData.append("file", file);
       
-      return apiRequest("/api/job-applications/bulk-upload", {
+      const response = await fetch("/api/job-applications/bulk-upload", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
+      
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`${response.status}: ${text}`);
+      }
+      
+      return await response.json();
     },
     onSuccess: (result) => {
       toast({
