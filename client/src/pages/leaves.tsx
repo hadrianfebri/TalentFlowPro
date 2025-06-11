@@ -99,6 +99,8 @@ export default function Leaves() {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [selectedLeaveForReject, setSelectedLeaveForReject] = useState<LeaveRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedLeaveForDetail, setSelectedLeaveForDetail] = useState<LeaveRequest | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   const { data: leaves, isLoading } = useQuery<LeaveRequest[]>({
     queryKey: ["/api/leaves"],
@@ -236,6 +238,11 @@ export default function Leaves() {
         reason: rejectionReason
       });
     }
+  };
+
+  const handleViewDetail = (leave: LeaveRequest) => {
+    setSelectedLeaveForDetail(leave);
+    setIsDetailDialogOpen(true);
   };
 
   const getLeaveTypeName = (typeId: number) => {
@@ -618,7 +625,10 @@ export default function Leaves() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem className="text-sm">
+                                  <DropdownMenuItem 
+                                    className="text-sm cursor-pointer"
+                                    onClick={() => handleViewDetail(leave)}
+                                  >
                                     <Eye className="h-4 w-4 mr-2" />
                                     Lihat Detail
                                   </DropdownMenuItem>
@@ -747,6 +757,185 @@ export default function Leaves() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Leave Detail Dialog */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <FileText className="h-5 w-5" />
+              Detail Pengajuan Cuti
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedLeaveForDetail && (
+            <div className="space-y-6">
+              {/* Employee Information */}
+              <div className="bg-muted/30 p-4 rounded-lg space-y-3">
+                <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Informasi Karyawan
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Nama Lengkap</Label>
+                    <p className="font-medium">
+                      {selectedLeaveForDetail.employee.firstName} {selectedLeaveForDetail.employee.lastName}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">ID Karyawan</Label>
+                    <p className="font-medium">{selectedLeaveForDetail.employee.employeeId}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Leave Information */}
+              <div className="bg-muted/30 p-4 rounded-lg space-y-3">
+                <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Informasi Cuti
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Jenis Cuti</Label>
+                    <p className="font-medium">{getLeaveTypeName(selectedLeaveForDetail.leaveTypeId)}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Status</Label>
+                    <div className="mt-1">
+                      {getStatusBadge(selectedLeaveForDetail.status)}
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Tanggal Mulai</Label>
+                    <p className="font-medium">
+                      {format(new Date(selectedLeaveForDetail.startDate), 'EEEE, dd MMMM yyyy', { locale: id })}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Tanggal Selesai</Label>
+                    <p className="font-medium">
+                      {format(new Date(selectedLeaveForDetail.endDate), 'EEEE, dd MMMM yyyy', { locale: id })}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Total Hari</Label>
+                    <p className="font-medium">
+                      <Badge variant="outline" className="text-sm">
+                        {selectedLeaveForDetail.totalDays} hari
+                      </Badge>
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Tanggal Pengajuan</Label>
+                    <p className="font-medium">
+                      {format(new Date(selectedLeaveForDetail.createdAt), 'dd MMMM yyyy, HH:mm', { locale: id })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div className="bg-muted/30 p-4 rounded-lg space-y-3">
+                <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Alasan Pengajuan
+                </h3>
+                <p className="text-sm leading-relaxed bg-background p-3 rounded border">
+                  {selectedLeaveForDetail.reason}
+                </p>
+              </div>
+
+              {/* Approval Information */}
+              {selectedLeaveForDetail.status !== 'pending' && (
+                <div className="bg-muted/30 p-4 rounded-lg space-y-3">
+                  <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                    {selectedLeaveForDetail.status === 'approved' ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-red-600" />
+                    )}
+                    Informasi {selectedLeaveForDetail.status === 'approved' ? 'Persetujuan' : 'Penolakan'}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedLeaveForDetail.approvedAt && (
+                      <div>
+                        <Label className="text-sm text-muted-foreground">
+                          Tanggal {selectedLeaveForDetail.status === 'approved' ? 'Disetujui' : 'Ditolak'}
+                        </Label>
+                        <p className="font-medium">
+                          {format(new Date(selectedLeaveForDetail.approvedAt), 'dd MMMM yyyy, HH:mm', { locale: id })}
+                        </p>
+                      </div>
+                    )}
+                    {selectedLeaveForDetail.approvedBy && (
+                      <div>
+                        <Label className="text-sm text-muted-foreground">
+                          {selectedLeaveForDetail.status === 'approved' ? 'Disetujui oleh' : 'Ditolak oleh'}
+                        </Label>
+                        <p className="font-medium">Admin/HR</p>
+                      </div>
+                    )}
+                  </div>
+                  {selectedLeaveForDetail.rejectionReason && (
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Alasan Penolakan</Label>
+                      <p className="text-sm leading-relaxed bg-red-50 border border-red-200 p-3 rounded mt-1">
+                        {selectedLeaveForDetail.rejectionReason}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Actions for Pending Requests */}
+              {selectedLeaveForDetail.status === 'pending' && (
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <h3 className="font-semibold text-base mb-3">Aksi Admin/HR</h3>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                      onClick={() => {
+                        setIsDetailDialogOpen(false);
+                        approveLeaveMutation.mutate(selectedLeaveForDetail.id);
+                      }}
+                      disabled={approveLeaveMutation.isPending}
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Setujui Cuti
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                      onClick={() => {
+                        setIsDetailDialogOpen(false);
+                        handleRejectLeave(selectedLeaveForDetail);
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Tolak Cuti
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsDetailDialogOpen(false);
+                    setSelectedLeaveForDetail(null);
+                  }}
+                >
+                  Tutup
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
