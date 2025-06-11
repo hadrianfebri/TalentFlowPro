@@ -139,57 +139,35 @@ async function generateAttendanceInsights(attendanceRecords: any[], employees: a
 }
 
 // AI Payroll Insights Generation Function
+import { JobPlatformManager, JobData } from './integrations/jobPlatforms';
+
+// Initialize platform manager
+const platformManager = new JobPlatformManager();
+
 // External platform integration function
 async function postToExternalPlatform(platform: string, jobData: any) {
-  // Simulate API calls to external job platforms
-  // In production, you would integrate with actual APIs
-  
-  const simulatedDelay = Math.random() * 2000 + 1000; // 1-3 seconds
-  await new Promise(resolve => setTimeout(resolve, simulatedDelay));
-  
-  const platforms = {
-    jobstreet: {
-      name: 'JobStreet',
-      apiUrl: 'https://api.jobstreet.com/jobs',
-      requiresAuth: true
-    },
-    indeed: {
-      name: 'Indeed',
-      apiUrl: 'https://api.indeed.com/publisher',
-      requiresAuth: true
-    },
-    linkedin: {
-      name: 'LinkedIn Jobs',
-      apiUrl: 'https://api.linkedin.com/v2/jobs',
-      requiresAuth: true
-    },
-    glints: {
-      name: 'Glints',
-      apiUrl: 'https://api.glints.com/jobs',
-      requiresAuth: true
-    },
-    kalibrr: {
-      name: 'Kalibrr',
-      apiUrl: 'https://api.kalibrr.com/jobs',
-      requiresAuth: true
-    }
+  const platformJobData: JobData = {
+    title: jobData.title,
+    description: jobData.description || '',
+    requirements: jobData.requirements || '',
+    location: jobData.location || '',
+    salaryRange: jobData.salaryRange || '',
+    type: jobData.type,
+    openings: jobData.openings,
+    companyName: process.env.COMPANY_NAME || 'TalentFlow Company',
+    companyDescription: process.env.COMPANY_DESCRIPTION || 'Leading HR solutions provider',
+    contactEmail: process.env.COMPANY_EMAIL || 'hr@company.com',
+    benefits: ['Asuransi kesehatan', 'Tunjangan transport', 'Bonus kinerja']
   };
 
-  const platformConfig = platforms[platform as keyof typeof platforms];
-  if (!platformConfig) {
-    throw new Error(`Platform ${platform} not supported`);
+  // Check if platform is configured
+  if (!platformManager.isConfigured(platform)) {
+    throw new Error(`Platform ${platform} tidak terkonfigurasi. Silakan tambahkan API credentials.`);
   }
 
-  // Simulate successful posting
-  const externalId = `ext_${platform}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const url = `https://${platform}.com/jobs/${externalId}`;
-
-  return {
-    externalId,
-    url,
-    platform: platformConfig.name,
-    postedAt: new Date().toISOString()
-  };
+  // Post to single platform
+  const results = await platformManager.postToMultiplePlatforms([platform], platformJobData);
+  return results[0];
 }
 
 async function generatePayrollInsights(payrollRecords: any[], employees: any[], period: string) {
@@ -1738,6 +1716,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting employee salary component:", error);
       res.status(500).json({ message: "Failed to delete employee salary component" });
+    }
+  });
+
+  // API to get platform integration status
+  app.get('/api/platform-status', getUserProfile, requireAdminOrHR, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const allPlatforms = ['jobstreet', 'indeed', 'linkedin', 'glints', 'kalibrr'];
+      const configuredPlatforms = platformManager.getAvailablePlatforms();
+      
+      const status = allPlatforms.map(platform => ({
+        platform,
+        name: platform.charAt(0).toUpperCase() + platform.slice(1),
+        configured: platformManager.isConfigured(platform),
+        status: platformManager.isConfigured(platform) ? 'ready' : 'needs_api_key'
+      }));
+
+      res.json({
+        platforms: status,
+        totalPlatforms: allPlatforms.length,
+        configuredCount: configuredPlatforms.length
+      });
+    } catch (error: any) {
+      console.error('Platform status error:', error);
+      res.status(500).json({ error: 'Failed to get platform status' });
     }
   });
 
