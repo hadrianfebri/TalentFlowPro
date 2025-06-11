@@ -134,7 +134,7 @@ export default function Payroll() {
         Object.values(record.allowances).reduce((sum: number, val: any) => sum + parseFloat(val || 0), 0) :
         record.allowances || 0,
       record.overtimePay || 0,
-      record.grossSalary,
+      record.netSalary, // Using net salary as gross salary calculation
       record.bpjsHealth || 0,
       record.bpjsEmployment || 0,
       record.tax || 0,
@@ -692,11 +692,21 @@ export default function Payroll() {
                   <h4 className="font-semibold text-blue-900 mb-2">Komponen Kalkulasi:</h4>
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Gaji pokok berdasarkan data karyawan</li>
-                    <li>• Perhitungan lembur dari data absensi</li>
+                    <li>• Tunjangan individu dari komponen gaji yang dikonfigurasi</li>
+                    <li>• Perhitungan lembur otomatis (1.5x tarif per jam)</li>
                     <li>• Potongan BPJS Kesehatan (4%) dan Ketenagakerjaan (2%)</li>
                     <li>• Perhitungan PPh21 sesuai regulasi</li>
-                    <li>• Integrasi dengan Reward Wallet</li>
+                    <li>• Integrasi dengan sistem komponen gaji fleksibel</li>
                   </ul>
+                </div>
+
+                <div className="bg-amber-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-amber-900 mb-2">Tentang Komponen Tunjangan:</h4>
+                  <p className="text-sm text-amber-800">
+                    Setiap karyawan memiliki komponen gaji individu yang dapat dikonfigurasi 
+                    di halaman Salary Components. Tunjangan base dan komponen lainnya 
+                    ditetapkan per karyawan sesuai kebutuhan dan posisi.
+                  </p>
                 </div>
                 
                 <div className="flex justify-end gap-2">
@@ -984,6 +994,15 @@ export default function Payroll() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 mb-2">Perhitungan Lembur Otomatis:</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Tarif per jam = Gaji Pokok ÷ (8 jam × 22 hari kerja)</li>
+                    <li>• Uang lembur = Jam lembur × Tarif per jam × 1.5</li>
+                    <li>• Multiplier 1.5x sesuai peraturan ketenagakerjaan</li>
+                  </ul>
+                </div>
+                
                 <div>
                   <label className="text-sm font-medium">Jam Lembur</label>
                   <Input
@@ -994,7 +1013,11 @@ export default function Payroll() {
                     min="0"
                     step="0.5"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Contoh: 2.5 untuk 2 jam 30 menit lembur
+                  </p>
                 </div>
+                
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setIsOvertimeDialogOpen(false)}>
                     Batal
@@ -1006,6 +1029,8 @@ export default function Payroll() {
                           payrollId: selectedEmployee.id,
                           overtimeHours: parseFloat(overtimeHours)
                         });
+                        setIsOvertimeDialogOpen(false);
+                        setOvertimeHours("");
                       }
                     }}
                     disabled={!overtimeHours || updateOvertimeMutation.isPending}
