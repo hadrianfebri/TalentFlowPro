@@ -992,13 +992,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             <tr>
                 <td colspan="2"><strong>POTONGAN:</strong></td>
             </tr>
-            ${Object.entries((record.deductions as any)?.bpjsHealth ? {
-              'BPJS Kesehatan': (record.deductions as any).bpjsHealth,
-              'BPJS Ketenagakerjaan': (record.deductions as any).bpjsEmployment,
-              'PPh21': (record.deductions as any).tax
-            } : {}).map(([key, value]) => 
-              `<tr><td>${key}</td><td style="text-align: right;">${formatCurrency(value)}</td></tr>`
-            ).join('')}
+            <tr><td>BPJS Kesehatan</td><td style="text-align: right;">${formatCurrency((record.deductions as any)?.bpjsHealth || 0)}</td></tr>
+            <tr><td>BPJS Ketenagakerjaan</td><td style="text-align: right;">${formatCurrency((record.deductions as any)?.bpjsEmployment || 0)}</td></tr>
+            <tr><td>PPh21</td><td style="text-align: right;">${formatCurrency((record.deductions as any)?.tax || 0)}</td></tr>
             <tr class="total-row">
                 <td><strong>Total Potongan</strong></td>
                 <td style="text-align: right;"><strong>${formatCurrency((record.deductions as any)?.total || 0)}</strong></td>
