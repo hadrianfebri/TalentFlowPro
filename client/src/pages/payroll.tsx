@@ -785,9 +785,12 @@ export default function Payroll() {
                         <label className="text-sm font-medium text-muted-foreground">Total Kotor</label>
                         <p className="text-sm font-medium">
                           {formatCurrency(
-                            parseFloat(selectedPayroll.basicSalary) + 
-                            parseFloat(selectedPayroll.allowances) + 
-                            parseFloat(selectedPayroll.overtimePay)
+                            parseFloat(selectedPayroll.basicSalary || '0') + 
+                            (typeof selectedPayroll.allowances === 'object' && selectedPayroll.allowances ? 
+                              Object.values(selectedPayroll.allowances).reduce((sum, val) => sum + parseFloat(val as string || '0'), 0) :
+                              parseFloat(selectedPayroll.allowances as string || '0')
+                            ) + 
+                            parseFloat(selectedPayroll.overtimePay || '0')
                           )}
                         </p>
                       </div>
