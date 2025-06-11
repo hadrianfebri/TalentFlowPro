@@ -17,6 +17,118 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
+// AI Insights Generation Function
+async function generateAttendanceInsights(attendanceRecords: any[], employees: any[], period: string) {
+  const insights = [];
+  
+  try {
+    // Analysis 1: Late Arrival Pattern
+    const lateRecords = attendanceRecords.filter(record => record.status === 'late');
+    if (lateRecords.length > 0) {
+      const lateEmployees = lateRecords.map(record => 
+        `${record.employee?.firstName || ''} ${record.employee?.lastName || ''}`.trim()
+      ).filter(name => name.length > 0);
+      
+      insights.push({
+        type: 'late_pattern',
+        title: 'Pola Keterlambatan Terdeteksi',
+        description: `${lateRecords.length} karyawan menunjukkan pola keterlambatan pada tanggal ${period}`,
+        severity: lateRecords.length > 3 ? 'high' : 'medium',
+        actionable: true,
+        employees: lateEmployees,
+        recommendation: 'Pertimbangkan untuk mengadakan counseling atau review jadwal kerja untuk karyawan yang sering terlambat.'
+      });
+    }
+
+    // Analysis 2: Attendance Rate
+    const totalEmployees = employees.length;
+    const presentEmployees = attendanceRecords.filter(record => record.checkIn || record.status === 'present').length;
+    const attendanceRate = totalEmployees > 0 ? (presentEmployees / totalEmployees) * 100 : 0;
+    
+    if (attendanceRate < 85) {
+      insights.push({
+        type: 'low_attendance',
+        title: 'Tingkat Kehadiran Rendah',
+        description: `Tingkat kehadiran hanya ${attendanceRate.toFixed(1)}%, di bawah standar optimal 85%`,
+        severity: attendanceRate < 70 ? 'high' : 'medium',
+        actionable: true,
+        recommendation: 'Evaluasi kebijakan absensi dan identifikasi faktor-faktor yang mempengaruhi kehadiran karyawan.'
+      });
+    }
+
+    // Analysis 3: Working Hours Pattern
+    const workingHoursRecords = attendanceRecords.filter(record => 
+      record.checkIn && record.checkOut && record.workingHours
+    );
+    
+    if (workingHoursRecords.length > 0) {
+      const avgHours = workingHoursRecords.reduce((sum, record) => 
+        sum + parseFloat(record.workingHours || '0'), 0
+      ) / workingHoursRecords.length;
+      
+      const shortHourEmployees = workingHoursRecords
+        .filter(record => parseFloat(record.workingHours || '0') < 7)
+        .map(record => `${record.employee?.firstName || ''} ${record.employee?.lastName || ''}`.trim())
+        .filter(name => name.length > 0);
+      
+      if (shortHourEmployees.length > 0) {
+        insights.push({
+          type: 'short_working_hours',
+          title: 'Jam Kerja Di Bawah Standar',
+          description: `${shortHourEmployees.length} karyawan bekerja kurang dari 7 jam pada ${period}`,
+          severity: shortHourEmployees.length > 2 ? 'medium' : 'low',
+          actionable: true,
+          employees: shortHourEmployees,
+          recommendation: 'Review penyebab jam kerja pendek - apakah karena keperluan pribadi, kondisi kesehatan, atau masalah operasional.'
+        });
+      }
+    }
+
+    // Analysis 4: Check-in Location Anomaly
+    const locationRecords = attendanceRecords.filter(record => record.checkInLocation);
+    if (locationRecords.length > 0) {
+      insights.push({
+        type: 'location_compliance',
+        title: 'Kepatuhan Lokasi Check-in',
+        description: `${locationRecords.length} dari ${attendanceRecords.length} check-in memiliki data lokasi GPS`,
+        severity: 'low',
+        actionable: false,
+        recommendation: 'Pastikan semua karyawan mengaktifkan GPS saat melakukan check-in untuk meningkatkan akurasi data.'
+      });
+    }
+
+    // Analysis 5: Overall Productivity Insight
+    if (attendanceRate > 90 && workingHoursRecords.length > 0) {
+      const avgHours = workingHoursRecords.reduce((sum, record) => 
+        sum + parseFloat(record.workingHours || '0'), 0
+      ) / workingHoursRecords.length;
+      
+      if (avgHours >= 8) {
+        insights.push({
+          type: 'high_performance',
+          title: 'Kinerja Kehadiran Optimal',
+          description: `Tim menunjukkan tingkat kehadiran ${attendanceRate.toFixed(1)}% dengan rata-rata jam kerja ${avgHours.toFixed(1)} jam`,
+          severity: 'low',
+          actionable: false,
+          recommendation: 'Pertahankan momentum positif ini dengan program recognition dan reward untuk tim yang konsisten.'
+        });
+      }
+    }
+
+    return insights;
+  } catch (error) {
+    console.error('Error generating AI insights:', error);
+    return [{
+      type: 'error',
+      title: 'Error dalam Analisis AI',
+      description: 'Terjadi kesalahan saat menganalisis data absensi',
+      severity: 'medium' as const,
+      actionable: false,
+      recommendation: 'Silakan coba lagi atau hubungi administrator sistem.'
+    }];
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Swagger documentation
   setupSwagger(app);
@@ -370,6 +482,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error recording check-out:", error);
       res.status(500).json({ message: "Failed to record check-out" });
+    }
+  });
+
+  // Attendance Statistics API
+  app.get('/api/attendance/stats', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const companyId = req.userProfile?.companyId;
+      if (!companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      const { date } = req.query;
+      const selectedDate = date || new Date().toISOString().split('T')[0];
+      
+      // Get all employees for the company
+      const employees = await storage.getEmployees(companyId);
+      const totalEmployees = employees.length;
+      
+      // Get attendance records for the selected date
+      const attendanceRecords = await storage.getAttendance(companyId, selectedDate);
+      
+      // Calculate statistics
+      const presentToday = attendanceRecords.filter((record: any) => record.status === 'present' || record.checkIn).length;
+      const absentToday = totalEmployees - presentToday;
+      const lateToday = attendanceRecords.filter((record: any) => record.status === 'late').length;
+      
+      // Calculate attendance rate
+      const attendanceRate = totalEmployees > 0 ? (presentToday / totalEmployees) * 100 : 0;
+      
+      // Calculate average working hours
+      const workingHoursRecords = attendanceRecords.filter((record: any) => record.workingHours);
+      const avgWorkingHours = workingHoursRecords.length > 0 
+        ? workingHoursRecords.reduce((sum: number, record: any) => sum + parseFloat(record.workingHours || '0'), 0) / workingHoursRecords.length
+        : 0;
+
+      const stats = {
+        totalEmployees,
+        presentToday,
+        absentToday,
+        lateToday,
+        attendanceRate,
+        avgWorkingHours: Math.round(avgWorkingHours * 10) / 10
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching attendance statistics:", error);
+      res.status(500).json({ message: "Failed to fetch attendance statistics" });
+    }
+  });
+
+  // AI Insights for Attendance
+  app.post('/api/attendance/ai-insights', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const companyId = req.userProfile?.companyId;
+      if (!companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      const { period } = req.body;
+      
+      // Get attendance data for analysis
+      const attendanceRecords = await storage.getAttendance(companyId, period);
+      const employees = await storage.getEmployees(companyId);
+      
+      // Generate AI insights using DeepSeek-like analysis
+      const insights = await generateAttendanceInsights(attendanceRecords, employees, period);
+      
+      res.json(insights);
+    } catch (error) {
+      console.error("Error generating AI insights:", error);
+      res.status(500).json({ message: "Failed to generate AI insights" });
     }
   });
 
