@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { insertJobApplicationSchema, type InsertJobApplication, type Job } from "@/../../shared/schema";
 import { Upload, UserPlus, FileText, Camera } from "lucide-react";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 
 const formSchema = z.object({
   applicant_name: z.string().min(1, "Nama lengkap wajib diisi"),
@@ -164,15 +166,21 @@ export default function AddApplicantPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Tambah Pelamar</h1>
-        <p className="text-muted-foreground">
-          Tambahkan data pelamar secara manual atau upload file CSV
-        </p>
-      </div>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar />
+      
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header pageTitle="Tambah Pelamar" />
+        
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">Tambah Pelamar</h1>
+            <p className="text-muted-foreground">
+              Tambahkan data pelamar secara manual atau upload file CSV
+            </p>
+          </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="form" className="flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
@@ -550,6 +558,8 @@ export default function AddApplicantPage() {
           </Card>
         </TabsContent>
       </Tabs>
+        </main>
+      </div>
     </div>
   );
 }
