@@ -45,6 +45,13 @@ const navigationItems = [
     allowedRoles: ["admin", "hr", "employee"],
   },
   {
+    name: "Komponen Gaji",
+    href: "/salary-components",
+    icon: DollarSign,
+    resource: "salary-components",
+    allowedRoles: ["admin", "hr"],
+  },
+  {
     name: "Cuti & Izin",
     href: "/leaves",
     icon: Calendar,
