@@ -605,15 +605,57 @@ export default function AddApplicantPage() {
                   Pilih file CSV yang berisi data pelamar untuk diimport secara massal
                 </p>
                 <Input
+                  id="csv-file-input"
                   type="file"
-                  accept=".csv"
-                  onChange={handleBulkUpload}
+                  accept=".csv,text/csv,application/csv"
+                  onChange={(e) => {
+                    console.log("CSV file selection changed:", e.target.files);
+                    
+                    const csvFileNameSpan = document.getElementById('selected-csv-file-name');
+                    if (e.target.files && e.target.files[0]) {
+                      const file = e.target.files[0];
+                      console.log("CSV file selected:", {
+                        name: file.name,
+                        type: file.type,
+                        size: file.size
+                      });
+                      
+                      if (csvFileNameSpan) {
+                        csvFileNameSpan.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        csvFileNameSpan.className = "text-green-600 font-medium";
+                      }
+                    } else {
+                      if (csvFileNameSpan) {
+                        csvFileNameSpan.textContent = "Belum ada file";
+                        csvFileNameSpan.className = "text-gray-500";
+                      }
+                    }
+                    handleBulkUpload(e);
+                  }}
                   disabled={bulkUploadMutation.isPending}
-                  className="max-w-xs mx-auto"
+                  className="max-w-xs mx-auto file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
                 />
-                {bulkUploadMutation.isPending && (
-                  <p className="text-sm text-blue-600 mt-2">Mengupload...</p>
-                )}
+                <div className="mt-4 space-y-2">
+                  <div className="text-sm text-gray-600">
+                    File CSV yang dipilih: <span id="selected-csv-file-name" className="text-gray-500">Belum ada file</span>
+                  </div>
+                  {bulkUploadMutation.isPending && (
+                    <p className="text-sm text-blue-600">Mengupload...</p>
+                  )}
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const input = document.getElementById('csv-file-input') as HTMLInputElement;
+                      console.log("CSV input element:", input);
+                      console.log("CSV accept attribute:", input?.accept);
+                      console.log("CSV files in input:", input?.files);
+                    }}
+                  >
+                    Test CSV Detection
+                  </Button>
+                </div>
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg">
