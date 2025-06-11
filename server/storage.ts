@@ -90,6 +90,8 @@ export interface IStorage {
   // Reimbursement operations
   getReimbursements(companyId: string): Promise<Reimbursement[]>;
   createReimbursement(data: InsertReimbursement): Promise<Reimbursement>;
+  approveReimbursement(id: number, approvedBy: string): Promise<Reimbursement>;
+  rejectReimbursement(id: number, approvedBy: string, reason: string): Promise<Reimbursement>;
   
   // Performance operations
   getPerformanceReviews(companyId: string): Promise<PerformanceReview[]>;
@@ -743,6 +745,34 @@ export class DatabaseStorage implements IStorage {
     const [reimbursement] = await db
       .insert(reimbursements)
       .values(data)
+      .returning();
+    return reimbursement;
+  }
+
+  async approveReimbursement(id: number, approvedBy: string): Promise<Reimbursement> {
+    const [reimbursement] = await db
+      .update(reimbursements)
+      .set({
+        status: "approved",
+        approvedBy,
+        approvedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(reimbursements.id, id))
+      .returning();
+    return reimbursement;
+  }
+
+  async rejectReimbursement(id: number, approvedBy: string, reason: string): Promise<Reimbursement> {
+    const [reimbursement] = await db
+      .update(reimbursements)
+      .set({
+        status: "rejected",
+        approvedBy,
+        rejectionReason: reason,
+        updatedAt: new Date(),
+      })
+      .where(eq(reimbursements.id, id))
       .returning();
     return reimbursement;
   }

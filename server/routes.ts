@@ -1238,6 +1238,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/reimbursements/:id/approve', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      const reimbursement = await storage.approveReimbursement(parseInt(id), userId);
+      res.json(reimbursement);
+    } catch (error) {
+      console.error("Error approving reimbursement:", error);
+      res.status(500).json({ message: "Failed to approve reimbursement" });
+    }
+  });
+
+  app.patch('/api/reimbursements/:id/reject', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      const userId = req.user.claims.sub;
+      
+      const reimbursement = await storage.rejectReimbursement(parseInt(id), userId, reason || "Tidak sesuai kebijakan");
+      res.json(reimbursement);
+    } catch (error) {
+      console.error("Error rejecting reimbursement:", error);
+      res.status(500).json({ message: "Failed to reject reimbursement" });
+    }
+  });
+
   // Performance API
   app.get('/api/performance', isAuthenticated, async (req: any, res) => {
     try {

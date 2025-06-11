@@ -18,7 +18,7 @@ import Attendance from "@/pages/attendance";
 import Payroll from "@/pages/payroll";
 import Leaves from "@/pages/leaves";
 import Documents from "@/pages/documents";
-import Reimbursement from "@/pages/reimbursement";
+import Reimbursements from "@/pages/reimbursements";
 import Performance from "@/pages/performance";
 import Recruitment from "@/pages/recruitment";
 import SalaryComponents from "@/pages/salary-components";
@@ -46,7 +46,7 @@ function Router() {
           <Route path="/payroll" component={Payroll} />
           <Route path="/leaves" component={Leaves} />
           <Route path="/documents" component={Documents} />
-          <Route path="/reimbursement" component={Reimbursement} />
+          <Route path="/reimbursement" component={Reimbursements} />
           <Route path="/performance" component={Performance} />
           <Route path="/recruitment" component={Recruitment} />
           <Route path="/salary-components" component={SalaryComponents} />
