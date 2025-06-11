@@ -92,17 +92,34 @@ export default function AddApplicantPage() {
         }
       });
 
-      // Add files
+      // Add files with validation
       if (data.resume_file?.[0]) {
-        formData.append("resume_file", data.resume_file[0]);
+        const file = data.resume_file[0];
+        console.log("Resume file details:", {
+          name: file.name,
+          type: file.type,
+          size: file.size
+        });
+        formData.append("resume_file", file);
       }
       if (data.portfolio_files) {
         Array.from(data.portfolio_files).forEach((file, index) => {
+          console.log(`Portfolio file ${index} details:`, {
+            name: file.name,
+            type: file.type,
+            size: file.size
+          });
           formData.append(`portfolio_file_${index}`, file);
         });
       }
       if (data.photo_file?.[0]) {
-        formData.append("photo_file", data.photo_file[0]);
+        const file = data.photo_file[0];
+        console.log("Photo file details:", {
+          name: file.name,
+          type: file.type,
+          size: file.size
+        });
+        formData.append("photo_file", file);
       }
 
       return apiRequest("/api/job-applications", {

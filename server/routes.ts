@@ -1624,13 +1624,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let photoPath = null;
 
         if (files.resume_file?.[0]) {
-          resumePath = files.resume_file[0].filename;
-          console.log("Resume file uploaded:", resumePath);
+          const file = files.resume_file[0];
+          resumePath = file.filename;
+          console.log("Resume file uploaded:", {
+            filename: file.filename,
+            originalname: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size
+          });
         }
 
         if (files.photo_file?.[0]) {
-          photoPath = files.photo_file[0].filename;
-          console.log("Photo file uploaded:", photoPath);
+          const file = files.photo_file[0];
+          photoPath = file.filename;
+          console.log("Photo file uploaded:", {
+            filename: file.filename,
+            originalname: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size
+          });
         }
 
         // Handle multiple portfolio files
