@@ -193,7 +193,7 @@ export default function AddApplicantPage() {
           <div className="mb-6">
             <h1 className="text-3xl font-bold">Tambah Pelamar</h1>
             <p className="text-muted-foreground">
-              Tambahkan data pelamar secara manual atau upload file CSV
+              Tambahkan data pelamar secara manual atau upload CV dalam format Excel/PDF
             </p>
           </div>
 
