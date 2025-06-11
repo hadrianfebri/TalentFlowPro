@@ -85,6 +85,7 @@ export interface IStorage {
   // Document operations
   getDocuments(companyId: string): Promise<Document[]>;
   createDocument(data: InsertDocument): Promise<Document>;
+  updateDocumentStatus(id: number, signed: boolean, signedBy?: string): Promise<Document>;
   
   // Reimbursement operations
   getReimbursements(companyId: string): Promise<Reimbursement[]>;
@@ -689,6 +690,20 @@ export class DatabaseStorage implements IStorage {
     const [document] = await db
       .insert(documents)
       .values(data)
+      .returning();
+    return document;
+  }
+
+  async updateDocumentStatus(id: number, signed: boolean, signedBy?: string): Promise<Document> {
+    const updateData: any = {
+      signedBy: signed ? { userId: signedBy || "current_user", timestamp: new Date() } : null,
+      signedAt: signed ? new Date() : null,
+    };
+
+    const [document] = await db
+      .update(documents)
+      .set(updateData)
+      .where(eq(documents.id, id))
       .returning();
     return document;
   }

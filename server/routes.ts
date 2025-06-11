@@ -1196,6 +1196,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/documents/:id/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { signed } = req.body;
+      const userId = req.user.claims.sub;
+      
+      const document = await storage.updateDocumentStatus(parseInt(id), signed, userId);
+      res.json(document);
+    } catch (error) {
+      console.error("Error updating document status:", error);
+      res.status(500).json({ message: "Failed to update document status" });
+    }
+  });
+
   // Reimbursement API
   app.get('/api/reimbursements', isAuthenticated, async (req: any, res) => {
     try {
