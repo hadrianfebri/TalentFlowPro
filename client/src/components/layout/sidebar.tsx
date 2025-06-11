@@ -119,9 +119,9 @@ export default function Sidebar() {
               const isActive = location === item.href;
               return (
                 <Link key={item.name} href={item.href}>
-                  <a
+                  <div
                     className={cn(
-                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -129,7 +129,7 @@ export default function Sidebar() {
                   >
                     <item.icon className="mr-3 h-4 w-4" />
                     {item.name}
-                  </a>
+                  </div>
                 </Link>
               );
             })}
@@ -143,9 +143,9 @@ export default function Sidebar() {
               const isActive = location === item.href;
               return (
                 <Link key={item.name} href={item.href}>
-                  <a
+                  <div
                     className={cn(
-                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -159,7 +159,7 @@ export default function Sidebar() {
                       )} 
                     />
                     {item.name}
-                  </a>
+                  </div>
                 </Link>
               );
             })}

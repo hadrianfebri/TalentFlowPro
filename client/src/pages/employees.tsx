@@ -25,8 +25,8 @@ import {
   Search,
   FilterIcon
 } from "lucide-react";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 import type { Employee, InsertEmployee } from "@shared/schema";
 import { z } from "zod";
 
@@ -161,7 +161,8 @@ export default function Employees() {
     return null;
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | null) => {
+    if (!status) return <Badge variant="outline">Unknown</Badge>;
     switch (status) {
       case "aktif":
         return <Badge variant="default" className="bg-green-100 text-green-800">Aktif</Badge>;
@@ -174,7 +175,8 @@ export default function Employees() {
     }
   };
 
-  const getEmploymentStatusBadge = (status: string) => {
+  const getEmploymentStatusBadge = (status: string | null) => {
+    if (!status) return <Badge variant="outline">Unknown</Badge>;
     switch (status) {
       case "tetap":
         return <Badge variant="default" className="bg-blue-100 text-blue-800">Tetap</Badge>;
@@ -334,7 +336,7 @@ export default function Employees() {
                       <SelectItem value="all">Semua</SelectItem>
                       <SelectItem value="new">Baru (≤3 bulan)</SelectItem>
                       <SelectItem value="1year">1 Tahun</SelectItem>
-                      <SelectItem value="senior">Senior (>1 tahun)</SelectItem>
+                      <SelectItem value="senior">Senior (&gt;1 tahun)</SelectItem>
                     </SelectContent>
                   </Select>
 
