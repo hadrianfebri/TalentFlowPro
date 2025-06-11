@@ -506,9 +506,110 @@ export class DatabaseStorage implements IStorage {
   }
 
   async calculatePayroll(companyId: string, period: string, employeeId?: number): Promise<Payroll[]> {
-    // This would implement payroll calculation logic
-    // For now, return existing payroll records
-    return this.getPayroll(companyId, period);
+    try {
+      // Get employees to process
+      const allEmployees = await this.getEmployees(companyId);
+      const employeesToProcess = employeeId 
+        ? allEmployees.filter(emp => emp.id === employeeId)
+        : allEmployees;
+
+      const results: Payroll[] = [];
+
+      for (const employee of employeesToProcess) {
+        // Check if payroll already exists for this employee and period
+        const existingPayroll = await db
+          .select()
+          .from(payroll)
+          .where(and(
+            eq(payroll.employeeId, employee.id),
+            eq(payroll.period, period)
+          ))
+          .limit(1);
+
+        if (existingPayroll.length > 0) {
+          results.push(existingPayroll[0]);
+          continue;
+        }
+
+        // Calculate basic components
+        const basicSalary = parseFloat(employee.salary || "0");
+        
+        // Get attendance data for overtime calculation
+        const startDate = new Date(period + "-01");
+        const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+        
+        const attendanceRecords = await db
+          .select()
+          .from(attendance)
+          .where(and(
+            eq(attendance.employeeId, employee.id),
+            gte(attendance.date, startDate.toISOString().split('T')[0]),
+            lte(attendance.date, endDate.toISOString().split('T')[0])
+          ));
+
+        // Calculate overtime pay
+        const totalOvertimeHours = attendanceRecords.reduce((total, record) => {
+          const overtimeHours = parseFloat(record.overtimeHours || "0");
+          return total + overtimeHours;
+        }, 0);
+
+        const hourlyRate = basicSalary / 173; // Average working hours per month
+        const overtimePay = totalOvertimeHours * hourlyRate * 1.5; // 1.5x for overtime
+
+        // Calculate allowances (could be from employee data or company policy)
+        const allowances = basicSalary * 0.1; // 10% of basic salary as example
+
+        // Calculate gross salary
+        const grossSalary = basicSalary + allowances + overtimePay;
+
+        // Calculate deductions
+        const bpjsHealth = grossSalary * 0.04; // 4% BPJS Kesehatan
+        const bpjsEmployment = grossSalary * 0.02; // 2% BPJS Ketenagakerjaan
+        
+        // Calculate PPh21 (simplified calculation)
+        let tax = 0;
+        const annualGross = grossSalary * 12;
+        if (annualGross > 60000000) { // Above 60M per year
+          tax = (annualGross - 60000000) * 0.15 / 12; // 15% tax
+        }
+
+        // Other deductions (could be loans, etc.)
+        const otherDeductions = 0;
+        const totalDeductions = bpjsHealth + bpjsEmployment + tax + otherDeductions;
+
+        // Calculate net salary
+        const netSalary = grossSalary - totalDeductions;
+
+        // Create payroll record
+        const payrollData: InsertPayroll = {
+          employeeId: employee.id,
+          period: period,
+          basicSalary: basicSalary.toString(),
+          allowances: allowances.toString(),
+          overtimePay: overtimePay.toString(),
+          grossSalary: grossSalary.toString(),
+          bpjsHealth: bpjsHealth.toString(),
+          bpjsEmployment: bpjsEmployment.toString(),
+          tax: tax.toString(),
+          deductions: totalDeductions.toString(),
+          netSalary: netSalary.toString(),
+          status: "processed",
+          processedAt: new Date(),
+        };
+
+        const [newPayroll] = await db
+          .insert(payroll)
+          .values(payrollData)
+          .returning();
+
+        results.push(newPayroll);
+      }
+
+      return results;
+    } catch (error) {
+      console.error("Error calculating payroll:", error);
+      throw new Error("Failed to calculate payroll");
+    }
   }
 
   async generatePayslip(id: number): Promise<string> {
