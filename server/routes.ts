@@ -754,7 +754,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Attendance API
+  /**
+   * @swagger
+   * /attendance:
+   *   get:
+   *     summary: Mendapatkan data kehadiran karyawan
+   *     tags: [Attendance]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: employeeId
+   *         schema:
+   *           type: integer
+   *         description: ID karyawan spesifik (opsional)
+   *     responses:
+   *       200:
+   *         description: Data kehadiran berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Attendance'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/attendance', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -776,6 +803,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * @swagger
+   * /attendance/checkin:
+   *   post:
+   *     summary: Melakukan check-in kehadiran
+   *     tags: [Attendance]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - employeeId
+   *               - checkIn
+   *             properties:
+   *               employeeId:
+   *                 type: integer
+   *                 description: ID karyawan
+   *               checkIn:
+   *                 type: string
+   *                 format: date-time
+   *                 description: Waktu check-in
+   *               checkInLocation:
+   *                 type: string
+   *                 description: Lokasi check-in
+   *               checkInPhoto:
+   *                 type: string
+   *                 description: Path foto check-in
+   *     responses:
+   *       201:
+   *         description: Check-in berhasil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Attendance'
+   *       500:
+   *         description: Server error
+   */
   app.post('/api/attendance/checkin', isAuthenticated, async (req: any, res) => {
     try {
       const validatedData = insertAttendanceSchema.parse(req.body);
@@ -787,6 +855,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * @swagger
+   * /attendance/{id}/checkout:
+   *   put:
+   *     summary: Melakukan check-out kehadiran
+   *     tags: [Attendance]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID record attendance
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - checkOut
+   *             properties:
+   *               checkOut:
+   *                 type: string
+   *                 format: date-time
+   *                 description: Waktu check-out
+   *               checkOutLocation:
+   *                 type: string
+   *                 description: Lokasi check-out
+   *               checkOutPhoto:
+   *                 type: string
+   *                 description: Path foto check-out
+   *     responses:
+   *       200:
+   *         description: Check-out berhasil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Attendance'
+   *       500:
+   *         description: Server error
+   */
   app.put('/api/attendance/:id/checkout', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
@@ -1295,7 +1407,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Payroll API
+  /**
+   * @swagger
+   * /payroll:
+   *   get:
+   *     summary: Mendapatkan data payroll karyawan
+   *     tags: [Payroll]
+   *     security:
+   *       - ReplitAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: employeeId
+   *         schema:
+   *           type: integer
+   *         description: ID karyawan spesifik (opsional)
+   *       - in: query
+   *         name: period
+   *         schema:
+   *           type: string
+   *         description: Period payroll (format YYYY-MM)
+   *     responses:
+   *       200:
+   *         description: Data payroll berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Payroll'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       500:
+   *         description: Server error
+   *   post:
+   *     summary: Membuat payroll baru untuk karyawan
+   *     tags: [Payroll]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - employeeId
+   *               - period
+   *               - basicSalary
+   *               - grossSalary
+   *               - netSalary
+   *             properties:
+   *               employeeId:
+   *                 type: integer
+   *               period:
+   *                 type: string
+   *               basicSalary:
+   *                 type: string
+   *               overtimePay:
+   *                 type: string
+   *               allowances:
+   *                 type: object
+   *               deductions:
+   *                 type: object
+   *               grossSalary:
+   *                 type: string
+   *               netSalary:
+   *                 type: string
+   *               bpjsHealth:
+   *                 type: string
+   *               bpjsEmployment:
+   *                 type: string
+   *               pph21:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Payroll berhasil dibuat
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Payroll'
+   *       400:
+   *         description: Data tidak valid
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/payroll', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1341,7 +1536,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Document Management API
+  /**
+   * @swagger
+   * /documents:
+   *   get:
+   *     summary: Mendapatkan daftar semua dokumen perusahaan
+   *     tags: [Documents]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Daftar dokumen berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Document'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       500:
+   *         description: Server error
+   *   post:
+   *     summary: Upload dokumen baru
+   *     tags: [Documents]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - title
+   *               - type
+   *               - filePath
+   *             properties:
+   *               title:
+   *                 type: string
+   *                 description: Judul dokumen
+   *               type:
+   *                 type: string
+   *                 description: Jenis dokumen
+   *               description:
+   *                 type: string
+   *                 description: Deskripsi dokumen
+   *               filePath:
+   *                 type: string
+   *                 description: Path file dokumen
+   *               employeeId:
+   *                 type: integer
+   *                 description: ID karyawan terkait (opsional)
+   *     responses:
+   *       201:
+   *         description: Dokumen berhasil diupload
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Document'
+   *       400:
+   *         description: Data tidak valid
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/documents', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1394,7 +1652,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Reimbursement API
+  /**
+   * @swagger
+   * /reimbursements:
+   *   get:
+   *     summary: Mendapatkan daftar semua reimbursement
+   *     tags: [Reimbursements]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Daftar reimbursement berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Reimbursement'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       500:
+   *         description: Server error
+   *   post:
+   *     summary: Membuat pengajuan reimbursement baru
+   *     tags: [Reimbursements]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - employeeId
+   *               - category
+   *               - amount
+   *               - description
+   *               - date
+   *             properties:
+   *               employeeId:
+   *                 type: integer
+   *                 description: ID karyawan
+   *               category:
+   *                 type: string
+   *                 description: Kategori reimbursement
+   *               amount:
+   *                 type: string
+   *                 description: Jumlah reimbursement
+   *               description:
+   *                 type: string
+   *                 description: Deskripsi pengeluaran
+   *               receiptPhoto:
+   *                 type: string
+   *                 description: Path foto bukti pembayaran
+   *               date:
+   *                 type: string
+   *                 format: date
+   *                 description: Tanggal pengeluaran
+   *     responses:
+   *       201:
+   *         description: Reimbursement berhasil dibuat
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Reimbursement'
+   *       400:
+   *         description: Data tidak valid
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/reimbursements', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1449,7 +1776,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Performance API
+  /**
+   * @swagger
+   * /performance:
+   *   get:
+   *     summary: Mendapatkan daftar semua performance review
+   *     tags: [Performance]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Daftar performance review berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/PerformanceReview'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       500:
+   *         description: Server error
+   *   post:
+   *     summary: Membuat performance review baru
+   *     tags: [Performance]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - employeeId
+   *               - period
+   *               - targets
+   *               - achievements
+   *               - rating
+   *               - reviewedBy
+   *             properties:
+   *               employeeId:
+   *                 type: integer
+   *                 description: ID karyawan yang direview
+   *               period:
+   *                 type: string
+   *                 description: Periode review (contoh: Q1 2024)
+   *               targets:
+   *                 type: object
+   *                 description: Target yang ditetapkan (JSON)
+   *               achievements:
+   *                 type: object
+   *                 description: Pencapaian karyawan (JSON)
+   *               rating:
+   *                 type: integer
+   *                 minimum: 1
+   *                 maximum: 5
+   *                 description: Rating performance (1-5)
+   *               feedback:
+   *                 type: string
+   *                 description: Feedback dari reviewer
+   *               reviewedBy:
+   *                 type: integer
+   *                 description: ID karyawan yang melakukan review
+   *     responses:
+   *       201:
+   *         description: Performance review berhasil dibuat
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/PerformanceReview'
+   *       400:
+   *         description: Data tidak valid
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/performance', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
