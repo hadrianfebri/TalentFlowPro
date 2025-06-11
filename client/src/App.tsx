@@ -24,6 +24,7 @@ import Recruitment from "@/pages/recruitment";
 import SalaryComponents from "@/pages/salary-components";
 import Settings from "@/pages/settings";
 import ApplicantUpload from "@/pages/applicant-upload";
+import AITesting from "@/pages/ai-testing";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -52,6 +53,7 @@ function Router() {
           <Route path="/performance" component={Performance} />
           <Route path="/recruitment" component={Recruitment} />
           <Route path="/applicant-upload" component={ApplicantUpload} />
+          <Route path="/ai-testing" component={AITesting} />
           <Route path="/salary-components" component={SalaryComponents} />
           <Route path="/settings" component={Settings} />
         </>
