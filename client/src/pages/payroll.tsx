@@ -98,6 +98,69 @@ export default function Payroll() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isProcessDialogOpen, setIsProcessDialogOpen] = useState(false);
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
+
+  // Export payroll data to CSV
+  const exportPayrollData = () => {
+    if (!payrollRecords || !Array.isArray(payrollRecords) || payrollRecords.length === 0) {
+      toast({
+        title: "No Data",
+        description: "Tidak ada data payroll untuk diekspor",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const headers = [
+      "Employee ID",
+      "Name", 
+      "Period",
+      "Basic Salary",
+      "Allowances",
+      "Overtime Pay",
+      "Gross Salary",
+      "BPJS Health",
+      "BPJS Employment", 
+      "Tax",
+      "Net Salary",
+      "Status"
+    ];
+
+    const csvData = (payrollRecords as PayrollRecord[]).map((record: PayrollRecord) => [
+      record.employee.employeeId,
+      `${record.employee.firstName} ${record.employee.lastName}`,
+      record.period,
+      record.basicSalary,
+      typeof record.allowances === 'object' && record.allowances ? 
+        Object.values(record.allowances).reduce((sum: number, val: any) => sum + parseFloat(val || 0), 0) :
+        record.allowances || 0,
+      record.overtimePay || 0,
+      record.grossSalary,
+      record.bpjsHealth || 0,
+      record.bpjsEmployment || 0,
+      record.tax || 0,
+      record.netSalary,
+      record.status
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map((cell: any) => `"${cell}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `payroll_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Export Successful",
+      description: "Data payroll berhasil diekspor ke CSV",
+    });
+  };
   const [isOvertimeDialogOpen, setIsOvertimeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [overtimeHours, setOvertimeHours] = useState("");
@@ -366,7 +429,7 @@ export default function Payroll() {
                 <Calculator className="w-4 h-4 mr-2" />
                 Proses Payroll
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" onClick={exportPayrollData}>
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
@@ -692,14 +755,15 @@ export default function Payroll() {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">Tunjangan</label>
-                        <div className="text-sm">
+                        <div className="text-sm space-y-1">
                           {typeof selectedPayroll.allowances === 'object' && selectedPayroll.allowances ? 
                             Object.entries(selectedPayroll.allowances).map(([key, value]) => (
-                              <p key={key} className="font-medium">
-                                {key}: {formatCurrency(value as string)}
-                              </p>
+                              <div key={key} className="flex justify-between">
+                                <span className="text-muted-foreground">{key}:</span>
+                                <span className="font-medium">{formatCurrency(value as string)}</span>
+                              </div>
                             )) : 
-                            <p className="font-medium">{formatCurrency(selectedPayroll.allowances)}</p>
+                            <p className="font-medium">{formatCurrency(selectedPayroll.allowances || 0)}</p>
                           }
                         </div>
                       </div>

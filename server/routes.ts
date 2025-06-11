@@ -23,7 +23,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { format } from "date-fns";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 // AI Insights Generation Function
 async function generateAttendanceInsights(attendanceRecords: any[], employees: any[], period: string) {
@@ -807,8 +807,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { overtimeHours } = req.body;
       
-      // Calculate overtime pay based on hours
-      const hourlyOvertimeRate = 50000; // Base overtime rate per hour
+      // Get employee data to calculate overtime rate based on their hourly rate
+      const employeeData = await db
+        .select()
+        .from(payroll)
+        .where(eq(payroll.id, parseInt(id)))
+        .limit(1);
+      
+      if (employeeData.length === 0) {
+        return res.status(404).json({ message: "Payroll record not found" });
+      }
+      
+      // Calculate hourly rate from basic salary (assuming 8 hours/day, 22 working days/month)
+      const basicSalary = parseFloat(employeeData[0].basicSalary);
+      const hourlyRate = basicSalary / (8 * 22); // Monthly salary to hourly rate
+      const overtimeMultiplier = 1.5; // 1.5x regular hourly rate for overtime
+      const hourlyOvertimeRate = hourlyRate * overtimeMultiplier;
       const overtimePay = (overtimeHours * hourlyOvertimeRate).toString();
       
       const [updatedPayroll] = await db
@@ -821,11 +835,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
       
       // Recalculate net salary
-      const basicSalary = parseFloat(updatedPayroll.basicSalary);
+      const currentBasicSalary = parseFloat(updatedPayroll.basicSalary);
       const allowances = parseFloat(updatedPayroll.allowances as string) || 0;
       const newOvertimePay = parseFloat(overtimePay);
       const deductions = parseFloat(updatedPayroll.deductions as string) || 0;
-      const grossSalary = basicSalary + allowances + newOvertimePay;
+      const grossSalary = currentBasicSalary + allowances + newOvertimePay;
       const netSalary = grossSalary - deductions;
       
       // Update with recalculated values
