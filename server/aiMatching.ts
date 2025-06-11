@@ -1,8 +1,8 @@
-import OpenAI from "openai";
 import { JobApplication, Job } from "../shared/schema";
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// DeepSeek AI configuration
+const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "sk-your-deepseek-key-here";
 
 export interface AIMatchingResult {
   overallScore: number;
@@ -24,23 +24,36 @@ export class AIJobMatcher {
     try {
       const prompt = this.buildAnalysisPrompt(application, job);
       
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "Anda adalah AI HR expert yang menganalisis kesesuaian pelamar dengan lowongan kerja. Berikan analisis mendalam dan objektif dalam bahasa Indonesia.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.3,
+      const response = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: "Anda adalah AI HR expert yang menganalisis kesesuaian pelamar dengan lowongan kerja. Berikan analisis mendalam dan objektif dalam bahasa Indonesia dalam format JSON yang valid.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          temperature: 0.3,
+          max_tokens: 2000
+        })
       });
 
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      if (!response.ok) {
+        throw new Error(`DeepSeek API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const result = JSON.parse(data.choices[0].message.content || "{}");
       
       return {
         overallScore: Math.max(0, Math.min(100, result.overallScore || 0)),
@@ -180,23 +193,35 @@ Format JSON yang diinginkan:
 Ekstrak semua informasi yang tersedia, gunakan null untuk data yang tidak tersedia.
 `;
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "Anda adalah AI expert dalam mengekstrak data terstruktur dari resume. Berikan hasil ekstraksi yang akurat dan lengkap.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.1,
+      const response = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: "Anda adalah AI expert dalam mengekstrak data terstruktur dari resume. Berikan hasil ekstraksi yang akurat dan lengkap dalam format JSON yang valid.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          temperature: 0.1,
+          max_tokens: 2000
+        })
       });
 
-      return JSON.parse(response.choices[0].message.content || "{}");
+      if (!response.ok) {
+        throw new Error(`DeepSeek API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return JSON.parse(data.choices[0].message.content || "{}");
     } catch (error) {
       console.error("Resume extraction failed:", error);
       throw new Error("Gagal mengekstrak data resume: " + error.message);
@@ -236,23 +261,35 @@ Buatkan pertanyaan yang:
 5. Menanyakan situasi challenging yang pernah dihadapi
 `;
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "Anda adalah HR expert yang membuat pertanyaan interview berkualitas tinggi untuk menilai kandidat secara komprehensif.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.4,
+      const response = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: "Anda adalah HR expert yang membuat pertanyaan interview berkualitas tinggi untuk menilai kandidat secara komprehensif dalam format JSON yang valid.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          temperature: 0.4,
+          max_tokens: 1500
+        })
       });
 
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      if (!response.ok) {
+        throw new Error(`DeepSeek API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const result = JSON.parse(data.choices[0].message.content || "{}");
       return result.questions || [];
     } catch (error) {
       console.error("Interview questions generation failed:", error);

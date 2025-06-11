@@ -1803,6 +1803,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API to test DeepSeek AI matching
+  app.post('/api/test-ai-matching', getUserProfile, requireAdminOrHR, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { applicationId, jobId } = req.body;
+      
+      if (!applicationId || !jobId) {
+        return res.status(400).json({ error: 'Application ID and Job ID are required' });
+      }
+
+      // Get application and job data
+      const application = await storage.getJobApplication(applicationId);
+      const jobs = await storage.getJobs(req.userProfile!.companyId);
+      const job = jobs.find(j => j.id === jobId);
+
+      if (!application || !job) {
+        return res.status(404).json({ error: 'Application or job not found' });
+      }
+
+      // Run AI analysis
+      const analysisResult = await aiJobMatcher.analyzeApplicantJobCompatibility(application, job);
+      
+      res.json({
+        success: true,
+        analysis: analysisResult,
+        application: {
+          id: application.id,
+          name: application.applicantName,
+          email: application.applicantEmail
+        },
+        job: {
+          id: job.id,
+          title: job.title,
+          department: job.department
+        }
+      });
+    } catch (error: any) {
+      console.error('AI matching test error:', error);
+      res.status(500).json({ 
+        error: 'Failed to test AI matching: ' + error.message,
+        details: error.message 
+      });
+    }
+  });
+
+  // API to generate interview questions using DeepSeek
+  app.post('/api/generate-interview-questions', getUserProfile, requireAdminOrHR, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { applicationId, jobId } = req.body;
+      
+      if (!applicationId || !jobId) {
+        return res.status(400).json({ error: 'Application ID and Job ID are required' });
+      }
+
+      const application = await storage.getJobApplication(applicationId);
+      const jobs = await storage.getJobs(req.userProfile!.companyId);
+      const job = jobs.find(j => j.id === jobId);
+
+      if (!application || !job) {
+        return res.status(404).json({ error: 'Application or job not found' });
+      }
+
+      const questions = await aiJobMatcher.generateInterviewQuestions(application, job);
+      
+      res.json({
+        success: true,
+        questions,
+        application: {
+          id: application.id,
+          name: application.applicantName
+        },
+        job: {
+          id: job.id,
+          title: job.title
+        }
+      });
+    } catch (error: any) {
+      console.error('Interview questions generation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate interview questions: ' + error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
