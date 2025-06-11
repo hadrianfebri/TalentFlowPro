@@ -38,6 +38,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { 
@@ -51,7 +52,11 @@ import {
   Filter,
   MoreHorizontal,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Eye,
+  MessageSquare
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { format } from "date-fns";
@@ -654,6 +659,96 @@ export default function Leaves() {
           </Card>
         </main>
       </div>
+
+      {/* Reject Leave Dialog */}
+      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="h-5 w-5" />
+              Tolak Pengajuan Cuti
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedLeaveForReject && (
+              <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="h-4 w-4" />
+                  <span className="font-medium">
+                    {selectedLeaveForReject.employee.firstName} {selectedLeaveForReject.employee.lastName}
+                  </span>
+                  <Badge variant="outline">{selectedLeaveForReject.employee.employeeId}</Badge>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>
+                    {format(new Date(selectedLeaveForReject.startDate), 'dd MMM yyyy', { locale: id })} - 
+                    {format(new Date(selectedLeaveForReject.endDate), 'dd MMM yyyy', { locale: id })}
+                  </span>
+                  <Badge variant="outline">{selectedLeaveForReject.totalDays} hari</Badge>
+                </div>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Jenis: </span>
+                  <span className="font-medium">{getLeaveTypeName(selectedLeaveForReject.leaveTypeId)}</span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Alasan: </span>
+                  <span>{selectedLeaveForReject.reason}</span>
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason" className="text-sm font-medium">
+                Alasan Penolakan <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="rejection-reason"
+                placeholder="Masukkan alasan penolakan pengajuan cuti..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground">
+                Alasan ini akan dikirimkan kepada karyawan sebagai notifikasi penolakan.
+              </p>
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsRejectDialogOpen(false);
+                  setSelectedLeaveForReject(null);
+                  setRejectionReason("");
+                }}
+                disabled={rejectLeaveMutation.isPending}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleRejectConfirm}
+                disabled={rejectLeaveMutation.isPending || !rejectionReason.trim()}
+                className="min-w-[100px]"
+              >
+                {rejectLeaveMutation.isPending ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Menolak...</span>
+                  </div>
+                ) : (
+                  <>
+                    <X className="h-4 w-4 mr-2" />
+                    Tolak Cuti
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
