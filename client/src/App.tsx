@@ -22,6 +22,7 @@ import Reimbursements from "@/pages/reimbursements";
 import Performance from "@/pages/performance";
 import Recruitment from "@/pages/recruitment";
 import SalaryComponents from "@/pages/salary-components";
+import Settings from "@/pages/settings";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -50,6 +51,7 @@ function Router() {
           <Route path="/performance" component={Performance} />
           <Route path="/recruitment" component={Recruitment} />
           <Route path="/salary-components" component={SalaryComponents} />
+          <Route path="/settings" component={Settings} />
         </>
       )}
       <Route component={NotFound} />

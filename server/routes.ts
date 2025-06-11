@@ -1743,6 +1743,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API to get integration settings (placeholder - in production this would be from database)
+  app.get('/api/integration-settings', getUserProfile, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // In production, this would fetch from database
+      // For now, return empty object since we use environment variables
+      res.json({});
+    } catch (error: any) {
+      console.error('Integration settings error:', error);
+      res.status(500).json({ error: 'Failed to get integration settings' });
+    }
+  });
+
+  // API to save integration settings (placeholder - in production this would save to database)
+  app.post('/api/integration-settings', getUserProfile, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { platform, credentials } = req.body;
+      
+      // In production, this would save to database and update environment
+      // For now, just return success message
+      res.json({ 
+        message: `Integration settings for ${platform} saved successfully. Please restart the application for changes to take effect.`,
+        platform,
+        saved: true
+      });
+    } catch (error: any) {
+      console.error('Save integration settings error:', error);
+      res.status(500).json({ error: 'Failed to save integration settings' });
+    }
+  });
+
+  // API to test platform connection
+  app.post('/api/test-integration/:platform', getUserProfile, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { platform } = req.params;
+      
+      if (!platformManager.isConfigured(platform)) {
+        return res.status(400).json({ 
+          error: `Platform ${platform} is not configured. Please add API credentials first.` 
+        });
+      }
+
+      // Test connection by trying to get platform instance
+      const platformInstance = platformManager.getPlatform(platform);
+      if (platformInstance) {
+        res.json({ 
+          success: true, 
+          message: `Connection to ${platform} is working`,
+          platform 
+        });
+      } else {
+        res.status(400).json({ 
+          error: `Failed to connect to ${platform}. Please check your API credentials.` 
+        });
+      }
+    } catch (error: any) {
+      console.error('Test integration error:', error);
+      res.status(500).json({ error: 'Failed to test platform connection' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

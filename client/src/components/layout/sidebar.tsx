@@ -12,7 +12,8 @@ import {
   UserPlus, 
   Brain, 
   Gift,
-  LayoutDashboard
+  LayoutDashboard,
+  Settings
 } from "lucide-react";
 
 const navigationItems = [
@@ -85,6 +86,13 @@ const navigationItems = [
     icon: UserPlus,
     resource: "recruitment",
     allowedRoles: ["admin", "hr"], // Hanya Admin dan HR
+  },
+  {
+    name: "Pengaturan",
+    href: "/settings",
+    icon: Settings,
+    resource: "settings",
+    allowedRoles: ["admin"], // Hanya Admin
   },
 ];
 
