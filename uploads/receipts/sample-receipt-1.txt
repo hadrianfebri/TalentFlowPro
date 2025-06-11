@@ -1,0 +1,6 @@
+This is a sample receipt placeholder.
+For demonstration purposes, this represents a receipt image.
+Receipt ID: RCP-2024-001
+Amount: Rp 150,000
+Date: 2024-06-11
+Merchant: Restaurant ABC
