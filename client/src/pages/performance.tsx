@@ -82,6 +82,10 @@ export default function Performance() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPeriod, setFilterPeriod] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterRating, setFilterRating] = useState("all");
+  const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const { data: performanceReviews, isLoading } = useQuery<PerformanceReview[]>({
     queryKey: ["/api/performance"],
@@ -176,8 +180,18 @@ export default function Performance() {
                          review.employee.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          review.employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPeriod = filterPeriod === "all" || review.period === filterPeriod;
-    return matchesSearch && matchesPeriod;
+    const matchesStatus = filterStatus === "all" || review.status === filterStatus;
+    const matchesRating = filterRating === "all" || 
+                         (filterRating === "excellent" && review.rating && review.rating >= 4.5) ||
+                         (filterRating === "good" && review.rating && review.rating >= 3.5 && review.rating < 4.5) ||
+                         (filterRating === "average" && review.rating && review.rating >= 2.5 && review.rating < 3.5) ||
+                         (filterRating === "poor" && review.rating && review.rating < 2.5);
+    return matchesSearch && matchesPeriod && matchesStatus && matchesRating;
   }) || [];
+
+  const completedReviews = performanceReviews?.filter(r => r.status === 'completed') || [];
+  const draftReviews = performanceReviews?.filter(r => r.status === 'draft') || [];
+  const highPerformers = performanceReviews?.filter(r => r.rating && r.rating >= 4.5) || [];
 
   const averageRating = performanceReviews?.reduce((sum, review) => sum + (review.rating || 0), 0) / (performanceReviews?.length || 1);
 
@@ -233,9 +247,9 @@ export default function Performance() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Target Tercapai</p>
+                    <p className="text-sm font-medium text-muted-foreground">Review Selesai</p>
                     <p className="text-3xl font-bold text-foreground">
-                      {performanceReviews?.filter(r => r.rating && r.rating >= 3.5).length || 0}
+                      {completedReviews.length}
                     </p>
                   </div>
                   <Target className="h-8 w-8 text-green-500" />
@@ -249,7 +263,7 @@ export default function Performance() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Top Performer</p>
                     <p className="text-3xl font-bold text-foreground">
-                      {performanceReviews?.filter(r => r.rating && r.rating >= 4.5).length || 0}
+                      {highPerformers.length}
                     </p>
                   </div>
                   <Award className="h-8 w-8 text-purple-500" />
@@ -278,9 +292,31 @@ export default function Performance() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Periode</SelectItem>
-                      <SelectItem value="2024-01">Januari 2024</SelectItem>
-                      <SelectItem value="2024-02">Februari 2024</SelectItem>
-                      <SelectItem value="2024-03">Maret 2024</SelectItem>
+                      <SelectItem value="2024-06">Juni 2024</SelectItem>
+                      <SelectItem value="2024-05">Mei 2024</SelectItem>
+                      <SelectItem value="2024-04">April 2024</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-full sm:w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Status</SelectItem>
+                      <SelectItem value="completed">Selesai</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterRating} onValueChange={setFilterRating}>
+                    <SelectTrigger className="w-full sm:w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Rating</SelectItem>
+                      <SelectItem value="excellent">Excellent (4.5+)</SelectItem>
+                      <SelectItem value="good">Good (3.5-4.4)</SelectItem>
+                      <SelectItem value="average">Average (2.5-3.4)</SelectItem>
+                      <SelectItem value="poor">Poor (Below 2.5)</SelectItem>
                     </SelectContent>
                   </Select>
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
