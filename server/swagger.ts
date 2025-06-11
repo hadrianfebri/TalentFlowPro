@@ -85,6 +85,141 @@ const options = {
             status: { type: 'string', enum: ['pending', 'approved', 'rejected'] }
           }
         },
+        Job: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            title: { type: 'string' },
+            description: { type: 'string' },
+            requirements: { type: 'string' },
+            location: { type: 'string' },
+            salary: { type: 'string' },
+            employmentType: { type: 'string', enum: ['full_time', 'part_time', 'contract', 'freelance'] },
+            status: { type: 'string', enum: ['draft', 'active', 'closed'] },
+            companyId: { type: 'string' },
+            createdBy: { type: 'string' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        JobApplication: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            jobId: { type: 'integer' },
+            applicantName: { type: 'string' },
+            applicantEmail: { type: 'string' },
+            applicantPhone: { type: 'string' },
+            resumePath: { type: 'string' },
+            coverLetter: { type: 'string' },
+            stage: { type: 'string', enum: ['applied', 'review', 'interview', 'offer', 'hired', 'rejected'] },
+            status: { type: 'string', enum: ['pending', 'approved', 'rejected'] },
+            notes: { type: 'string' },
+            createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        Payroll: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            employeeId: { type: 'integer' },
+            period: { type: 'string' },
+            basicSalary: { type: 'string' },
+            allowances: { type: 'string' },
+            deductions: { type: 'string' },
+            netSalary: { type: 'string' },
+            status: { type: 'string', enum: ['draft', 'processed', 'paid'] }
+          }
+        },
+        Document: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            employeeId: { type: 'integer' },
+            title: { type: 'string' },
+            content: { type: 'string' },
+            type: { type: 'string' },
+            signed: { type: 'boolean' },
+            signedBy: { type: 'string' },
+            signedAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        Reimbursement: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            employeeId: { type: 'integer' },
+            description: { type: 'string' },
+            amount: { type: 'string' },
+            receiptPath: { type: 'string' },
+            status: { type: 'string', enum: ['pending', 'approved', 'rejected'] },
+            submittedDate: { type: 'string', format: 'date' }
+          }
+        },
+        PerformanceReview: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            employeeId: { type: 'integer' },
+            reviewerId: { type: 'integer' },
+            period: { type: 'string' },
+            goals: { type: 'string' },
+            achievements: { type: 'string' },
+            rating: { type: 'number', minimum: 1, maximum: 5 },
+            feedback: { type: 'string' }
+          }
+        },
+        SalaryComponent: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            name: { type: 'string' },
+            type: { type: 'string', enum: ['allowance', 'deduction'] },
+            isActive: { type: 'boolean' },
+            companyId: { type: 'string' }
+          }
+        },
+        BulkUploadResult: {
+          type: 'object',
+          properties: {
+            success: { type: 'integer' },
+            failed: { type: 'integer' },
+            errors: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  row: { type: 'object' },
+                  error: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        AIMatchingResult: {
+          type: 'object',
+          properties: {
+            overallScore: { type: 'number' },
+            skillsMatch: { type: 'number' },
+            experienceMatch: { type: 'number' },
+            educationMatch: { type: 'number' },
+            culturalFit: { type: 'number' },
+            recommendations: { type: 'array', items: { type: 'string' } },
+            strengths: { type: 'array', items: { type: 'string' } },
+            concerns: { type: 'array', items: { type: 'string' } },
+            summary: { type: 'string' }
+          }
+        },
+        DashboardStats: {
+          type: 'object',
+          properties: {
+            totalEmployees: { type: 'integer' },
+            presentToday: { type: 'integer' },
+            pendingLeaves: { type: 'integer' },
+            openJobs: { type: 'integer' },
+            newApplications: { type: 'integer' }
+          }
+        },
         Error: {
           type: 'object',
           properties: {

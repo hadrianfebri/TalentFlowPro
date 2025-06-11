@@ -388,6 +388,38 @@ function formatCurrency(amount: string | number) {
   }).format(num);
 }
 
+/**
+ * @swagger
+ * tags:
+ *   - name: Auth
+ *     description: Authentication endpoints
+ *   - name: Dashboard
+ *     description: Dashboard and analytics endpoints
+ *   - name: Employees
+ *     description: Employee management endpoints
+ *   - name: Attendance
+ *     description: Attendance tracking endpoints
+ *   - name: Leave
+ *     description: Leave request management endpoints
+ *   - name: Payroll
+ *     description: Payroll management endpoints
+ *   - name: Documents
+ *     description: Document management endpoints
+ *   - name: Reimbursements
+ *     description: Reimbursement management endpoints
+ *   - name: Performance
+ *     description: Performance review endpoints
+ *   - name: Jobs
+ *     description: Job posting endpoints
+ *   - name: Job Applications
+ *     description: Job application management endpoints
+ *   - name: AI Matching
+ *     description: AI-powered job matching endpoints
+ *   - name: Salary Components
+ *     description: Salary component management endpoints
+ *   - name: Integration
+ *     description: External platform integration endpoints
+ */
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Swagger documentation
   setupSwagger(app);
@@ -1577,6 +1609,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * @swagger
+   * /job-applications:
+   *   get:
+   *     summary: Mendapatkan daftar semua lamaran kerja
+   *     tags: [Job Applications]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Daftar lamaran kerja berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/JobApplication'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       401:
+   *         description: Unauthorized
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/job-applications', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1679,7 +1735,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Bulk upload job applications from CSV
+  /**
+   * @swagger
+   * /job-applications/bulk-upload:
+   *   post:
+   *     summary: Upload massal lamaran kerja melalui file CSV atau PDF
+   *     tags: [Job Applications]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               file:
+   *                 type: string
+   *                 format: binary
+   *                 description: File CSV dengan data pelamar atau file PDF CV
+   *     responses:
+   *       200:
+   *         description: File berhasil diproses
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/BulkUploadResult'
+   *       400:
+   *         description: File tidak valid atau tidak ada file yang diupload
+   *       401:
+   *         description: Unauthorized
+   *       500:
+   *         description: Server error
+   */
   app.post('/api/job-applications/bulk-upload',
     isAuthenticated,
     getUserProfile,
@@ -2065,7 +2153,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API to test DeepSeek AI matching
+  /**
+   * @swagger
+   * /test-ai-matching:
+   *   post:
+   *     summary: Test analisis AI matching antara pelamar dan lowongan kerja
+   *     tags: [AI Matching]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - applicationId
+   *               - jobId
+   *             properties:
+   *               applicationId:
+   *                 type: integer
+   *                 description: ID lamaran kerja
+   *               jobId:
+   *                 type: integer
+   *                 description: ID lowongan kerja
+   *     responses:
+   *       200:
+   *         description: Analisis AI berhasil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 analysis:
+   *                   $ref: '#/components/schemas/AIMatchingResult'
+   *                 application:
+   *                   type: object
+   *                   properties:
+   *                     id: { type: integer }
+   *                     name: { type: string }
+   *                     email: { type: string }
+   *                 job:
+   *                   type: object
+   *                   properties:
+   *                     id: { type: integer }
+   *                     title: { type: string }
+   *                     department: { type: string }
+   *       400:
+   *         description: Parameter tidak lengkap
+   *       404:
+   *         description: Lamaran atau lowongan tidak ditemukan
+   *       500:
+   *         description: Error pada proses AI matching
+   */
   app.post('/api/test-ai-matching', getUserProfile, requireAdminOrHR, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { applicationId, jobId } = req.body;
@@ -2109,7 +2251,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API to generate interview questions using DeepSeek
+  /**
+   * @swagger
+   * /generate-interview-questions:
+   *   post:
+   *     summary: Generate pertanyaan interview menggunakan AI berdasarkan profil pelamar dan lowongan
+   *     tags: [AI Matching]
+   *     security:
+   *       - ReplitAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - applicationId
+   *               - jobId
+   *             properties:
+   *               applicationId:
+   *                 type: integer
+   *                 description: ID lamaran kerja
+   *               jobId:
+   *                 type: integer
+   *                 description: ID lowongan kerja
+   *     responses:
+   *       200:
+   *         description: Pertanyaan interview berhasil dibuat
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 questions:
+   *                   type: array
+   *                   items:
+   *                     type: string
+   *                   description: Daftar pertanyaan interview yang dibuat AI
+   *       400:
+   *         description: Parameter tidak lengkap
+   *       404:
+   *         description: Lamaran atau lowongan tidak ditemukan
+   *       500:
+   *         description: Error pada proses generate questions
+   */
   app.post('/api/generate-interview-questions', getUserProfile, requireAdminOrHR, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { applicationId, jobId } = req.body;
