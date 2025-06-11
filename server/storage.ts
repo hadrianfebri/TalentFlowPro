@@ -553,7 +553,36 @@ export class DatabaseStorage implements IStorage {
         }
 
         // Calculate basic components  
-        const basicSalary = parseFloat(employee.baseSalary || "5000000"); // Default 5M if no salary set
+        const basicSalary = parseFloat(employee.basicSalary || "5000000"); // Default 5M if no salary set
+        
+        // Get employee salary components
+        const employeeSalaryComponents = await this.getEmployeeSalaryComponents(employee.id);
+        
+        // Calculate total allowances from salary components
+        let totalAllowances = 0;
+        let totalDeductions = 0;
+        const allowanceDetails: any = {};
+        const deductionDetails: any = {};
+        
+        // Get salary component definitions to determine type
+        const salaryComponents = await this.getSalaryComponents(companyId);
+        
+        for (const empComponent of employeeSalaryComponents) {
+          if (!empComponent.isActive) continue;
+          
+          const componentDef = salaryComponents.find(sc => sc.id === empComponent.componentId);
+          if (!componentDef) continue;
+          
+          const amount = parseFloat(empComponent.amount);
+          
+          if (componentDef.type === 'allowance') {
+            totalAllowances += amount;
+            allowanceDetails[componentDef.code] = amount;
+          } else if (componentDef.type === 'deduction') {
+            totalDeductions += amount;
+            deductionDetails[componentDef.code] = amount;
+          }
+        }
         
         // Get attendance data for overtime calculation
         const startDate = new Date(period + "-01");
@@ -577,11 +606,8 @@ export class DatabaseStorage implements IStorage {
         const hourlyRate = basicSalary / 173; // Average working hours per month
         const overtimePay = totalOvertimeHours * hourlyRate * 1.5; // 1.5x for overtime
 
-        // Calculate allowances (10% of basic salary)
-        const allowances = basicSalary * 0.1;
-
         // Calculate gross salary
-        const grossSalary = basicSalary + allowances + overtimePay;
+        const grossSalary = basicSalary + totalAllowances + overtimePay;
 
         // Calculate deductions
         const bpjsHealth = grossSalary * 0.04; // 4% BPJS Kesehatan
@@ -594,24 +620,35 @@ export class DatabaseStorage implements IStorage {
           tax = (annualGross - 60000000) * 0.15 / 12; // 15% tax
         }
 
+        // Include salary component deductions in total deductions
+        const totalBpjsDeductions = bpjsHealth + bpjsEmployment;
+        const totalCalculatedDeductions = totalBpjsDeductions + tax + totalDeductions;
+        
         // Calculate net salary
-        const netSalary = grossSalary - (bpjsHealth + bpjsEmployment + tax);
+        const netSalary = grossSalary - totalCalculatedDeductions;
 
-        // Create payroll record with simpler structure
+        // Create payroll record with employee salary components
         const payrollData = {
           employeeId: employee.id,
           period: period,
           basicSalary: basicSalary.toString(),
-          allowances: { base: allowances },
+          allowances: allowanceDetails,
           overtimePay: overtimePay.toString(),
           grossSalary: grossSalary.toString(),
           bpjsHealth: bpjsHealth.toString(),
           bpjsEmployment: bpjsEmployment.toString(),
           pph21: tax.toString(),
-          deductions: { total: bpjsHealth + bpjsEmployment + tax, bpjs: bpjsHealth + bpjsEmployment, tax: tax },
+          deductions: { 
+            ...deductionDetails,
+            bpjsHealth: bpjsHealth, 
+            bpjsEmployment: bpjsEmployment, 
+            tax: tax, 
+            total: totalCalculatedDeductions 
+          },
           netSalary: netSalary.toString(),
           status: "processed",
           processedAt: new Date(),
+          adjustments: {},
         };
 
         const [newPayroll] = await db
