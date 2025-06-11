@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
-import type { Employee, InsertEmployee } from "@shared/schema";
+import type { Employee, InsertEmployee, SalaryComponent, EmployeeSalaryComponent, insertEmployeeSalaryComponentSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Define form schema for employee data
@@ -75,13 +75,13 @@ function EmployeeSalaryComponentsSection({ employeeId }: { employeeId: number })
   const { userRole } = usePermissions();
   
   // Fetch employee salary components
-  const { data: employeeSalaryComponents = [], isLoading } = useQuery({
+  const { data: employeeSalaryComponents = [], isLoading } = useQuery<EmployeeSalaryComponent[]>({
     queryKey: ["/api/employee-salary-components", employeeId],
     enabled: !!employeeId,
   });
 
   // Fetch available salary components
-  const { data: salaryComponents = [] } = useQuery({
+  const { data: salaryComponents = [] } = useQuery<SalaryComponent[]>({
     queryKey: ["/api/salary-components"],
   });
 
