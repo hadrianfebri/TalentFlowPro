@@ -69,6 +69,83 @@ const employeeFormSchema = z.object({
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 
+// Component for managing employee salary components
+function EmployeeSalaryComponentsSection({ employeeId }: { employeeId: number }) {
+  const { toast } = useToast();
+  const { userRole } = usePermissions();
+  
+  // Fetch employee salary components
+  const { data: employeeSalaryComponents = [], isLoading } = useQuery({
+    queryKey: ["/api/employee-salary-components", employeeId],
+    enabled: !!employeeId,
+  });
+
+  // Fetch available salary components
+  const { data: salaryComponents = [] } = useQuery({
+    queryKey: ["/api/salary-components"],
+  });
+
+  const isAdminOrHR = () => {
+    return userRole.role === "admin" || userRole.role === "hr";
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {employeeSalaryComponents.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <p>Belum ada komponen gaji yang ditetapkan untuk karyawan ini</p>
+          {isAdminOrHR() && (
+            <p className="text-sm mt-2">Gunakan tombol "Kelola Komponen" untuk mengatur komponen gaji individual</p>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {employeeSalaryComponents.map((component: any) => {
+            const salaryComponent = salaryComponents.find((sc: any) => sc.id === component.salaryComponentId);
+            return (
+              <Card key={component.id} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">{salaryComponent?.name || 'Unknown Component'}</h4>
+                    <p className="text-sm text-muted-foreground">{salaryComponent?.code}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">{formatCurrency(component.amount)}</p>
+                    <div className="flex gap-1 mt-1">
+                      <Badge variant={salaryComponent?.type === 'allowance' ? 'default' : 'destructive'} className="text-xs">
+                        {salaryComponent?.type === 'allowance' ? 'Tunjangan' : 'Potongan'}
+                      </Badge>
+                      {component.isActive && (
+                        <Badge variant="outline" className="text-xs">Aktif</Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Employees() {
   const { toast } = useToast();
   const { userRole } = usePermissions();
@@ -85,6 +162,8 @@ export default function Employees() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [selectedEmployeeForSalary, setSelectedEmployeeForSalary] = useState<Employee | null>(null);
+  const [isSalaryComponentDialogOpen, setIsSalaryComponentDialogOpen] = useState(false);
 
   // Form for adding/editing employees
   const form = useForm<EmployeeFormData>({
@@ -847,6 +926,26 @@ export default function Employees() {
                       <label className="text-sm font-medium text-muted-foreground">BPJS Ketenagakerjaan</label>
                       <p className="text-sm font-medium">{selectedEmployee.bpjsEmploymentNumber || "-"}</p>
                     </div>
+                  </div>
+                  
+                  {/* Salary Components Section */}
+                  <div className="border-t pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Komponen Gaji Individual</h3>
+                      {isAdminOrHR() && (
+                        <Button
+                          onClick={() => {
+                            setSelectedEmployeeForSalary(selectedEmployee);
+                            setIsSalaryComponentDialogOpen(true);
+                          }}
+                          size="sm"
+                        >
+                          Kelola Komponen
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <EmployeeSalaryComponentsSection employeeId={selectedEmployee.id} />
                   </div>
                 </TabsContent>
 
