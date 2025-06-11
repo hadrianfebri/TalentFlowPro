@@ -88,6 +88,13 @@ const navigationItems = [
     allowedRoles: ["admin", "hr"], // Hanya Admin dan HR
   },
   {
+    name: "Tambah Pelamar",
+    href: "/add-applicant",
+    icon: UserPlus,
+    resource: "add-applicant",
+    allowedRoles: ["admin", "hr"], // Hanya Admin dan HR
+  },
+  {
     name: "AI Testing",
     href: "/ai-testing",
     icon: Brain,

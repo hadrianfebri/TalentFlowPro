@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "wouter";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -15,12 +16,34 @@ import { apiRequest } from "@/lib/queryClient";
 import { insertJobApplicationSchema, type InsertJobApplication, type Job } from "@/../../shared/schema";
 import { Upload, UserPlus, FileText, Camera } from "lucide-react";
 
-const formSchema = insertJobApplicationSchema.extend({
-  resume_text: insertJobApplicationSchema.shape.resume_text.optional(),
-  cover_letter: insertJobApplicationSchema.shape.cover_letter.optional(),
+const formSchema = z.object({
+  applicant_name: z.string().min(1, "Nama lengkap wajib diisi"),
+  applicant_email: z.string().email("Format email tidak valid"),
+  applicant_phone: z.string().optional(),
+  position_applied: z.string().optional(),
+  experience_years: z.number().min(0, "Pengalaman tidak boleh negatif"),
+  education_level: z.string().optional(),
+  skills: z.string().optional(),
+  resume_text: z.string().optional(),
+  cover_letter: z.string().optional(),
+  stage: z.string().default("review"),
+  status: z.string().optional(),
+  job_id: z.number().optional(),
 });
 
-type FormData = InsertJobApplication & {
+type FormData = {
+  applicant_name: string;
+  applicant_email: string;
+  applicant_phone?: string;
+  position_applied?: string;
+  experience_years: number;
+  education_level?: string;
+  skills?: string;
+  resume_text?: string;
+  cover_letter?: string;
+  stage: string;
+  status?: string;
+  job_id?: number;
   resume_file?: FileList;
   portfolio_files?: FileList;
   photo_file?: FileList;
@@ -386,7 +409,7 @@ export default function AddApplicantPage() {
                       <FormField
                         control={form.control}
                         name="resume_file"
-                        render={({ field: { onChange, ...field } }) => (
+                        render={({ field: { onChange, value, ...field } }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-2">
                               <FileText className="h-4 w-4" />
@@ -398,6 +421,7 @@ export default function AddApplicantPage() {
                                 accept=".pdf,.doc,.docx"
                                 onChange={(e) => onChange(e.target.files)}
                                 {...field}
+                                value=""
                               />
                             </FormControl>
                             <FormMessage />
@@ -408,7 +432,7 @@ export default function AddApplicantPage() {
                       <FormField
                         control={form.control}
                         name="portfolio_files"
-                        render={({ field: { onChange, ...field } }) => (
+                        render={({ field: { onChange, value, ...field } }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-2">
                               <Upload className="h-4 w-4" />
@@ -421,6 +445,7 @@ export default function AddApplicantPage() {
                                 accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
                                 onChange={(e) => onChange(e.target.files)}
                                 {...field}
+                                value=""
                               />
                             </FormControl>
                             <FormMessage />
@@ -431,7 +456,7 @@ export default function AddApplicantPage() {
                       <FormField
                         control={form.control}
                         name="photo_file"
-                        render={({ field: { onChange, ...field } }) => (
+                        render={({ field: { onChange, value, ...field } }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-2">
                               <Camera className="h-4 w-4" />
@@ -443,6 +468,7 @@ export default function AddApplicantPage() {
                                 accept=".png,.jpg,.jpeg"
                                 onChange={(e) => onChange(e.target.files)}
                                 {...field}
+                                value=""
                               />
                             </FormControl>
                             <FormMessage />
