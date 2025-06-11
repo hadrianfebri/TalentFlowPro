@@ -1821,7 +1821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *                 description: ID karyawan yang direview
    *               period:
    *                 type: string
-   *                 description: Periode review (contoh: Q1 2024)
+   *                 description: "Periode review (contoh: Q1 2024)"
    *               targets:
    *                 type: object
    *                 description: Target yang ditetapkan (JSON)
