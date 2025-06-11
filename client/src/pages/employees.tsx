@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
-import type { Employee, InsertEmployee, SalaryComponent, EmployeeSalaryComponent, insertEmployeeSalaryComponentSchema } from "@shared/schema";
+import type { Employee, InsertEmployee, SalaryComponent, EmployeeSalaryComponent } from "@shared/schema";
 import { z } from "zod";
 
 // Define form schema for employee data
@@ -172,8 +172,12 @@ function SalaryComponentAssignment({ employee, onClose }: { employee: Employee; 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+        credentials: "include"
       });
-      if (!response.ok) throw new Error("Failed to add salary component");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add salary component");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -184,8 +188,9 @@ function SalaryComponentAssignment({ employee, onClose }: { employee: Employee; 
       refetch();
       queryClient.invalidateQueries({ queryKey: ["/api/employee-salary-components"] });
     },
-    onError: () => {
-      toast({ title: "Gagal menambahkan komponen gaji", variant: "destructive" });
+    onError: (error) => {
+      console.error("Add component error:", error);
+      toast({ title: "Gagal menambahkan komponen gaji", description: error.message, variant: "destructive" });
     },
   });
 
@@ -194,6 +199,7 @@ function SalaryComponentAssignment({ employee, onClose }: { employee: Employee; 
     mutationFn: async (id: number) => {
       const response = await fetch(`/api/employee-salary-components/${id}`, {
         method: "DELETE",
+        credentials: "include"
       });
       if (!response.ok) throw new Error("Failed to delete salary component");
     },
