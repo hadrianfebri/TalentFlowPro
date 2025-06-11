@@ -290,15 +290,63 @@ export const jobApplications = pgTable("job_applications", {
   applicantName: varchar("applicant_name").notNull(),
   applicantEmail: varchar("applicant_email").notNull(),
   applicantPhone: varchar("applicant_phone"),
+  applicantAddress: text("applicant_address"),
+  dateOfBirth: date("date_of_birth"),
+  gender: varchar("gender"),
+  education: jsonb("education"), // Array of education history
+  experience: jsonb("experience"), // Array of work experience
+  skills: jsonb("skills"), // Array of skills
+  certifications: jsonb("certifications"), // Array of certifications
   resumePath: varchar("resume_path"),
+  portfolioPath: varchar("portfolio_path"),
   coverLetter: text("cover_letter"),
-  parsedResume: jsonb("parsed_resume"), // NLP extracted data
+  expectedSalary: decimal("expected_salary", { precision: 15, scale: 2 }),
+  availableStartDate: date("available_start_date"),
+  parsedResume: jsonb("parsed_resume"), // AI extracted data
+  aiMatchScore: decimal("ai_match_score", { precision: 5, scale: 2 }), // AI compatibility score
+  aiAnalysis: jsonb("ai_analysis"), // Detailed AI analysis
   keywordScore: decimal("keyword_score", { precision: 5, scale: 2 }),
   stage: varchar("stage").default("applied"), // applied, screening, interview, offer, hired, rejected
+  status: varchar("status").default("pending"), // pending, reviewed, shortlisted, rejected
   notes: text("notes"),
   interviewDate: timestamp("interview_date"),
+  interviewNotes: text("interview_notes"),
   offerAmount: decimal("offer_amount", { precision: 15, scale: 2 }),
   hiredDate: date("hired_date"),
+  rejectionReason: text("rejection_reason"),
+  source: varchar("source").default("manual"), // manual, external_platform, referral
+  referredBy: varchar("referred_by"),
+  createdBy: varchar("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Applicant documents table for additional files
+export const applicantDocuments = pgTable("applicant_documents", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").notNull(),
+  documentType: varchar("document_type").notNull(), // resume, portfolio, certificate, cover_letter, photo
+  fileName: varchar("file_name").notNull(),
+  filePath: varchar("file_path").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type"),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+// Interview schedules table
+export const interviewSchedules = pgTable("interview_schedules", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").notNull(),
+  type: varchar("type").notNull(), // screening, technical, hr, final
+  scheduledDate: timestamp("scheduled_date").notNull(),
+  duration: integer("duration").default(60), // minutes
+  location: varchar("location"), // office address or online meeting link
+  interviewers: jsonb("interviewers"), // Array of interviewer details
+  status: varchar("status").default("scheduled"), // scheduled, completed, rescheduled, cancelled
+  feedback: jsonb("feedback"), // Structured feedback from interviewers
+  score: decimal("score", { precision: 5, scale: 2 }),
+  notes: text("notes"),
+  createdBy: varchar("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -403,9 +451,26 @@ export const insertJobApplicationSchema = createInsertSchema(jobApplications).om
   id: true,
   createdAt: true,
   updatedAt: true,
+  aiMatchScore: true,
+  aiAnalysis: true,
 });
 export type InsertJobApplication = z.infer<typeof insertJobApplicationSchema>;
 export type JobApplication = typeof jobApplications.$inferSelect;
+
+export const insertApplicantDocumentSchema = createInsertSchema(applicantDocuments).omit({
+  id: true,
+  uploadedAt: true,
+});
+export type InsertApplicantDocument = z.infer<typeof insertApplicantDocumentSchema>;
+export type ApplicantDocument = typeof applicantDocuments.$inferSelect;
+
+export const insertInterviewScheduleSchema = createInsertSchema(interviewSchedules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertInterviewSchedule = z.infer<typeof insertInterviewScheduleSchema>;
+export type InterviewSchedule = typeof interviewSchedules.$inferSelect;
 
 export type RewardWallet = typeof rewardWallet.$inferSelect;
 export type AIInsight = typeof aiInsights.$inferSelect;

@@ -104,7 +104,25 @@ export interface IStorage {
   updateJob(id: number, data: Partial<InsertJob>): Promise<Job>;
   deleteJob(id: number): Promise<void>;
   getJobApplications(companyId: string): Promise<JobApplication[]>;
+  getJobApplication(id: number): Promise<JobApplication | undefined>;
   createJobApplication(data: InsertJobApplication): Promise<JobApplication>;
+  updateJobApplication(id: number, data: Partial<InsertJobApplication>): Promise<JobApplication>;
+  deleteJobApplication(id: number): Promise<void>;
+  
+  // AI Matching operations
+  analyzeApplicantJobMatch(applicationId: number): Promise<JobApplication>;
+  
+  // Document operations for applicants
+  getApplicantDocuments(applicationId: number): Promise<ApplicantDocument[]>;
+  createApplicantDocument(data: InsertApplicantDocument): Promise<ApplicantDocument>;
+  deleteApplicantDocument(id: number): Promise<void>;
+  
+  // Interview operations
+  getInterviewSchedules(companyId: string): Promise<InterviewSchedule[]>;
+  getApplicationInterviews(applicationId: number): Promise<InterviewSchedule[]>;
+  createInterviewSchedule(data: InsertInterviewSchedule): Promise<InterviewSchedule>;
+  updateInterviewSchedule(id: number, data: Partial<InsertInterviewSchedule>): Promise<InterviewSchedule>;
+  deleteInterviewSchedule(id: number): Promise<void>;
   
   // Salary Component operations
   getSalaryComponents(companyId: string): Promise<SalaryComponent[]>;
@@ -860,6 +878,145 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getJobApplications(companyId: string): Promise<JobApplication[]> {
+    return db
+      .select()
+      .from(jobApplications)
+      .leftJoin(jobs, eq(jobApplications.jobId, jobs.id))
+      .where(eq(jobs.companyId, companyId))
+      .orderBy(desc(jobApplications.createdAt));
+  }
+
+  async getJobApplication(id: number): Promise<JobApplication | undefined> {
+    const [application] = await db
+      .select()
+      .from(jobApplications)
+      .leftJoin(jobs, eq(jobApplications.jobId, jobs.id))
+      .where(eq(jobApplications.id, id));
+    return application;
+  }
+
+  async createJobApplication(data: InsertJobApplication): Promise<JobApplication> {
+    const [application] = await db
+      .insert(jobApplications)
+      .values(data)
+      .returning();
+    return application;
+  }
+
+  async updateJobApplication(id: number, data: Partial<InsertJobApplication>): Promise<JobApplication> {
+    const [application] = await db
+      .update(jobApplications)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(jobApplications.id, id))
+      .returning();
+    return application;
+  }
+
+  async deleteJobApplication(id: number): Promise<void> {
+    await db.delete(jobApplications).where(eq(jobApplications.id, id));
+  }
+
+  async analyzeApplicantJobMatch(applicationId: number): Promise<JobApplication> {
+    const application = await this.getJobApplication(applicationId);
+    if (!application) {
+      throw new Error("Application not found");
+    }
+
+    // Import AI matcher here to avoid circular dependencies
+    const { aiJobMatcher } = await import('./aiMatching');
+    
+    // Get job details
+    const [job] = await db
+      .select()
+      .from(jobs)
+      .where(eq(jobs.id, application.jobApplications.jobId));
+
+    if (!job) {
+      throw new Error("Job not found");
+    }
+
+    // Perform AI analysis
+    const aiResult = await aiJobMatcher.analyzeApplicantJobCompatibility(
+      application.jobApplications,
+      job
+    );
+
+    // Update application with AI results
+    const [updatedApplication] = await db
+      .update(jobApplications)
+      .set({
+        aiMatchScore: aiResult.overallScore.toString(),
+        aiAnalysis: aiResult,
+        updatedAt: new Date(),
+      })
+      .where(eq(jobApplications.id, applicationId))
+      .returning();
+
+    return updatedApplication;
+  }
+
+  // Document operations for applicants
+  async getApplicantDocuments(applicationId: number): Promise<ApplicantDocument[]> {
+    return db
+      .select()
+      .from(applicantDocuments)
+      .where(eq(applicantDocuments.applicationId, applicationId))
+      .orderBy(desc(applicantDocuments.uploadedAt));
+  }
+
+  async createApplicantDocument(data: InsertApplicantDocument): Promise<ApplicantDocument> {
+    const [document] = await db
+      .insert(applicantDocuments)
+      .values(data)
+      .returning();
+    return document;
+  }
+
+  async deleteApplicantDocument(id: number): Promise<void> {
+    await db.delete(applicantDocuments).where(eq(applicantDocuments.id, id));
+  }
+
+  // Interview operations
+  async getInterviewSchedules(companyId: string): Promise<InterviewSchedule[]> {
+    return db
+      .select()
+      .from(interviewSchedules)
+      .leftJoin(jobApplications, eq(interviewSchedules.applicationId, jobApplications.id))
+      .leftJoin(jobs, eq(jobApplications.jobId, jobs.id))
+      .where(eq(jobs.companyId, companyId))
+      .orderBy(desc(interviewSchedules.scheduledDate));
+  }
+
+  async getApplicationInterviews(applicationId: number): Promise<InterviewSchedule[]> {
+    return db
+      .select()
+      .from(interviewSchedules)
+      .where(eq(interviewSchedules.applicationId, applicationId))
+      .orderBy(desc(interviewSchedules.scheduledDate));
+  }
+
+  async createInterviewSchedule(data: InsertInterviewSchedule): Promise<InterviewSchedule> {
+    const [interview] = await db
+      .insert(interviewSchedules)
+      .values(data)
+      .returning();
+    return interview;
+  }
+
+  async updateInterviewSchedule(id: number, data: Partial<InsertInterviewSchedule>): Promise<InterviewSchedule> {
+    const [interview] = await db
+      .update(interviewSchedules)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(interviewSchedules.id, id))
+      .returning();
+    return interview;
+  }
+
+  async deleteInterviewSchedule(id: number): Promise<void> {
+    await db.delete(interviewSchedules).where(eq(interviewSchedules.id, id));
+  }
+
+  async createJobApplication_old(data: InsertJobApplication): Promise<JobApplication> {
     return db
       .select({
         id: jobApplications.id,
