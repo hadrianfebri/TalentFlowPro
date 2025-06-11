@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage as dbStorage } from "./storage";
 import { db } from "./db";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupSwagger } from "./swagger";
@@ -21,10 +21,67 @@ import {
   attendance,
   payroll,
   jobs,
+  jobApplications,
 } from "@shared/schema";
 import { z } from "zod";
 import { format } from "date-fns";
 import { eq, and } from "drizzle-orm";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
+
+// Configure multer for file uploads
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: multerStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|pdf|doc|docx|csv/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only images, PDFs, Word documents, and CSV files are allowed'));
+    }
+  }
+});
+
+// Helper function to parse CSV data
+function parseCSV(csvContent: string): any[] {
+  const lines = csvContent.split('\n').filter(line => line.trim());
+  if (lines.length < 2) return [];
+  
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+  const data = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+    if (values.length === headers.length) {
+      const row: any = {};
+      headers.forEach((header, index) => {
+        row[header] = values[index] || null;
+      });
+      data.push(row);
+    }
+  }
+  
+  return data;
+}
 
 // AI Insights Generation Function
 async function generateAttendanceInsights(attendanceRecords: any[], employees: any[], period: string) {
@@ -364,7 +421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       res.json({
         ...user,
         permissions: req.userProfile?.role
@@ -410,12 +467,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/dashboard/stats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const stats = await storage.getDashboardStats(user.companyId);
+      const stats = await dbStorage.getDashboardStats(user.companyId);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -426,12 +483,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/dashboard/activities', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const activities = await storage.getRecentActivities(user.companyId);
+      const activities = await dbStorage.getRecentActivities(user.companyId);
       res.json(activities);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -442,12 +499,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/dashboard/ai-insights', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const insights = await storage.getAIInsights(user.companyId);
+      const insights = await dbStorage.getAIInsights(user.companyId);
       res.json(insights);
     } catch (error) {
       console.error("Error fetching AI insights:", error);
@@ -544,13 +601,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let employees;
       if (userRole === "admin" || userRole === "hr") {
         // Admin dan HR bisa lihat semua karyawan
-        employees = await storage.getEmployees(companyId);
+        employees = await dbStorage.getEmployees(companyId);
       } else {
         // Employee hanya bisa lihat data mereka sendiri
         if (!employeeId) {
           return res.status(403).json({ message: "Employee profile not found" });
         }
-        const employee = await storage.getEmployee(employeeId);
+        const employee = await dbStorage.getEmployee(employeeId);
         employees = employee ? [employee] : [];
       }
 
@@ -574,7 +631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         companyId: companyId,
       });
       
-      const employee = await storage.createEmployee(validatedData);
+      const employee = await dbStorage.createEmployee(validatedData);
       res.status(201).json(employee);
     } catch (error) {
       console.error("Error creating employee:", error);
@@ -585,7 +642,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/employees/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const employee = await storage.getEmployee(parseInt(id));
+      const employee = await dbStorage.getEmployee(parseInt(id));
       
       if (!employee) {
         return res.status(404).json({ message: "Employee not found" });
@@ -603,7 +660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const validatedData = insertEmployeeSchema.partial().parse(req.body);
       
-      const employee = await storage.updateEmployee(parseInt(id), validatedData);
+      const employee = await dbStorage.updateEmployee(parseInt(id), validatedData);
       res.json(employee);
     } catch (error) {
       console.error("Error updating employee:", error);
@@ -615,7 +672,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
-      await storage.deleteEmployee(parseInt(id));
+      await dbStorage.deleteEmployee(parseInt(id));
       res.json({ message: "Employee deleted successfully" });
     } catch (error) {
       console.error("Error deleting employee:", error);
@@ -627,13 +684,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/attendance', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
       const { date, employeeId } = req.query;
-      const attendance = await storage.getAttendance(
+      const attendance = await dbStorage.getAttendance(
         user.companyId,
         date as string,
         employeeId ? parseInt(employeeId as string) : undefined
@@ -648,7 +705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/attendance/checkin', isAuthenticated, async (req: any, res) => {
     try {
       const validatedData = insertAttendanceSchema.parse(req.body);
-      const attendance = await storage.checkIn(validatedData);
+      const attendance = await dbStorage.checkIn(validatedData);
       res.status(201).json(attendance);
     } catch (error) {
       console.error("Error recording check-in:", error);
@@ -661,7 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { checkOut, checkOutLocation, checkOutPhoto } = req.body;
       
-      const attendance = await storage.checkOut(parseInt(id), {
+      const attendance = await dbStorage.checkOut(parseInt(id), {
         checkOut: new Date(checkOut),
         checkOutLocation,
         checkOutPhoto,
@@ -685,11 +742,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const selectedDate = date || new Date().toISOString().split('T')[0];
       
       // Get all employees for the company
-      const employees = await storage.getEmployees(companyId);
+      const employees = await dbStorage.getEmployees(companyId);
       const totalEmployees = employees.length;
       
       // Get attendance records for the selected date
-      const attendanceRecords = await storage.getAttendance(companyId, selectedDate);
+      const attendanceRecords = await dbStorage.getAttendance(companyId, selectedDate);
       
       // Calculate statistics
       const presentToday = attendanceRecords.filter((record: any) => record.status === 'present' || record.checkIn).length;
@@ -732,8 +789,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { period } = req.body;
       
       // Get attendance data for analysis
-      const attendanceRecords = await storage.getAttendance(companyId, period);
-      const employees = await storage.getEmployees(companyId);
+      const attendanceRecords = await dbStorage.getAttendance(companyId, period);
+      const employees = await dbStorage.getEmployees(companyId);
       
       // Generate AI insights using DeepSeek-like analysis
       const insights = await generateAttendanceInsights(attendanceRecords, employees, period);
@@ -757,10 +814,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const selectedPeriod = period || format(new Date(), "yyyy-MM");
       
       // Get payroll records for the period
-      const payrollRecords = await storage.getPayroll(companyId, selectedPeriod);
+      const payrollRecords = await dbStorage.getPayroll(companyId, selectedPeriod);
       
       // Calculate statistics
-      const totalEmployees = await storage.getEmployees(companyId).then(emp => emp.length);
+      const totalEmployees = await dbStorage.getEmployees(companyId).then(emp => emp.length);
       const totalGrossSalary = payrollRecords.reduce((sum, record) => 
         sum + parseFloat(record.basicSalary) + parseFloat(record.allowances) + parseFloat(record.overtimePay), 0
       );
@@ -801,7 +858,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { period, employeeIds } = req.body;
       
       // Calculate payroll for specified employees or all employees
-      const payrollRecords = await storage.calculatePayroll(companyId, period, employeeIds);
+      const payrollRecords = await dbStorage.calculatePayroll(companyId, period, employeeIds);
       
       res.json(payrollRecords);
     } catch (error) {
@@ -1075,8 +1132,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { period } = req.body;
       
       // Get payroll data for analysis
-      const payrollRecords = await storage.getPayroll(companyId, period);
-      const employees = await storage.getEmployees(companyId);
+      const payrollRecords = await dbStorage.getPayroll(companyId, period);
+      const employees = await dbStorage.getEmployees(companyId);
       
       // Generate AI insights using DeepSeek-like analysis
       const insights = await generatePayrollInsights(payrollRecords, employees, period);
@@ -1092,12 +1149,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/leaves', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const leaves = await storage.getLeaveRequests(user.companyId);
+      const leaves = await dbStorage.getLeaveRequests(user.companyId);
       res.json(leaves);
     } catch (error) {
       console.error("Error fetching leave requests:", error);
@@ -1108,7 +1165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/leaves', isAuthenticated, async (req: any, res) => {
     try {
       const validatedData = insertLeaveRequestSchema.parse(req.body);
-      const leave = await storage.createLeaveRequest(validatedData);
+      const leave = await dbStorage.createLeaveRequest(validatedData);
       res.status(201).json(leave);
     } catch (error) {
       console.error("Error creating leave request:", error);
@@ -1121,7 +1178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const userId = req.user.claims.sub;
       
-      const leave = await storage.approveLeaveRequest(parseInt(id), userId);
+      const leave = await dbStorage.approveLeaveRequest(parseInt(id), userId);
       res.json(leave);
     } catch (error) {
       console.error("Error approving leave request:", error);
@@ -1135,7 +1192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { rejectionReason } = req.body;
       const userId = req.user.claims.sub;
       
-      const leave = await storage.rejectLeaveRequest(parseInt(id), userId, rejectionReason);
+      const leave = await dbStorage.rejectLeaveRequest(parseInt(id), userId, rejectionReason);
       res.json(leave);
     } catch (error) {
       console.error("Error rejecting leave request:", error);
@@ -1147,13 +1204,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/payroll', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
       const { period } = req.query;
-      const payroll = await storage.getPayroll(user.companyId, period as string);
+      const payroll = await dbStorage.getPayroll(user.companyId, period as string);
       res.json(payroll);
     } catch (error) {
       console.error("Error fetching payroll:", error);
@@ -1164,13 +1221,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/payroll/calculate', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
       const { period, employeeId } = req.body;
-      const payroll = await storage.calculatePayroll(user.companyId, period, employeeId);
+      const payroll = await dbStorage.calculatePayroll(user.companyId, period, employeeId);
       res.json(payroll);
     } catch (error) {
       console.error("Error calculating payroll:", error);
@@ -1181,7 +1238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/payroll/:id/generate-slip', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const slipPath = await storage.generatePayslip(parseInt(id));
+      const slipPath = await dbStorage.generatePayslip(parseInt(id));
       res.json({ slipPath });
     } catch (error) {
       console.error("Error generating payslip:", error);
@@ -1193,12 +1250,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/documents', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const documents = await storage.getDocuments(user.companyId);
+      const documents = await dbStorage.getDocuments(user.companyId);
       res.json(documents);
     } catch (error) {
       console.error("Error fetching documents:", error);
@@ -1209,7 +1266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/documents', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
@@ -1220,7 +1277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: userId,
       });
       
-      const document = await storage.createDocument(validatedData);
+      const document = await dbStorage.createDocument(validatedData);
       res.status(201).json(document);
     } catch (error) {
       console.error("Error creating document:", error);
@@ -1234,7 +1291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { signed } = req.body;
       const userId = req.user.claims.sub;
       
-      const document = await storage.updateDocumentStatus(parseInt(id), signed, userId);
+      const document = await dbStorage.updateDocumentStatus(parseInt(id), signed, userId);
       res.json(document);
     } catch (error) {
       console.error("Error updating document status:", error);
@@ -1246,12 +1303,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/reimbursements', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const reimbursements = await storage.getReimbursements(user.companyId);
+      const reimbursements = await dbStorage.getReimbursements(user.companyId);
       res.json(reimbursements);
     } catch (error) {
       console.error("Error fetching reimbursements:", error);
@@ -1262,7 +1319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/reimbursements', isAuthenticated, async (req: any, res) => {
     try {
       const validatedData = insertReimbursementSchema.parse(req.body);
-      const reimbursement = await storage.createReimbursement(validatedData);
+      const reimbursement = await dbStorage.createReimbursement(validatedData);
       res.status(201).json(reimbursement);
     } catch (error) {
       console.error("Error creating reimbursement:", error);
@@ -1275,7 +1332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const userId = req.user.claims.sub;
       
-      const reimbursement = await storage.approveReimbursement(parseInt(id), userId);
+      const reimbursement = await dbStorage.approveReimbursement(parseInt(id), userId);
       res.json(reimbursement);
     } catch (error) {
       console.error("Error approving reimbursement:", error);
@@ -1289,7 +1346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { reason } = req.body;
       const userId = req.user.claims.sub;
       
-      const reimbursement = await storage.rejectReimbursement(parseInt(id), userId, reason || "Tidak sesuai kebijakan");
+      const reimbursement = await dbStorage.rejectReimbursement(parseInt(id), userId, reason || "Tidak sesuai kebijakan");
       res.json(reimbursement);
     } catch (error) {
       console.error("Error rejecting reimbursement:", error);
@@ -1301,12 +1358,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/performance', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const performance = await storage.getPerformanceReviews(user.companyId);
+      const performance = await dbStorage.getPerformanceReviews(user.companyId);
       res.json(performance);
     } catch (error) {
       console.error("Error fetching performance reviews:", error);
@@ -1317,7 +1374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/performance', isAuthenticated, async (req: any, res) => {
     try {
       const validatedData = insertPerformanceReviewSchema.parse(req.body);
-      const performance = await storage.createPerformanceReview(validatedData);
+      const performance = await dbStorage.createPerformanceReview(validatedData);
       res.status(201).json(performance);
     } catch (error) {
       console.error("Error creating performance review:", error);
@@ -1329,7 +1386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const validatedData = insertPerformanceReviewSchema.partial().parse(req.body);
-      const performance = await storage.updatePerformanceReview(parseInt(id), validatedData);
+      const performance = await dbStorage.updatePerformanceReview(parseInt(id), validatedData);
       res.json(performance);
     } catch (error) {
       console.error("Error updating performance review:", error);
@@ -1341,12 +1398,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/jobs', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const jobs = await storage.getJobs(user.companyId);
+      const jobs = await dbStorage.getJobs(user.companyId);
       res.json(jobs);
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -1357,7 +1414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/jobs', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
@@ -1368,7 +1425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: userId,
       });
       
-      const job = await storage.createJob(validatedData);
+      const job = await dbStorage.createJob(validatedData);
       res.status(201).json(job);
     } catch (error) {
       console.error("Error creating job:", error);
@@ -1381,7 +1438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
@@ -1420,7 +1477,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
@@ -1450,7 +1507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { platforms } = req.body; // array of platform names like ['jobstreet', 'indeed', 'linkedin']
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
@@ -1509,12 +1566,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/job-applications', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const applications = await storage.getJobApplications(user.companyId);
+      const applications = await dbStorage.getJobApplications(user.companyId);
       res.json(applications);
     } catch (error) {
       console.error("Error fetching job applications:", error);
@@ -1522,16 +1579,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/job-applications', async (req, res) => {
-    try {
-      const validatedData = insertJobApplicationSchema.parse(req.body);
-      const application = await storage.createJobApplication(validatedData);
-      res.status(201).json(application);
-    } catch (error) {
-      console.error("Error creating job application:", error);
-      res.status(500).json({ message: "Failed to create job application" });
+  // Create job application with file uploads
+  app.post('/api/job-applications', 
+    isAuthenticated, 
+    getUserProfile, 
+    requireAdminOrHR,
+    upload.fields([
+      { name: 'resume_file', maxCount: 1 },
+      { name: 'portfolio_file_0', maxCount: 1 },
+      { name: 'portfolio_file_1', maxCount: 1 },
+      { name: 'portfolio_file_2', maxCount: 1 },
+      { name: 'photo_file', maxCount: 1 }
+    ]),
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const user = await dbStorage.getUser(userId);
+        if (!user?.companyId) {
+          return res.status(400).json({ message: "User not associated with company" });
+        }
+
+        // Handle file uploads
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+        let resumePath = null;
+        let portfolioPath = null;
+        let photoPath = null;
+
+        if (files.resume_file?.[0]) {
+          resumePath = files.resume_file[0].filename;
+        }
+
+        if (files.photo_file?.[0]) {
+          photoPath = files.photo_file[0].filename;
+        }
+
+        // Handle multiple portfolio files
+        const portfolioFiles = [];
+        for (let i = 0; i < 3; i++) {
+          if (files[`portfolio_file_${i}`]?.[0]) {
+            portfolioFiles.push(files[`portfolio_file_${i}`][0].filename);
+          }
+        }
+        if (portfolioFiles.length > 0) {
+          portfolioPath = portfolioFiles.join(',');
+        }
+
+        // Parse form data and create application
+        const formData = {
+          ...req.body,
+          companyId: user.companyId,
+          resumePath,
+          portfolioPath,
+          photoPath,
+          jobId: parseInt(req.body.job_id),
+          experienceYears: parseInt(req.body.experience_years) || 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        const validatedData = insertJobApplicationSchema.parse(formData);
+        const application = await dbStorage.createJobApplication(validatedData);
+        res.status(201).json(application);
+      } catch (error) {
+        console.error("Error creating job application:", error);
+        res.status(500).json({ message: "Failed to create job application" });
+      }
     }
-  });
+  );
+
+  // Bulk upload job applications from CSV
+  app.post('/api/job-applications/bulk-upload',
+    isAuthenticated,
+    getUserProfile,
+    requireAdminOrHR,
+    upload.single('file'),
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const user = await dbStorage.getUser(userId);
+        if (!user?.companyId) {
+          return res.status(400).json({ message: "User not associated with company" });
+        }
+
+        if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        // Read and parse CSV file
+        const csvContent = fs.readFileSync(req.file.path, 'utf-8');
+        const csvData = parseCSV(csvContent);
+
+        if (csvData.length === 0) {
+          return res.status(400).json({ message: "No valid data found in CSV file" });
+        }
+
+        let successCount = 0;
+        let failedCount = 0;
+        const errors = [];
+
+        // Process each row
+        for (const row of csvData) {
+          try {
+            const applicationData = {
+              companyId: user.companyId,
+              applicantName: row.applicant_name || row.name,
+              applicantEmail: row.applicant_email || row.email,
+              applicantPhone: row.applicant_phone || row.phone || null,
+              jobId: parseInt(row.job_id) || null,
+              positionApplied: row.position_applied || null,
+              experienceYears: parseInt(row.experience_years) || 0,
+              educationLevel: row.education_level || null,
+              skills: row.skills || null,
+              resumeText: row.resume_text || null,
+              coverLetter: row.cover_letter || null,
+              stage: row.stage || 'review',
+              status: row.status || 'pending',
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
+
+            // Validate required fields
+            if (!applicationData.applicantName || !applicationData.applicantEmail) {
+              throw new Error('Missing required fields: applicant_name, applicant_email');
+            }
+
+            const validatedData = insertJobApplicationSchema.parse(applicationData);
+            await dbStorage.createJobApplication(validatedData);
+            successCount++;
+          } catch (error: any) {
+            failedCount++;
+            errors.push({
+              row: row,
+              error: error.message
+            });
+          }
+        }
+
+        // Clean up uploaded file
+        fs.unlinkSync(req.file.path);
+
+        res.json({
+          success: successCount,
+          failed: failedCount,
+          errors: errors.slice(0, 10) // Limit error details to first 10
+        });
+      } catch (error) {
+        console.error("Error processing bulk upload:", error);
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ message: "Failed to process bulk upload" });
+      }
+    }
+  );
 
   // Update job application status
   app.patch('/api/job-applications/:id/status', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
@@ -1589,12 +1789,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/ai/generate-insights', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const insights = await storage.generateAIInsights(user.companyId);
+      const insights = await dbStorage.generateAIInsights(user.companyId);
       res.json(insights);
     } catch (error) {
       console.error("Error generating AI insights:", error);
@@ -1606,12 +1806,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/salary-components', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const components = await storage.getSalaryComponents(user.companyId);
+      const components = await dbStorage.getSalaryComponents(user.companyId);
       res.json(components);
     } catch (error) {
       console.error("Error fetching salary components:", error);
@@ -1622,7 +1822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/salary-components', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await dbStorage.getUser(userId);
       if (!user?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
@@ -1634,7 +1834,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       console.log("Validated data:", validatedData);
       
-      const component = await storage.createSalaryComponent(validatedData);
+      const component = await dbStorage.createSalaryComponent(validatedData);
       res.status(201).json(component);
     } catch (error) {
       console.error("Error creating salary component:", error);
@@ -1649,7 +1849,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const validatedData = insertSalaryComponentSchema.partial().parse(req.body);
-      const component = await storage.updateSalaryComponent(parseInt(id), validatedData);
+      const component = await dbStorage.updateSalaryComponent(parseInt(id), validatedData);
       res.json(component);
     } catch (error) {
       console.error("Error updating salary component:", error);
@@ -1660,7 +1860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/salary-components/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
-      await storage.deleteSalaryComponent(parseInt(id));
+      await dbStorage.deleteSalaryComponent(parseInt(id));
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting salary component:", error);
@@ -1672,7 +1872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/employee-salary-components/:employeeId', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
       const { employeeId } = req.params;
-      const components = await storage.getEmployeeSalaryComponents(parseInt(employeeId));
+      const components = await dbStorage.getEmployeeSalaryComponents(parseInt(employeeId));
       res.json(components);
     } catch (error) {
       console.error("Error fetching employee salary components:", error);
@@ -1685,7 +1885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Received employee salary component data:", req.body);
       const validatedData = insertEmployeeSalaryComponentSchema.parse(req.body);
       console.log("Validated data:", validatedData);
-      const component = await storage.setEmployeeSalaryComponent(validatedData);
+      const component = await dbStorage.setEmployeeSalaryComponent(validatedData);
       res.status(201).json(component);
     } catch (error) {
       console.error("Error creating employee salary component:", error);
@@ -1700,7 +1900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const validatedData = insertEmployeeSalaryComponentSchema.partial().parse(req.body);
-      const component = await storage.updateEmployeeSalaryComponent(parseInt(id), validatedData);
+      const component = await dbStorage.updateEmployeeSalaryComponent(parseInt(id), validatedData);
       res.json(component);
     } catch (error) {
       console.error("Error updating employee salary component:", error);
@@ -1711,7 +1911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/employee-salary-components/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
-      await storage.deleteEmployeeSalaryComponent(parseInt(id));
+      await dbStorage.deleteEmployeeSalaryComponent(parseInt(id));
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting employee salary component:", error);
@@ -1813,8 +2013,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get application and job data
-      const application = await storage.getJobApplication(applicationId);
-      const jobs = await storage.getJobs(req.userProfile!.companyId);
+      const application = await dbStorage.getJobApplication(applicationId);
+      const jobs = await dbStorage.getJobs(req.userProfile!.companyId);
       const job = jobs.find(j => j.id === jobId);
 
       if (!application || !job) {
@@ -1856,8 +2056,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Application ID and Job ID are required' });
       }
 
-      const application = await storage.getJobApplication(applicationId);
-      const jobs = await storage.getJobs(req.userProfile!.companyId);
+      const application = await dbStorage.getJobApplication(applicationId);
+      const jobs = await dbStorage.getJobs(req.userProfile!.companyId);
       const job = jobs.find(j => j.id === jobId);
 
       if (!application || !job) {
