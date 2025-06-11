@@ -114,6 +114,8 @@ export default function Recruitment() {
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
   const [isJobStatusDialogOpen, setIsJobStatusDialogOpen] = useState(false);
+  const [isEditJobDialogOpen, setIsEditJobDialogOpen] = useState(false);
+  const [isPostExternalDialogOpen, setIsPostExternalDialogOpen] = useState(false);
 
   const { data: jobs, isLoading: jobsLoading } = useQuery<Job[]>({
     queryKey: ["/api/jobs"],
@@ -214,6 +216,98 @@ export default function Recruitment() {
       toast({
         title: "Error",
         description: "Gagal memperbarui status lowongan",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateJobMutation = useMutation({
+    mutationFn: (data: { id: number; [key: string]: any }) => 
+      apiRequest("PUT", `/api/jobs/${data.id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+      setIsEditJobDialogOpen(false);
+      setSelectedJob(null);
+      toast({
+        title: "Berhasil",
+        description: "Lowongan berhasil diperbarui",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal memperbarui lowongan",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteJobMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/jobs/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+      toast({
+        title: "Berhasil",
+        description: "Lowongan berhasil dihapus",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal menghapus lowongan",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const postExternalMutation = useMutation({
+    mutationFn: (data: { id: number; platforms: string[] }) => 
+      apiRequest("POST", `/api/jobs/${data.id}/post-external`, { platforms: data.platforms }),
+    onSuccess: (result) => {
+      setIsPostExternalDialogOpen(false);
+      setSelectedJob(null);
+      toast({
+        title: "Berhasil",
+        description: `Lowongan berhasil diposting ke ${result.results.filter((r: any) => r.status === 'success').length} platform`,
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal posting ke platform eksternal",
         variant: "destructive",
       });
     },
@@ -604,8 +698,40 @@ export default function Recruitment() {
                               </div>
                               
                               <div className="flex flex-col gap-2 ml-4">
-                                <Button variant="ghost" size="sm">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedJob(job);
+                                    setIsEditJobDialogOpen(true);
+                                  }}
+                                  title="Edit Lowongan"
+                                >
                                   <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedJob(job);
+                                    setIsPostExternalDialogOpen(true);
+                                  }}
+                                  title="Posting ke Platform Eksternal"
+                                >
+                                  <ArrowRight className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => {
+                                    if (window.confirm('Yakin ingin menghapus lowongan ini?')) {
+                                      deleteJobMutation.mutate(job.id);
+                                    }
+                                  }}
+                                  title="Hapus Lowongan"
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <XCircle className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>

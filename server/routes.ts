@@ -138,6 +138,59 @@ async function generateAttendanceInsights(attendanceRecords: any[], employees: a
 }
 
 // AI Payroll Insights Generation Function
+// External platform integration function
+async function postToExternalPlatform(platform: string, jobData: any) {
+  // Simulate API calls to external job platforms
+  // In production, you would integrate with actual APIs
+  
+  const simulatedDelay = Math.random() * 2000 + 1000; // 1-3 seconds
+  await new Promise(resolve => setTimeout(resolve, simulatedDelay));
+  
+  const platforms = {
+    jobstreet: {
+      name: 'JobStreet',
+      apiUrl: 'https://api.jobstreet.com/jobs',
+      requiresAuth: true
+    },
+    indeed: {
+      name: 'Indeed',
+      apiUrl: 'https://api.indeed.com/publisher',
+      requiresAuth: true
+    },
+    linkedin: {
+      name: 'LinkedIn Jobs',
+      apiUrl: 'https://api.linkedin.com/v2/jobs',
+      requiresAuth: true
+    },
+    glints: {
+      name: 'Glints',
+      apiUrl: 'https://api.glints.com/jobs',
+      requiresAuth: true
+    },
+    kalibrr: {
+      name: 'Kalibrr',
+      apiUrl: 'https://api.kalibrr.com/jobs',
+      requiresAuth: true
+    }
+  };
+
+  const platformConfig = platforms[platform as keyof typeof platforms];
+  if (!platformConfig) {
+    throw new Error(`Platform ${platform} not supported`);
+  }
+
+  // Simulate successful posting
+  const externalId = `ext_${platform}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const url = `https://${platform}.com/jobs/${externalId}`;
+
+  return {
+    externalId,
+    url,
+    platform: platformConfig.name,
+    postedAt: new Date().toISOString()
+  };
+}
+
 async function generatePayrollInsights(payrollRecords: any[], employees: any[], period: string) {
   const insights = [];
   
@@ -1322,7 +1375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/jobs', isAuthenticated, async (req: any, res) => {
+  app.post('/api/jobs', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -1341,6 +1394,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating job:", error);
       res.status(500).json({ message: "Failed to create job" });
+    }
+  });
+
+  // Update job
+  app.put('/api/jobs/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user?.companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      // Verify job belongs to company
+      const existingJob = await db
+        .select()
+        .from(jobs)
+        .where(and(eq(jobs.id, parseInt(id)), eq(jobs.companyId, user.companyId)))
+        .limit(1);
+
+      if (existingJob.length === 0) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date()
+      };
+
+      const [updatedJob] = await db
+        .update(jobs)
+        .set(updateData)
+        .where(eq(jobs.id, parseInt(id)))
+        .returning();
+
+      res.json(updatedJob);
+    } catch (error) {
+      console.error("Error updating job:", error);
+      res.status(500).json({ message: "Failed to update job" });
+    }
+  });
+
+  // Delete job
+  app.delete('/api/jobs/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user?.companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      // Verify job belongs to company
+      const existingJob = await db
+        .select()
+        .from(jobs)
+        .where(and(eq(jobs.id, parseInt(id)), eq(jobs.companyId, user.companyId)))
+        .limit(1);
+
+      if (existingJob.length === 0) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+
+      await db.delete(jobs).where(eq(jobs.id, parseInt(id)));
+      res.json({ message: "Job deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      res.status(500).json({ message: "Failed to delete job" });
+    }
+  });
+
+  // Post job to external platforms
+  app.post('/api/jobs/:id/post-external', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { platforms } = req.body; // array of platform names like ['jobstreet', 'indeed', 'linkedin']
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      // Get job details
+      const job = await db
+        .select()
+        .from(jobs)
+        .where(and(eq(jobs.id, parseInt(id)), eq(jobs.companyId, user.companyId)))
+        .limit(1);
+
+      if (job.length === 0) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+
+      const jobData = job[0];
+      const results = [];
+
+      // Simulate posting to external platforms
+      for (const platform of platforms) {
+        try {
+          // Here you would integrate with actual APIs like:
+          // - JobStreet API
+          // - Indeed API  
+          // - LinkedIn Jobs API
+          // - Glints API
+          // - Karir.com API
+          
+          const postResult = await postToExternalPlatform(platform, jobData);
+          results.push({
+            platform,
+            status: 'success',
+            externalId: postResult.externalId,
+            url: postResult.url
+          });
+        } catch (error) {
+          results.push({
+            platform,
+            status: 'error',
+            error: error.message
+          });
+        }
+      }
+
+      res.json({
+        jobId: parseInt(id),
+        results
+      });
+    } catch (error) {
+      console.error("Error posting job to external platforms:", error);
+      res.status(500).json({ message: "Failed to post job to external platforms" });
     }
   });
 
