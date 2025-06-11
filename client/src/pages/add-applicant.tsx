@@ -443,23 +443,45 @@ export default function AddApplicantPage() {
                               File CV
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="file"
-                                accept="application/pdf,.pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.doc,.docx"
-                                onChange={(e) => {
-                                  const files = e.target.files;
-                                  if (files && files[0]) {
-                                    console.log("File selected:", {
-                                      name: files[0].name,
-                                      type: files[0].type,
-                                      size: files[0].size
-                                    });
-                                  }
-                                  onChange(files);
-                                }}
-                                {...field}
-                                value=""
-                              />
+                              <div className="space-y-2">
+                                <Input
+                                  id="resume-file-input"
+                                  type="file"
+                                  accept=".pdf,application/pdf"
+                                  onChange={(e) => {
+                                    const files = e.target.files;
+                                    console.log("CV file input changed:", files);
+                                    
+                                    const fileNameSpan = document.getElementById('selected-file-name');
+                                    if (files && files.length > 0) {
+                                      const file = files[0];
+                                      console.log("CV file selected:", {
+                                        name: file.name,
+                                        type: file.type,
+                                        size: file.size,
+                                        lastModified: file.lastModified
+                                      });
+                                      
+                                      if (fileNameSpan) {
+                                        fileNameSpan.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                                        fileNameSpan.className = "text-green-600 font-medium";
+                                      }
+                                    } else {
+                                      if (fileNameSpan) {
+                                        fileNameSpan.textContent = "Belum ada file";
+                                        fileNameSpan.className = "text-gray-500";
+                                      }
+                                    }
+                                    onChange(files);
+                                  }}
+                                  {...field}
+                                  value=""
+                                  className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                />
+                                <div className="text-sm text-gray-600">
+                                  File yang dipilih: <span id="selected-file-name">Belum ada file</span>
+                                </div>
+                              </div>
                             </FormControl>
                             <p className="text-xs text-muted-foreground">
                               Format yang didukung: PDF, Word (.doc/.docx). Maksimal 10MB
