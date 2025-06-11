@@ -1219,7 +1219,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Leave Management API
+  /**
+   * @swagger
+   * /leaves:
+   *   get:
+   *     summary: Mendapatkan daftar semua pengajuan cuti
+   *     tags: [Leave]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Daftar pengajuan cuti berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/LeaveRequest'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/leaves', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -2081,7 +2102,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Salary Components API
+  /**
+   * @swagger
+   * /salary-components:
+   *   get:
+   *     summary: Mendapatkan daftar komponen gaji perusahaan
+   *     tags: [Salary Components]
+   *     security:
+   *       - ReplitAuth: []
+   *     responses:
+   *       200:
+   *         description: Daftar komponen gaji berhasil diambil
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/SalaryComponent'
+   *       400:
+   *         description: User tidak terkait dengan perusahaan
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/salary-components', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
