@@ -219,6 +219,37 @@ export default function Leaves() {
     createLeaveMutation.mutate(leaveData);
   };
 
+  const handleRejectLeave = (leave: LeaveRequest) => {
+    setSelectedLeaveForReject(leave);
+    setIsRejectDialogOpen(true);
+  };
+
+  const handleRejectConfirm = () => {
+    if (selectedLeaveForReject && rejectionReason.trim()) {
+      rejectLeaveMutation.mutate({
+        id: selectedLeaveForReject.id,
+        reason: rejectionReason
+      });
+    }
+  };
+
+  const getLeaveTypeName = (typeId: number) => {
+    const types = {
+      1: "Cuti Tahunan",
+      2: "Cuti Sakit", 
+      3: "Cuti Melahirkan",
+      4: "Cuti Khusus"
+    };
+    return types[typeId as keyof typeof types] || "Unknown";
+  };
+
+  // Filter leaves based on status and type
+  const filteredLeaves = leaves?.filter((leave) => {
+    const statusMatch = statusFilter === "all" || leave.status === statusFilter;
+    const typeMatch = typeFilter === "all" || leave.leaveTypeId.toString() === typeFilter;
+    return statusMatch && typeMatch;
+  }) || [];
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
@@ -311,7 +342,7 @@ export default function Leaves() {
 
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-4">
                 <CardTitle className="text-xl font-semibold">Daftar Pengajuan Cuti</CardTitle>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
@@ -409,6 +440,43 @@ export default function Leaves() {
                   </DialogContent>
                 </Dialog>
               </div>
+              
+              {/* Filter Controls */}
+              <div className="flex gap-4 items-center">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Filter:</span>
+                </div>
+                
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="pending">Menunggu</SelectItem>
+                    <SelectItem value="approved">Disetujui</SelectItem>
+                    <SelectItem value="rejected">Ditolak</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Jenis Cuti" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Jenis</SelectItem>
+                    <SelectItem value="1">Cuti Tahunan</SelectItem>
+                    <SelectItem value="2">Cuti Sakit</SelectItem>
+                    <SelectItem value="3">Cuti Melahirkan</SelectItem>
+                    <SelectItem value="4">Cuti Khusus</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <div className="text-sm text-muted-foreground">
+                  Menampilkan {filteredLeaves.length} dari {leaves?.length || 0} pengajuan
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -417,7 +485,7 @@ export default function Leaves() {
                     <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
-              ) : !leaves || leaves.length === 0 ? (
+              ) : !filteredLeaves || filteredLeaves.length === 0 ? (
                 <div className="text-center py-12">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground text-lg mb-2">
@@ -442,7 +510,7 @@ export default function Leaves() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {leaves.map((leave) => (
+                      {filteredLeaves.map((leave) => (
                         <TableRow key={leave.id}>
                           <TableCell>
                             <div className="flex items-center space-x-3">
@@ -484,33 +552,97 @@ export default function Leaves() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            {leave.status === 'pending' && (
-                              <div className="flex justify-end space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-green-600 hover:text-green-700"
-                                  onClick={() => approveLeaveMutation.mutate(leave.id)}
-                                  disabled={approveLeaveMutation.isPending}
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-destructive hover:text-destructive/80"
-                                  onClick={() => {
-                                    const reason = prompt("Alasan penolakan:");
-                                    if (reason) {
-                                      rejectLeaveMutation.mutate({ id: leave.id, reason });
-                                    }
-                                  }}
-                                  disabled={rejectLeaveMutation.isPending}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            )}
+                            <div className="flex justify-end items-center space-x-2">
+                              {leave.status === 'pending' && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                                    onClick={() => approveLeaveMutation.mutate(leave.id)}
+                                    disabled={approveLeaveMutation.isPending}
+                                  >
+                                    {approveLeaveMutation.isPending ? (
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-600"></div>
+                                    ) : (
+                                      <>
+                                        <Check className="h-4 w-4 mr-1" />
+                                        Setujui
+                                      </>
+                                    )}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                    onClick={() => handleRejectLeave(leave)}
+                                    disabled={rejectLeaveMutation.isPending}
+                                  >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Tolak
+                                  </Button>
+                                </>
+                              )}
+                              
+                              {leave.status !== 'pending' && (
+                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                  {leave.status === 'approved' && (
+                                    <div className="flex items-center text-green-600">
+                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                      Disetujui
+                                    </div>
+                                  )}
+                                  {leave.status === 'rejected' && (
+                                    <div className="flex items-center text-red-600">
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      Ditolak
+                                      {leave.rejectionReason && (
+                                        <div className="text-xs text-muted-foreground ml-1">
+                                          ({leave.rejectionReason})
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem className="text-sm">
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Lihat Detail
+                                  </DropdownMenuItem>
+                                  {leave.status === 'pending' && (
+                                    <>
+                                      <DropdownMenuItem 
+                                        className="text-sm text-green-600"
+                                        onClick={() => approveLeaveMutation.mutate(leave.id)}
+                                      >
+                                        <Check className="h-4 w-4 mr-2" />
+                                        Setujui Cuti
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className="text-sm text-red-600"
+                                        onClick={() => handleRejectLeave(leave)}
+                                      >
+                                        <X className="h-4 w-4 mr-2" />
+                                        Tolak Cuti
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-sm text-muted-foreground">
+                                    <MessageSquare className="h-4 w-4 mr-2" />
+                                    Kirim Pesan
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
