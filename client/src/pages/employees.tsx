@@ -76,7 +76,8 @@ function EmployeeSalaryComponentsSection({ employeeId }: { employeeId: number })
   
   // Fetch employee salary components
   const { data: employeeSalaryComponents = [], isLoading } = useQuery<EmployeeSalaryComponent[]>({
-    queryKey: ["/api/employee-salary-components", employeeId],
+    queryKey: [`/api/employee-salary-components/${employeeId}`],
+    queryFn: () => fetch(`/api/employee-salary-components/${employeeId}`, { credentials: "include" }).then(res => res.json()),
     enabled: !!employeeId,
   });
 
@@ -162,7 +163,8 @@ function SalaryComponentAssignment({ employee, onClose }: { employee: Employee; 
 
   // Fetch employee's current salary components
   const { data: employeeSalaryComponents = [], refetch } = useQuery<EmployeeSalaryComponent[]>({
-    queryKey: ["/api/employee-salary-components", employee.id],
+    queryKey: [`/api/employee-salary-components/${employee.id}`],
+    queryFn: () => fetch(`/api/employee-salary-components/${employee.id}`, { credentials: "include" }).then(res => res.json()),
   });
 
   // Add salary component mutation
@@ -186,7 +188,7 @@ function SalaryComponentAssignment({ employee, onClose }: { employee: Employee; 
       setAmount("");
       setEffectiveDate(new Date());
       refetch();
-      queryClient.invalidateQueries({ queryKey: ["/api/employee-salary-components"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/employee-salary-components/${employee.id}`] });
     },
     onError: (error) => {
       console.error("Add component error:", error);
@@ -206,7 +208,7 @@ function SalaryComponentAssignment({ employee, onClose }: { employee: Employee; 
     onSuccess: () => {
       toast({ title: "Komponen gaji berhasil dihapus" });
       refetch();
-      queryClient.invalidateQueries({ queryKey: ["/api/employee-salary-components"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/employee-salary-components/${employee.id}`] });
     },
     onError: () => {
       toast({ title: "Gagal menghapus komponen gaji", variant: "destructive" });
