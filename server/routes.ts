@@ -1092,6 +1092,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Salary Components API
+  app.get('/api/salary-components', isAuthenticated, getUserProfile, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user?.companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      const components = await storage.getSalaryComponents(user.companyId);
+      res.json(components);
+    } catch (error) {
+      console.error("Error fetching salary components:", error);
+      res.status(500).json({ message: "Failed to fetch salary components" });
+    }
+  });
+
+  app.post('/api/salary-components', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user?.companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      console.log("Received salary component data:", req.body);
+      const validatedData = insertSalaryComponentSchema.parse({
+        ...req.body,
+        companyId: user.companyId,
+      });
+      console.log("Validated data:", validatedData);
+      
+      const component = await storage.createSalaryComponent(validatedData);
+      res.status(201).json(component);
+    } catch (error) {
+      console.error("Error creating salary component:", error);
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+      }
+      res.status(500).json({ message: "Failed to create salary component", error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+
+  app.put('/api/salary-components/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertSalaryComponentSchema.partial().parse(req.body);
+      const component = await storage.updateSalaryComponent(parseInt(id), validatedData);
+      res.json(component);
+    } catch (error) {
+      console.error("Error updating salary component:", error);
+      res.status(500).json({ message: "Failed to update salary component" });
+    }
+  });
+
+  app.delete('/api/salary-components/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteSalaryComponent(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting salary component:", error);
+      res.status(500).json({ message: "Failed to delete salary component" });
+    }
+  });
+
   // Employee Salary Components API
   app.get('/api/employee-salary-components/:employeeId', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
