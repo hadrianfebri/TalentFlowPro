@@ -1697,20 +1697,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "No file uploaded" });
         }
 
-        // Read and parse CSV file
-        const csvContent = fs.readFileSync(req.file.path, 'utf-8');
-        const csvData = parseCSV(csvContent);
+        const fileExtension = path.extname(req.file.originalname).toLowerCase();
+        let dataToProcess = [];
+        
+        if (fileExtension === '.pdf') {
+          // For PDF files, create a basic entry that requires manual completion
+          // This is a simplified approach until proper PDF parsing is implemented
+          const fileName = req.file.originalname.replace(/\.[^/.]+$/, "");
+          dataToProcess = [{
+            applicant_name: fileName || 'PDF Upload',
+            applicant_email: `${fileName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+            applicant_phone: null,
+            position_applied: null,
+            experience_years: 0,
+            education_level: null,
+            skills: null,
+            resume_text: `CV uploaded from PDF: ${req.file.originalname}`,
+            stage: 'review',
+            status: 'pending'
+          }];
+        } else if (fileExtension === '.csv' || fileExtension === '.xlsx' || fileExtension === '.xls') {
+          // Process CSV/Excel file
+          if (fileExtension === '.csv') {
+            const csvContent = fs.readFileSync(req.file.path, 'utf-8');
+            dataToProcess = parseCSV(csvContent);
+          } else {
+            // For Excel files, we'd need a library like xlsx
+            fs.unlinkSync(req.file.path);
+            return res.status(400).json({ message: "Excel file processing not implemented yet. Please use CSV format." });
+          }
+        } else {
+          fs.unlinkSync(req.file.path);
+          return res.status(400).json({ message: "Unsupported file format. Please use PDF, CSV, or Excel files." });
+        }
 
-        if (csvData.length === 0) {
-          return res.status(400).json({ message: "No valid data found in CSV file" });
+        if (dataToProcess.length === 0) {
+          return res.status(400).json({ message: "No valid data found in file" });
         }
 
         let successCount = 0;
         let failedCount = 0;
         const errors = [];
 
-        // Process each row
-        for (const row of csvData) {
+        // Process each row/record
+        for (const row of dataToProcess) {
           try {
             const applicationData = {
               companyId: user.companyId,
