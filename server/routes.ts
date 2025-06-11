@@ -15,6 +15,7 @@ import {
   insertJobSchema,
   insertJobApplicationSchema,
   insertEmployeeSalaryComponentSchema,
+  insertSalaryComponentSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { format } from "date-fns";
