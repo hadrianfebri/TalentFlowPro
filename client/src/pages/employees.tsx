@@ -86,6 +86,15 @@ export default function Employees() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
+  // Form for adding/editing employees
+  const form = useForm<EmployeeFormData>({
+    resolver: zodResolver(employeeFormSchema),
+    defaultValues: {
+      nationality: "Indonesia",
+      employmentStatus: "permanent",
+    },
+  });
+
   // Check user permissions
   const isAdminOrHR = () => {
     return userRole.role === "admin" || userRole.role === "hr";
@@ -121,6 +130,125 @@ export default function Employees() {
       });
     },
   });
+
+  // Create employee mutation
+  const createEmployeeMutation = useMutation({
+    mutationFn: async (data: EmployeeFormData) => {
+      const response = await fetch("/api/employees", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          companyId: userRole.companyId,
+          hireDate: data.hireDate.toISOString().split('T')[0],
+          birthDate: data.birthDate ? data.birthDate.toISOString().split('T')[0] : undefined,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to create employee");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
+      setIsAddDialogOpen(false);
+      form.reset();
+      toast({
+        title: "Berhasil",
+        description: "Karyawan berhasil ditambahkan",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Gagal menambahkan karyawan",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update employee mutation
+  const updateEmployeeMutation = useMutation({
+    mutationFn: async (data: EmployeeFormData & { id: number }) => {
+      const response = await fetch(`/api/employees/${data.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          hireDate: data.hireDate.toISOString().split('T')[0],
+          birthDate: data.birthDate ? data.birthDate.toISOString().split('T')[0] : undefined,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update employee");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
+      setIsEditDialogOpen(false);
+      form.reset();
+      toast({
+        title: "Berhasil",
+        description: "Data karyawan berhasil diperbarui",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Gagal memperbarui data karyawan",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Form submission handlers
+  const onSubmitAdd = (data: EmployeeFormData) => {
+    createEmployeeMutation.mutate(data);
+  };
+
+  const onSubmitEdit = (data: EmployeeFormData) => {
+    if (selectedEmployee) {
+      updateEmployeeMutation.mutate({ ...data, id: selectedEmployee.id });
+    }
+  };
+
+  // Handle edit button click
+  const handleEdit = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    form.reset({
+      employeeId: employee.employeeId,
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      workEmail: employee.workEmail,
+      position: employee.position,
+      hireDate: new Date(employee.hireDate),
+      employmentStatus: employee.employmentStatus as any,
+      birthPlace: employee.birthPlace || "",
+      birthDate: employee.birthDate ? new Date(employee.birthDate) : undefined,
+      gender: employee.gender as any,
+      maritalStatus: employee.maritalStatus as any,
+      nationality: employee.nationality || "Indonesia",
+      religion: employee.religion as any,
+      homeAddress: employee.homeAddress || "",
+      phone: employee.phone || "",
+      personalEmail: employee.personalEmail || "",
+      nik: employee.nik || "",
+      npwp: employee.npwp || "",
+      bpjsHealthNumber: employee.bpjsHealthNumber || "",
+      bpjsEmploymentNumber: employee.bpjsEmploymentNumber || "",
+      workLocation: employee.workLocation as any,
+      basicSalary: employee.basicSalary || "",
+      bankAccount: employee.bankAccount || "",
+      bankName: employee.bankName || "",
+      notes: employee.notes || "",
+    });
+    setIsEditDialogOpen(true);
+  };
 
   // Helper functions
   const formatCurrency = (amount: string | number) => {
@@ -454,10 +582,7 @@ export default function Employees() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => {
-                                  setSelectedEmployee(employee);
-                                  setIsEditDialogOpen(true);
-                                }}
+                                onClick={() => handleEdit(employee)}
                               >
                                 <EditIcon className="w-4 h-4 mr-1" />
                                 Edit
@@ -568,10 +693,7 @@ export default function Employees() {
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => {
-                                          setSelectedEmployee(employee);
-                                          setIsEditDialogOpen(true);
-                                        }}
+                                        onClick={() => handleEdit(employee)}
                                       >
                                         <EditIcon className="w-4 h-4" />
                                       </Button>
@@ -759,6 +881,713 @@ export default function Employees() {
               </Tabs>
             </ScrollArea>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Employee Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Tambah Karyawan Baru</DialogTitle>
+            <DialogDescription>
+              Lengkapi informasi karyawan baru
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmitAdd)} className="space-y-6">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="basic">Data Dasar</TabsTrigger>
+                  <TabsTrigger value="personal">Data Pribadi</TabsTrigger>
+                  <TabsTrigger value="work">Data Pekerjaan</TabsTrigger>
+                  <TabsTrigger value="additional">Tambahan</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="basic" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="employeeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID Karyawan *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="EMP001" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="workEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Kerja *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="john@company.com" type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Depan *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Belakang *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="position"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Posisi *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Software Engineer" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="hireDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Tanggal Masuk *</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "dd/MM/yyyy")
+                                  ) : (
+                                    <span>Pilih tanggal</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="employmentStatus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status Kepegawaian *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih status kepegawaian" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="permanent">Tetap</SelectItem>
+                            <SelectItem value="contract">Kontrak</SelectItem>
+                            <SelectItem value="internship">Magang</SelectItem>
+                            <SelectItem value="part_time">Paruh Waktu</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+
+                <TabsContent value="personal" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="birthPlace"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tempat Lahir</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Jakarta" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="birthDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Tanggal Lahir</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "dd/MM/yyyy")
+                                  ) : (
+                                    <span>Pilih tanggal</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="gender"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jenis Kelamin</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih jenis kelamin" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="L">Laki-laki</SelectItem>
+                              <SelectItem value="P">Perempuan</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="maritalStatus"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status Pernikahan</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih status pernikahan" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="single">Belum Menikah</SelectItem>
+                              <SelectItem value="married">Menikah</SelectItem>
+                              <SelectItem value="divorced">Cerai</SelectItem>
+                              <SelectItem value="widowed">Janda/Duda</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nomor Telepon</FormLabel>
+                          <FormControl>
+                            <Input placeholder="08123456789" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="personalEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Pribadi</FormLabel>
+                          <FormControl>
+                            <Input placeholder="john.personal@email.com" type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="homeAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Alamat Rumah</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Alamat lengkap..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+
+                <TabsContent value="work" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="workLocation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Lokasi Kerja</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih lokasi kerja" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="head_office">Kantor Pusat</SelectItem>
+                              <SelectItem value="branch">Cabang</SelectItem>
+                              <SelectItem value="remote">Remote</SelectItem>
+                              <SelectItem value="hybrid">Hybrid</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="basicSalary"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gaji Pokok</FormLabel>
+                          <FormControl>
+                            <Input placeholder="5000000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="nik"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>NIK</FormLabel>
+                          <FormControl>
+                            <Input placeholder="3174012345678901" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="npwp"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>NPWP</FormLabel>
+                          <FormControl>
+                            <Input placeholder="12.345.678.9-012.345" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="additional" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="bankAccount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Rekening Bank</FormLabel>
+                          <FormControl>
+                            <Input placeholder="1234567890" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="bankName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Bank</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Bank BCA" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Catatan Tambahan</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Catatan khusus tentang karyawan..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end space-x-4">
+                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Batal
+                </Button>
+                <Button type="submit" disabled={createEmployeeMutation.isPending}>
+                  {createEmployeeMutation.isPending ? "Menyimpan..." : "Simpan Karyawan"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Employee Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Data Karyawan</DialogTitle>
+            <DialogDescription>
+              Perbarui informasi karyawan
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmitEdit)} className="space-y-6">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="basic">Data Dasar</TabsTrigger>
+                  <TabsTrigger value="personal">Data Pribadi</TabsTrigger>
+                  <TabsTrigger value="work">Data Pekerjaan</TabsTrigger>
+                  <TabsTrigger value="additional">Tambahan</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="basic" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="employeeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID Karyawan *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="EMP001" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="workEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Kerja *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="john@company.com" type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Depan *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Belakang *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="position"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Posisi *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Software Engineer" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="hireDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Tanggal Masuk *</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "dd/MM/yyyy")
+                                  ) : (
+                                    <span>Pilih tanggal</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="employmentStatus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status Kepegawaian *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih status kepegawaian" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="permanent">Tetap</SelectItem>
+                            <SelectItem value="contract">Kontrak</SelectItem>
+                            <SelectItem value="internship">Magang</SelectItem>
+                            <SelectItem value="part_time">Paruh Waktu</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+
+                {/* Other tabs with similar structure */}
+                <TabsContent value="personal" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nomor Telepon</FormLabel>
+                          <FormControl>
+                            <Input placeholder="08123456789" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="personalEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Pribadi</FormLabel>
+                          <FormControl>
+                            <Input placeholder="john.personal@email.com" type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="homeAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Alamat Rumah</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Alamat lengkap..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+
+                <TabsContent value="work" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="basicSalary"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gaji Pokok</FormLabel>
+                          <FormControl>
+                            <Input placeholder="5000000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="nik"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>NIK</FormLabel>
+                          <FormControl>
+                            <Input placeholder="3174012345678901" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="additional" className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Catatan Tambahan</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Catatan khusus tentang karyawan..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end space-x-4">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Batal
+                </Button>
+                <Button type="submit" disabled={updateEmployeeMutation.isPending}>
+                  {updateEmployeeMutation.isPending ? "Menyimpan..." : "Perbarui Data"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
