@@ -43,7 +43,8 @@ import {
   Search,
   Target,
   Award,
-  Calendar
+  Calendar,
+  Eye
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { format } from "date-fns";
@@ -504,6 +505,7 @@ export default function Performance() {
                         <TableHead>Target</TableHead>
                         <TableHead>Feedback</TableHead>
                         <TableHead>Tanggal Review</TableHead>
+                        <TableHead>Aksi</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -551,6 +553,18 @@ export default function Performance() {
                               {format(new Date(review.updatedAt), 'dd MMM yyyy', { locale: id })}
                             </div>
                           </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedReview(review);
+                                setIsViewDialogOpen(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -559,6 +573,105 @@ export default function Performance() {
               )}
             </CardContent>
           </Card>
+
+          {/* Detailed View Dialog */}
+          <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Detail Performance Review</DialogTitle>
+              </DialogHeader>
+              {selectedReview && (
+                <div className="space-y-6">
+                  {/* Employee Info */}
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Karyawan</Label>
+                      <p className="text-lg font-semibold">
+                        {selectedReview.employee.firstName} {selectedReview.employee.lastName}
+                      </p>
+                      <p className="text-sm text-muted-foreground">ID: {selectedReview.employee.employeeId}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Periode Review</Label>
+                      <p className="text-lg font-semibold">{selectedReview.period}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(selectedReview.updatedAt), 'dd MMMM yyyy', { locale: id })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Rating and Status */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Rating</Label>
+                      <div className="mt-2">
+                        {getRatingBadge(selectedReview.rating)}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                      <div className="mt-2">
+                        {getStatusBadge(selectedReview.status)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Targets */}
+                  <div>
+                    <Label className="text-lg font-semibold">Target & KPI</Label>
+                    <div className="mt-3 space-y-3">
+                      {selectedReview.targets && typeof selectedReview.targets === 'object' && (
+                        Object.entries(selectedReview.targets).map(([key, value]) => (
+                          <div key={key} className="p-3 border rounded-lg">
+                            <Label className="text-sm font-medium capitalize">
+                              {key.replace(/_/g, ' ')}
+                            </Label>
+                            <p className="mt-1 text-sm">{value as string}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Achievements */}
+                  <div>
+                    <Label className="text-lg font-semibold">Pencapaian</Label>
+                    <div className="mt-3 space-y-3">
+                      {selectedReview.achievements && typeof selectedReview.achievements === 'object' && (
+                        Object.entries(selectedReview.achievements).map(([key, value]) => (
+                          <div key={key} className="p-3 border rounded-lg bg-green-50 border-green-200">
+                            <Label className="text-sm font-medium capitalize text-green-800">
+                              {key.replace(/_/g, ' ')}
+                            </Label>
+                            <p className="mt-1 text-sm text-green-700">{value as string}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Feedback */}
+                  <div>
+                    <Label className="text-lg font-semibold">Feedback & Saran</Label>
+                    <div className="mt-3 p-4 border rounded-lg bg-blue-50 border-blue-200">
+                      <p className="text-sm text-blue-800">
+                        {selectedReview.feedback || "Belum ada feedback"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsViewDialogOpen(false)}
+                    >
+                      Tutup
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>
