@@ -909,6 +909,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         basicSalary: payrollRecord[0].payroll.basicSalary,
         allowances: payrollRecord[0].payroll.allowances,
         overtimePay: payrollRecord[0].payroll.overtimePay,
+        grossSalary: payrollRecord[0].payroll.grossSalary,
         deductions: payrollRecord[0].payroll.deductions,
         netSalary: payrollRecord[0].payroll.netSalary,
         status: payrollRecord[0].payroll.status,
