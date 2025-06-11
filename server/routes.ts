@@ -773,17 +773,201 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate Payslip API
-  app.post('/api/payroll/:id/payslip', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+  // Update Payroll Status API
+  app.patch('/api/payroll/:id/status', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const { status } = req.body;
       
-      // Generate payslip PDF
-      const pdfBuffer = await storage.generatePayslip(parseInt(id));
+      const [updatedPayroll] = await db
+        .update(payroll)
+        .set({ 
+          status: status,
+          updatedAt: new Date(),
+          ...(status === 'processed' ? { processedAt: new Date() } : {})
+        })
+        .where(eq(payroll.id, parseInt(id)))
+        .returning();
       
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="payslip-${id}.pdf"`);
-      res.send(pdfBuffer);
+      res.json(updatedPayroll);
+    } catch (error) {
+      console.error("Error updating payroll status:", error);
+      res.status(500).json({ message: "Failed to update payroll status" });
+    }
+  });
+
+  // Add Overtime Hours API
+  app.patch('/api/attendance/:id/overtime', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { overtimeHours } = req.body;
+      
+      const [updatedAttendance] = await db
+        .update(attendance)
+        .set({ 
+          overtimeHours: overtimeHours.toString(),
+          updatedAt: new Date()
+        })
+        .where(eq(attendance.id, parseInt(id)))
+        .returning();
+      
+      res.json(updatedAttendance);
+    } catch (error) {
+      console.error("Error updating overtime hours:", error);
+      res.status(500).json({ message: "Failed to update overtime hours" });
+    }
+  });
+
+  // Generate Payslip API
+  app.get('/api/payroll/:id/payslip', isAuthenticated, getUserProfile, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const companyId = req.userProfile?.companyId;
+      
+      // Get payroll record with employee details
+      const payrollRecord = await db
+        .select({
+          id: payroll.id,
+          employeeId: payroll.employeeId,
+          period: payroll.period,
+          basicSalary: payroll.basicSalary,
+          allowances: payroll.allowances,
+          overtimePay: payroll.overtimePay,
+          grossSalary: payroll.grossSalary,
+          deductions: payroll.deductions,
+          netSalary: payroll.netSalary,
+          status: payroll.status,
+          processedAt: payroll.processedAt,
+          employee: {
+            firstName: employees.firstName,
+            lastName: employees.lastName,
+            employeeId: employees.employeeId,
+            position: employees.position,
+            department: employees.department,
+          }
+        })
+        .from(payroll)
+        .innerJoin(employees, eq(payroll.employeeId, employees.id))
+        .where(and(
+          eq(payroll.id, parseInt(id)),
+          eq(employees.companyId, companyId)
+        ))
+        .limit(1);
+      
+      if (payrollRecord.length === 0) {
+        return res.status(404).json({ message: "Payroll record not found" });
+      }
+      
+      const record = payrollRecord[0];
+      
+      // Generate HTML payslip
+      const payslipHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Slip Gaji - ${record.employee.firstName} ${record.employee.lastName}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .company-name { font-size: 24px; font-weight: bold; }
+        .slip-title { font-size: 18px; margin-top: 10px; }
+        .employee-info { margin-bottom: 20px; }
+        .salary-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .salary-table th, .salary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .salary-table th { background-color: #f2f2f2; }
+        .total-row { font-weight: bold; background-color: #f9f9f9; }
+        .signature-section { margin-top: 40px; display: flex; justify-content: space-between; }
+        .signature-box { text-align: center; width: 200px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">TalentFlow.ai</div>
+        <div class="slip-title">SLIP GAJI</div>
+        <div>Periode: ${record.period}</div>
+    </div>
+    
+    <div class="employee-info">
+        <table style="width: 100%;">
+            <tr>
+                <td><strong>Nama Karyawan:</strong></td>
+                <td>${record.employee.firstName} ${record.employee.lastName}</td>
+                <td><strong>ID Karyawan:</strong></td>
+                <td>${record.employee.employeeId}</td>
+            </tr>
+            <tr>
+                <td><strong>Jabatan:</strong></td>
+                <td>${record.employee.position}</td>
+                <td><strong>Departemen:</strong></td>
+                <td>${record.employee.department || 'N/A'}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <table class="salary-table">
+        <thead>
+            <tr>
+                <th>Keterangan</th>
+                <th style="text-align: right;">Jumlah (Rp)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Gaji Pokok</td>
+                <td style="text-align: right;">${formatCurrency(record.basicSalary)}</td>
+            </tr>
+            ${Object.entries(record.allowances as any || {}).map(([key, value]) => 
+              `<tr><td>Tunjangan ${key}</td><td style="text-align: right;">${formatCurrency(value)}</td></tr>`
+            ).join('')}
+            <tr>
+                <td>Uang Lembur</td>
+                <td style="text-align: right;">${formatCurrency(record.overtimePay)}</td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>Total Kotor</strong></td>
+                <td style="text-align: right;"><strong>${formatCurrency(record.grossSalary)}</strong></td>
+            </tr>
+            <tr>
+                <td colspan="2"><strong>POTONGAN:</strong></td>
+            </tr>
+            ${Object.entries((record.deductions as any)?.bpjsHealth ? {
+              'BPJS Kesehatan': (record.deductions as any).bpjsHealth,
+              'BPJS Ketenagakerjaan': (record.deductions as any).bpjsEmployment,
+              'PPh21': (record.deductions as any).tax
+            } : {}).map(([key, value]) => 
+              `<tr><td>${key}</td><td style="text-align: right;">${formatCurrency(value)}</td></tr>`
+            ).join('')}
+            <tr class="total-row">
+                <td><strong>Total Potongan</strong></td>
+                <td style="text-align: right;"><strong>${formatCurrency((record.deductions as any)?.total || 0)}</strong></td>
+            </tr>
+            <tr class="total-row" style="background-color: #e8f5e8;">
+                <td><strong>GAJI BERSIH</strong></td>
+                <td style="text-align: right;"><strong>${formatCurrency(record.netSalary)}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="signature-section">
+        <div class="signature-box">
+            <p>Karyawan</p>
+            <br><br><br>
+            <p>_________________</p>
+            <p>${record.employee.firstName} ${record.employee.lastName}</p>
+        </div>
+        <div class="signature-box">
+            <p>HRD</p>
+            <br><br><br>
+            <p>_________________</p>
+            <p>Dept. HRD</p>
+        </div>
+    </div>
+</body>
+</html>`;
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.send(payslipHtml);
     } catch (error) {
       console.error("Error generating payslip:", error);
       res.status(500).json({ message: "Failed to generate payslip" });

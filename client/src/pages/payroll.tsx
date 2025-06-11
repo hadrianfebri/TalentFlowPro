@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
@@ -35,7 +36,8 @@ import {
   Settings,
   CreditCard,
   Banknote,
-  PiggyBank
+  PiggyBank,
+  MoreHorizontal
 } from "lucide-react";
 
 interface PayrollRecord {
@@ -614,7 +616,16 @@ export default function Payroll() {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">Tunjangan</label>
-                        <p className="text-sm font-medium">{formatCurrency(selectedPayroll.allowances)}</p>
+                        <div className="text-sm">
+                          {typeof selectedPayroll.allowances === 'object' && selectedPayroll.allowances ? 
+                            Object.entries(selectedPayroll.allowances).map(([key, value]) => (
+                              <p key={key} className="font-medium">
+                                {key}: {formatCurrency(value as string)}
+                              </p>
+                            )) : 
+                            <p className="font-medium">{formatCurrency(selectedPayroll.allowances)}</p>
+                          }
+                        </div>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">Lembur</label>

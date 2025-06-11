@@ -646,9 +646,11 @@ export class DatabaseStorage implements IStorage {
             total: totalCalculatedDeductions 
           },
           netSalary: netSalary.toString(),
-          status: "processed",
+          status: "draft",
           processedAt: new Date(),
           adjustments: {},
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
 
         const [newPayroll] = await db
