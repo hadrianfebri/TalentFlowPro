@@ -44,7 +44,10 @@ import {
   Target,
   Award,
   Calendar,
-  Eye
+  Eye,
+  Edit,
+  Trash2,
+  PlusCircle
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { format } from "date-fns";
@@ -87,6 +90,9 @@ export default function Performance() {
   const [filterRating, setFilterRating] = useState("all");
   const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [kpiFields, setKpiFields] = useState([{ key: '', value: '' }]);
+  const [achievementFields, setAchievementFields] = useState([{ key: '', value: '' }]);
 
   const { data: performanceReviews, isLoading } = useQuery<PerformanceReview[]>({
     queryKey: ["/api/performance"],
@@ -103,6 +109,8 @@ export default function Performance() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/performance"] });
       setIsDialogOpen(false);
+      setKpiFields([{ key: '', value: '' }]);
+      setAchievementFields([{ key: '', value: '' }]);
       toast({
         title: "Berhasil",
         description: "Review performa berhasil dibuat",
@@ -128,20 +136,59 @@ export default function Performance() {
     },
   });
 
+  const updatePerformanceMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => 
+      apiRequest("PUT", `/api/performance/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/performance"] });
+      setIsEditDialogOpen(false);
+      setSelectedReview(null);
+      setKpiFields([{ key: '', value: '' }]);
+      setAchievementFields([{ key: '', value: '' }]);
+      toast({
+        title: "Berhasil",
+        description: "Review performa berhasil diperbarui",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal memperbarui review performa",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    const targets = {
-      monthly_target: formData.get("monthlyTarget") as string,
-      kpi_1: formData.get("kpi1") as string,
-      kpi_2: formData.get("kpi2") as string,
-    };
+    // Build targets from dynamic KPI fields
+    const targets: Record<string, string> = {};
+    kpiFields.forEach((field, index) => {
+      if (field.key && field.value) {
+        targets[field.key] = field.value;
+      }
+    });
 
-    const achievements = {
-      achievement_1: formData.get("achievement1") as string,
-      achievement_2: formData.get("achievement2") as string,
-    };
+    // Build achievements from dynamic achievement fields
+    const achievements: Record<string, string> = {};
+    achievementFields.forEach((field, index) => {
+      if (field.key && field.value) {
+        achievements[field.key] = field.value;
+      }
+    });
 
     const performanceData = {
       employeeId: parseInt(formData.get("employeeId") as string),
@@ -154,6 +201,95 @@ export default function Performance() {
     };
 
     createPerformanceMutation.mutate(performanceData);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedReview) return;
+    
+    const formData = new FormData(e.currentTarget);
+    
+    // Build targets from dynamic KPI fields
+    const targets: Record<string, string> = {};
+    kpiFields.forEach((field, index) => {
+      if (field.key && field.value) {
+        targets[field.key] = field.value;
+      }
+    });
+
+    // Build achievements from dynamic achievement fields
+    const achievements: Record<string, string> = {};
+    achievementFields.forEach((field, index) => {
+      if (field.key && field.value) {
+        achievements[field.key] = field.value;
+      }
+    });
+
+    const performanceData = {
+      targets,
+      achievements,
+      rating: parseFloat(formData.get("rating") as string),
+      feedback: formData.get("feedback") as string,
+      status: formData.get("status") as string,
+    };
+
+    updatePerformanceMutation.mutate({ id: selectedReview.id, data: performanceData });
+  };
+
+  const addKpiField = () => {
+    setKpiFields([...kpiFields, { key: '', value: '' }]);
+  };
+
+  const removeKpiField = (index: number) => {
+    setKpiFields(kpiFields.filter((_, i) => i !== index));
+  };
+
+  const updateKpiField = (index: number, field: 'key' | 'value', value: string) => {
+    const updated = [...kpiFields];
+    updated[index][field] = value;
+    setKpiFields(updated);
+  };
+
+  const addAchievementField = () => {
+    setAchievementFields([...achievementFields, { key: '', value: '' }]);
+  };
+
+  const removeAchievementField = (index: number) => {
+    setAchievementFields(achievementFields.filter((_, i) => i !== index));
+  };
+
+  const updateAchievementField = (index: number, field: 'key' | 'value', value: string) => {
+    const updated = [...achievementFields];
+    updated[index][field] = value;
+    setAchievementFields(updated);
+  };
+
+  const handleEdit = (review: PerformanceReview) => {
+    setSelectedReview(review);
+    
+    // Populate KPI fields from existing targets
+    if (review.targets && typeof review.targets === 'object') {
+      const targetEntries = Object.entries(review.targets).map(([key, value]) => ({
+        key,
+        value: value as string
+      }));
+      setKpiFields(targetEntries.length > 0 ? targetEntries : [{ key: '', value: '' }]);
+    } else {
+      setKpiFields([{ key: '', value: '' }]);
+    }
+    
+    // Populate achievement fields from existing achievements
+    if (review.achievements && typeof review.achievements === 'object') {
+      const achievementEntries = Object.entries(review.achievements).map(([key, value]) => ({
+        key,
+        value: value as string
+      }));
+      setAchievementFields(achievementEntries.length > 0 ? achievementEntries : [{ key: '', value: '' }]);
+    } else {
+      setAchievementFields([{ key: '', value: '' }]);
+    }
+    
+    setIsEditDialogOpen(true);
   };
 
   const getRatingBadge = (rating?: number) => {
@@ -554,16 +690,25 @@ export default function Performance() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedReview(review);
-                                setIsViewDialogOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedReview(review);
+                                  setIsViewDialogOpen(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(review)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
