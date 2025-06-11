@@ -242,7 +242,7 @@ export const reimbursements = pgTable("reimbursements", {
   ocrData: jsonb("ocr_data"), // extracted text from receipt
   date: date("date").notNull(),
   status: varchar("status").default("pending"), // pending, approved, rejected, paid
-  approvedBy: integer("approved_by"),
+  approvedBy: varchar("approved_by"),
   approvedAt: timestamp("approved_at"),
   rejectionReason: text("rejection_reason"),
   paidAt: timestamp("paid_at"),

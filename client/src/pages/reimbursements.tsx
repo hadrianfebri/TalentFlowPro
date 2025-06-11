@@ -653,8 +653,24 @@ export default function Reimbursements() {
               {selectedReimbursement.receiptPhoto && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Bukti Transaksi</label>
-                  <div className="mt-2 p-4 border rounded-lg">
-                    <p className="text-sm text-muted-foreground">File: {selectedReimbursement.receiptPhoto}</p>
+                  <div className="mt-2 p-4 border rounded-lg bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <Receipt className="h-8 w-8 text-blue-500" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Receipt Image</p>
+                        <p className="text-xs text-muted-foreground">{selectedReimbursement.receiptPhoto}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(selectedReimbursement.receiptPhoto, '_blank')}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Lihat
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -665,10 +681,7 @@ export default function Reimbursements() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        toast({
-                          title: "Download",
-                          description: "Fitur download bukti akan segera tersedia",
-                        });
+                        window.open(selectedReimbursement.receiptPhoto, '_blank');
                       }}
                     >
                       <Upload className="h-4 w-4 mr-2" />
