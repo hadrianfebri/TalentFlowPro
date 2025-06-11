@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Edit2, Trash2, AlertTriangle, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/usePermissions";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 interface SalaryComponent {
   id: number;
@@ -47,7 +47,7 @@ const salaryComponentSchema = z.object({
 
 type SalaryComponentFormData = z.infer<typeof salaryComponentSchema>;
 
-export default function SalaryComponents() {
+function SalaryComponents() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingComponent, setEditingComponent] = useState<SalaryComponent | null>(null);
   const { toast } = useToast();
@@ -67,7 +67,7 @@ export default function SalaryComponents() {
     },
   });
 
-  const { data: components, isLoading } = useQuery({
+  const { data: components = [], isLoading } = useQuery<SalaryComponent[]>({
     queryKey: ["/api/salary-components"],
     enabled: isAdminOrHR(),
   });
@@ -494,3 +494,5 @@ export default function SalaryComponents() {
     </div>
   );
 }
+
+export default SalaryComponents;
