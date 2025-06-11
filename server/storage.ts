@@ -433,7 +433,7 @@ export class DatabaseStorage implements IStorage {
       .update(leaveRequests)
       .set({
         status: 'approved',
-        approvedBy: parseInt(approvedBy),
+        approvedBy: approvedBy,
         approvedAt: new Date(),
         updatedAt: new Date(),
       })
@@ -447,7 +447,7 @@ export class DatabaseStorage implements IStorage {
       .update(leaveRequests)
       .set({
         status: 'rejected',
-        approvedBy: parseInt(approvedBy),
+        approvedBy: approvedBy,
         rejectionReason: reason,
         updatedAt: new Date(),
       })

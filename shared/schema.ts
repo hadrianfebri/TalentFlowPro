@@ -151,7 +151,7 @@ export const leaveRequests = pgTable("leave_requests", {
   totalDays: integer("total_days").notNull(),
   reason: text("reason"),
   status: varchar("status").default("pending"), // pending, approved, rejected
-  approvedBy: integer("approved_by"),
+  approvedBy: varchar("approved_by"),
   approvedAt: timestamp("approved_at"),
   rejectionReason: text("rejection_reason"),
   documents: jsonb("documents"),
