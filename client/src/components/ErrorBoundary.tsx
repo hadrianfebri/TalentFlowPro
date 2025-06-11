@@ -27,6 +27,11 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      // Don't show error boundary for authentication issues
+      if (this.state.error?.message?.includes('401') || this.state.error?.message?.includes('403')) {
+        return this.props.children;
+      }
+      
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <Alert className="max-w-md">

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, startTransition } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Edit2, Trash2, AlertTriangle, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -83,10 +83,12 @@ function SalaryComponents() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/salary-components"] });
-      toast({ title: "Komponen gaji berhasil ditambahkan" });
-      setDialogOpen(false);
-      form.reset();
+      startTransition(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/salary-components"] });
+        toast({ title: "Komponen gaji berhasil ditambahkan" });
+        setDialogOpen(false);
+        form.reset();
+      });
     },
     onError: () => {
       toast({ title: "Gagal menambahkan komponen gaji", variant: "destructive" });
