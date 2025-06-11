@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupSwagger } from "./swagger";
 import { getUserProfile, requireAdminOrHR, requireAdmin, requireEmployeeAccess, AuthenticatedRequest } from "./rbac";
@@ -16,9 +17,13 @@ import {
   insertJobApplicationSchema,
   insertEmployeeSalaryComponentSchema,
   insertSalaryComponentSchema,
+  employees,
+  attendance,
+  payroll,
 } from "@shared/schema";
 import { z } from "zod";
 import { format } from "date-fns";
+import { eq } from "drizzle-orm";
 
 // AI Insights Generation Function
 async function generateAttendanceInsights(attendanceRecords: any[], employees: any[], period: string) {
