@@ -116,8 +116,8 @@ function EmployeeSalaryComponentsSection({ employeeId }: { employeeId: number })
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {employeeSalaryComponents.map((component: any) => {
-            const salaryComponent = salaryComponents.find((sc: any) => sc.id === component.salaryComponentId);
+          {employeeSalaryComponents.map((component) => {
+            const salaryComponent = salaryComponents.find((sc) => sc.id === component.componentId);
             return (
               <Card key={component.id} className="p-4">
                 <div className="flex items-center justify-between">
@@ -126,7 +126,7 @@ function EmployeeSalaryComponentsSection({ employeeId }: { employeeId: number })
                     <p className="text-sm text-muted-foreground">{salaryComponent?.code}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">{formatCurrency(component.amount)}</p>
+                    <p className="font-semibold">{formatCurrency(Number(component.amount))}</p>
                     <div className="flex gap-1 mt-1">
                       <Badge variant={salaryComponent?.type === 'allowance' ? 'default' : 'destructive'} className="text-xs">
                         {salaryComponent?.type === 'allowance' ? 'Tunjangan' : 'Potongan'}
@@ -142,6 +142,227 @@ function EmployeeSalaryComponentsSection({ employeeId }: { employeeId: number })
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// Component for assigning salary components to employees
+function SalaryComponentAssignment({ employee, onClose }: { employee: Employee; onClose: () => void }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedComponent, setSelectedComponent] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+  const [effectiveDate, setEffectiveDate] = useState<Date>(new Date());
+  const [isActive, setIsActive] = useState(true);
+
+  // Fetch available salary components
+  const { data: salaryComponents = [] } = useQuery<SalaryComponent[]>({
+    queryKey: ["/api/salary-components"],
+  });
+
+  // Fetch employee's current salary components
+  const { data: employeeSalaryComponents = [], refetch } = useQuery<EmployeeSalaryComponent[]>({
+    queryKey: ["/api/employee-salary-components", employee.id],
+  });
+
+  // Add salary component mutation
+  const addComponentMutation = useMutation({
+    mutationFn: async (data: { componentId: number; employeeId: number; amount: string; effectiveDate: string; isActive: boolean }) => {
+      const response = await fetch("/api/employee-salary-components", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to add salary component");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Komponen gaji berhasil ditambahkan" });
+      setSelectedComponent("");
+      setAmount("");
+      setEffectiveDate(new Date());
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ["/api/employee-salary-components"] });
+    },
+    onError: () => {
+      toast({ title: "Gagal menambahkan komponen gaji", variant: "destructive" });
+    },
+  });
+
+  // Delete salary component mutation
+  const deleteComponentMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/employee-salary-components/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete salary component");
+    },
+    onSuccess: () => {
+      toast({ title: "Komponen gaji berhasil dihapus" });
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ["/api/employee-salary-components"] });
+    },
+    onError: () => {
+      toast({ title: "Gagal menghapus komponen gaji", variant: "destructive" });
+    },
+  });
+
+  const handleAddComponent = () => {
+    if (!selectedComponent || !amount) {
+      toast({ title: "Silakan pilih komponen dan masukkan jumlah", variant: "destructive" });
+      return;
+    }
+
+    addComponentMutation.mutate({
+      componentId: parseInt(selectedComponent),
+      employeeId: employee.id,
+      amount: amount,
+      effectiveDate: effectiveDate.toISOString(),
+      isActive: isActive,
+    });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const getAvailableComponents = () => {
+    const assignedComponentIds = employeeSalaryComponents.map(ec => ec.componentId);
+    return salaryComponents.filter(sc => !assignedComponentIds.includes(sc.id));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Add New Component */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Tambah Komponen Gaji</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium">Komponen Gaji</label>
+            <Select value={selectedComponent} onValueChange={setSelectedComponent}>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih komponen gaji" />
+              </SelectTrigger>
+              <SelectContent>
+                {getAvailableComponents().map((component) => (
+                  <SelectItem key={component.id} value={component.id.toString()}>
+                    {component.name} ({component.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Jumlah (IDR)</label>
+            <Input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Masukkan jumlah"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Tanggal Efektif</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {effectiveDate ? format(effectiveDate, "dd/MM/yyyy") : "Pilih tanggal"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={effectiveDate}
+                  onSelect={(date) => date && setEffectiveDate(date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              className="rounded"
+            />
+            <label htmlFor="isActive" className="text-sm font-medium">
+              Komponen Aktif
+            </label>
+          </div>
+        </div>
+
+        <div className="flex gap-2 mt-4">
+          <Button 
+            onClick={handleAddComponent}
+            disabled={addComponentMutation.isPending}
+          >
+            {addComponentMutation.isPending ? "Menambahkan..." : "Tambah Komponen"}
+          </Button>
+        </div>
+      </Card>
+
+      {/* Current Components */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Komponen Gaji Saat Ini</h3>
+        {employeeSalaryComponents.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">
+            Belum ada komponen gaji yang ditetapkan
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {employeeSalaryComponents.map((component) => {
+              const salaryComponent = salaryComponents.find(sc => sc.id === component.componentId);
+              return (
+                <div key={component.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-medium">{salaryComponent?.name || 'Unknown Component'}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {salaryComponent?.code} • Efektif: {format(new Date(component.effectiveDate), "dd/MM/yyyy")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="font-semibold">{formatCurrency(Number(component.amount))}</p>
+                      <div className="flex gap-1">
+                        <Badge variant={salaryComponent?.type === 'allowance' ? 'default' : 'destructive'} className="text-xs">
+                          {salaryComponent?.type === 'allowance' ? 'Tunjangan' : 'Potongan'}
+                        </Badge>
+                        {component.isActive && (
+                          <Badge variant="outline" className="text-xs">Aktif</Badge>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => deleteComponentMutation.mutate(component.id)}
+                      disabled={deleteComponentMutation.isPending}
+                    >
+                      <Trash2Icon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
+      <div className="flex justify-end">
+        <Button variant="outline" onClick={onClose}>
+          Selesai
+        </Button>
+      </div>
     </div>
   );
 }
@@ -979,6 +1200,25 @@ export default function Employees() {
                 </TabsContent>
               </Tabs>
             </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Salary Components Management Dialog */}
+      <Dialog open={isSalaryComponentDialogOpen} onOpenChange={setIsSalaryComponentDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Kelola Komponen Gaji Individual</DialogTitle>
+            <DialogDescription>
+              Atur komponen gaji khusus untuk {selectedEmployeeForSalary?.firstName} {selectedEmployeeForSalary?.lastName}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedEmployeeForSalary && (
+            <SalaryComponentAssignment 
+              employee={selectedEmployeeForSalary}
+              onClose={() => setIsSalaryComponentDialogOpen(false)}
+            />
           )}
         </DialogContent>
       </Dialog>
