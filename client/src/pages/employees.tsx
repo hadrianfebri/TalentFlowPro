@@ -431,6 +431,11 @@ export default function Employees() {
     queryKey: ["/api/employees"],
   });
 
+  // Fetch documents for integration with employee profiles
+  const { data: documents = [] } = useQuery<Document[]>({
+    queryKey: ["/api/documents"],
+  });
+
   // Delete employee mutation
   const deleteEmployeeMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -1064,10 +1069,11 @@ export default function Employees() {
           {selectedEmployee && (
             <ScrollArea className="h-full max-h-[70vh]">
               <Tabs defaultValue="personal" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="personal">Data Pribadi</TabsTrigger>
                   <TabsTrigger value="job">Data Pekerjaan</TabsTrigger>
                   <TabsTrigger value="financial">Data Finansial</TabsTrigger>
+                  <TabsTrigger value="documents">Dokumen</TabsTrigger>
                   <TabsTrigger value="additional">Tambahan</TabsTrigger>
                 </TabsList>
 
@@ -1193,6 +1199,84 @@ export default function Employees() {
                     </div>
                     
                     <EmployeeSalaryComponentsSection employeeId={selectedEmployee.id} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="documents" className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Dokumen Karyawan</h3>
+                      <Badge variant="outline">
+                        {documents.filter(doc => doc.employeeId === selectedEmployee.id).length} dokumen
+                      </Badge>
+                    </div>
+                    
+                    {documents.filter(doc => doc.employeeId === selectedEmployee.id).length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                        <div className="space-y-2">
+                          <p className="text-sm">Belum ada dokumen untuk karyawan ini</p>
+                          <p className="text-xs">Dokumen dapat ditambahkan melalui halaman Dokumen</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {documents
+                          .filter(doc => doc.employeeId === selectedEmployee.id)
+                          .map((document) => (
+                            <div key={document.id} className="border rounded-lg p-4 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  {document.type === "contract" && (
+                                    <div className="h-8 w-8 rounded bg-blue-100 flex items-center justify-center">
+                                      <span className="text-blue-600 text-xs font-medium">K</span>
+                                    </div>
+                                  )}
+                                  {document.type === "policy" && (
+                                    <div className="h-8 w-8 rounded bg-green-100 flex items-center justify-center">
+                                      <span className="text-green-600 text-xs font-medium">P</span>
+                                    </div>
+                                  )}
+                                  {document.type === "letter" && (
+                                    <div className="h-8 w-8 rounded bg-purple-100 flex items-center justify-center">
+                                      <span className="text-purple-600 text-xs font-medium">S</span>
+                                    </div>
+                                  )}
+                                  {!["contract", "policy", "letter"].includes(document.type) && (
+                                    <div className="h-8 w-8 rounded bg-gray-100 flex items-center justify-center">
+                                      <span className="text-gray-600 text-xs font-medium">D</span>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <h4 className="font-medium text-sm">{document.name}</h4>
+                                    {document.description && (
+                                      <p className="text-xs text-muted-foreground">{document.description}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {document.type === "contract" ? "Kontrak" : 
+                                     document.type === "policy" ? "Kebijakan" :
+                                     document.type === "letter" ? "Surat" : "Dokumen"}
+                                  </Badge>
+                                  {document.signedBy ? (
+                                    <Badge className="bg-green-100 text-green-800 text-xs">
+                                      Ditandatangani
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-xs">
+                                      Draft
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Dibuat: {format(new Date(document.createdAt), "dd/MM/yyyy HH:mm")}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
 
