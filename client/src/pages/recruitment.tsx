@@ -282,16 +282,35 @@ export default function Recruitment() {
     },
   });
 
+  // Get platform status
+  const { data: platformStatus } = useQuery({
+    queryKey: ['/api/platform-status']
+  });
+
   const postExternalMutation = useMutation({
     mutationFn: (data: { id: number; platforms: string[] }) => 
       apiRequest("POST", `/api/jobs/${data.id}/post-external`, { platforms: data.platforms }),
-    onSuccess: (result) => {
+    onSuccess: (result: any) => {
       setIsPostExternalDialogOpen(false);
       setSelectedJob(null);
-      toast({
-        title: "Berhasil",
-        description: `Lowongan berhasil diposting ke ${result.results.filter((r: any) => r.status === 'success').length} platform`,
-      });
+      
+      const successfulPosts = result.results?.filter((r: any) => r.success) || [];
+      const failedPosts = result.results?.filter((r: any) => !r.success) || [];
+
+      if (successfulPosts.length > 0) {
+        toast({
+          title: "Berhasil Posting",
+          description: `Berhasil posting ke ${successfulPosts.length} platform: ${successfulPosts.map((p: any) => p.platform).join(', ')}`,
+        });
+      }
+
+      if (failedPosts.length > 0) {
+        toast({
+          title: "Sebagian Gagal",
+          description: `Gagal posting ke: ${failedPosts.map((p: any) => `${p.platform} (${p.error})`).join(', ')}`,
+          variant: "destructive",
+        });
+      }
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -1168,27 +1187,73 @@ export default function Recruitment() {
                 </p>
                 
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" name="jobstreet" id="jobstreet" className="rounded" />
-                    <label htmlFor="jobstreet" className="text-sm">JobStreet Indonesia</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" name="indeed" id="indeed" className="rounded" />
-                    <label htmlFor="indeed" className="text-sm">Indeed</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" name="linkedin" id="linkedin" className="rounded" />
-                    <label htmlFor="linkedin" className="text-sm">LinkedIn Jobs</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" name="glints" id="glints" className="rounded" />
-                    <label htmlFor="glints" className="text-sm">Glints</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" name="kalibrr" id="kalibrr" className="rounded" />
-                    <label htmlFor="kalibrr" className="text-sm">Kalibrr</label>
-                  </div>
+                  {platformStatus ? (
+                    platformStatus.platforms.map((platform: any) => (
+                      <div key={platform.platform} className="flex items-center justify-between space-x-2">
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="checkbox" 
+                            name={platform.platform} 
+                            id={platform.platform} 
+                            className="rounded" 
+                            disabled={!platform.configured}
+                          />
+                          <label 
+                            htmlFor={platform.platform} 
+                            className={`text-sm ${!platform.configured ? 'text-muted-foreground' : ''}`}
+                          >
+                            {platform.name}
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          {platform.configured ? (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              Siap
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                              Perlu API Key
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    // Fallback jika platform status belum dimuat
+                    ['jobstreet', 'indeed', 'linkedin', 'glints', 'kalibrr'].map(platform => (
+                      <div key={platform} className="flex items-center justify-between space-x-2">
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" name={platform} id={platform} className="rounded" disabled />
+                          <label htmlFor={platform} className="text-sm text-muted-foreground">
+                            {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                          </label>
+                        </div>
+                        <Badge variant="outline" className="text-xs bg-gray-50 text-gray-500 border-gray-200">
+                          Loading...
+                        </Badge>
+                      </div>
+                    ))
+                  )}
                 </div>
+
+                {platformStatus && platformStatus.configuredCount === 0 && (
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Tidak ada platform yang terkonfigurasi.</strong> 
+                      Silakan tambahkan API credentials untuk menggunakan posting eksternal. 
+                      Lihat dokumentasi integrasi untuk panduan setup.
+                    </p>
+                  </div>
+                )}
+
+                {platformStatus && platformStatus.configuredCount > 0 && platformStatus.configuredCount < platformStatus.totalPlatforms && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-sm text-blue-800">
+                      {platformStatus.configuredCount} dari {platformStatus.totalPlatforms} platform siap digunakan. 
+                      Tambahkan API credentials untuk platform lainnya untuk jangkauan maksimal.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
