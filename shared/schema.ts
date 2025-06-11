@@ -159,6 +159,36 @@ export const leaveRequests = pgTable("leave_requests", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Salary Components table - for configurable salary components
+export const salaryComponents = pgTable("salary_components", {
+  id: serial("id").primaryKey(),
+  companyId: varchar("company_id").notNull(),
+  name: varchar("name").notNull(), // e.g., "Uang Makan", "Transport", "Bonus"
+  code: varchar("code").notNull(), // e.g., "MEAL", "TRANSPORT", "BONUS"
+  type: varchar("type").notNull(), // "allowance" or "deduction"
+  category: varchar("category").notNull(), // "fixed", "variable", "benefit"
+  isActive: boolean("is_active").default(true),
+  description: text("description"),
+  defaultAmount: decimal("default_amount", { precision: 15, scale: 2 }).default("0"),
+  isTaxable: boolean("is_taxable").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Employee Salary Components - individual employee component values
+export const employeeSalaryComponents = pgTable("employee_salary_components", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull(),
+  componentId: integer("component_id").notNull(),
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  isActive: boolean("is_active").default(true),
+  effectiveDate: date("effective_date").notNull(),
+  endDate: date("end_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Payroll table
 export const payroll = pgTable("payroll", {
   id: serial("id").primaryKey(),
@@ -166,8 +196,8 @@ export const payroll = pgTable("payroll", {
   period: varchar("period").notNull(), // YYYY-MM format
   basicSalary: decimal("basic_salary", { precision: 15, scale: 2 }).notNull(),
   overtimePay: decimal("overtime_pay", { precision: 15, scale: 2 }).default("0"),
-  allowances: jsonb("allowances"), // various allowances
-  deductions: jsonb("deductions"), // BPJS, tax, etc.
+  allowances: jsonb("allowances"), // detailed allowances breakdown
+  deductions: jsonb("deductions"), // detailed deductions breakdown
   grossSalary: decimal("gross_salary", { precision: 15, scale: 2 }).notNull(),
   netSalary: decimal("net_salary", { precision: 15, scale: 2 }).notNull(),
   bpjsHealth: decimal("bpjs_health", { precision: 15, scale: 2 }).default("0"),
@@ -177,7 +207,9 @@ export const payroll = pgTable("payroll", {
   processedAt: timestamp("processed_at"),
   paidAt: timestamp("paid_at"),
   slipGenerated: boolean("slip_generated").default(false),
+  adjustments: jsonb("adjustments"), // manual adjustments for this period
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Documents table
@@ -377,3 +409,21 @@ export type JobApplication = typeof jobApplications.$inferSelect;
 
 export type RewardWallet = typeof rewardWallet.$inferSelect;
 export type AIInsight = typeof aiInsights.$inferSelect;
+
+// Salary Components types
+export const insertSalaryComponentSchema = createInsertSchema(salaryComponents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertSalaryComponent = z.infer<typeof insertSalaryComponentSchema>;
+export type SalaryComponent = typeof salaryComponents.$inferSelect;
+
+// Employee Salary Components types
+export const insertEmployeeSalaryComponentSchema = createInsertSchema(employeeSalaryComponents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertEmployeeSalaryComponent = z.infer<typeof insertEmployeeSalaryComponentSchema>;
+export type EmployeeSalaryComponent = typeof employeeSalaryComponents.$inferSelect;

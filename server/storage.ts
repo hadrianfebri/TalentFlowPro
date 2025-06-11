@@ -93,6 +93,18 @@ export interface IStorage {
   createJob(data: InsertJob): Promise<Job>;
   getJobApplications(companyId: string): Promise<JobApplication[]>;
   createJobApplication(data: InsertJobApplication): Promise<JobApplication>;
+  
+  // Salary Component operations
+  getSalaryComponents(companyId: string): Promise<SalaryComponent[]>;
+  createSalaryComponent(data: InsertSalaryComponent): Promise<SalaryComponent>;
+  updateSalaryComponent(id: number, data: Partial<InsertSalaryComponent>): Promise<SalaryComponent>;
+  deleteSalaryComponent(id: number): Promise<void>;
+  
+  // Employee Salary Component operations
+  getEmployeeSalaryComponents(employeeId: number): Promise<EmployeeSalaryComponent[]>;
+  setEmployeeSalaryComponent(data: InsertEmployeeSalaryComponent): Promise<EmployeeSalaryComponent>;
+  updateEmployeeSalaryComponent(id: number, data: Partial<InsertEmployeeSalaryComponent>): Promise<EmployeeSalaryComponent>;
+  deleteEmployeeSalaryComponent(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -783,6 +795,74 @@ export class DatabaseStorage implements IStorage {
       .values(data)
       .returning();
     return application;
+  }
+
+  // Salary Component operations
+  async getSalaryComponents(companyId: string): Promise<SalaryComponent[]> {
+    return await db
+      .select()
+      .from(salaryComponents)
+      .where(eq(salaryComponents.companyId, companyId))
+      .orderBy(salaryComponents.type, salaryComponents.name);
+  }
+
+  async createSalaryComponent(data: InsertSalaryComponent): Promise<SalaryComponent> {
+    const [newComponent] = await db
+      .insert(salaryComponents)
+      .values(data)
+      .returning();
+    return newComponent;
+  }
+
+  async updateSalaryComponent(id: number, data: Partial<InsertSalaryComponent>): Promise<SalaryComponent> {
+    const [updatedComponent] = await db
+      .update(salaryComponents)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(salaryComponents.id, id))
+      .returning();
+    return updatedComponent;
+  }
+
+  async deleteSalaryComponent(id: number): Promise<void> {
+    await db
+      .delete(salaryComponents)
+      .where(eq(salaryComponents.id, id));
+  }
+
+  // Employee Salary Component operations
+  async getEmployeeSalaryComponents(employeeId: number): Promise<EmployeeSalaryComponent[]> {
+    return await db
+      .select()
+      .from(employeeSalaryComponents)
+      .where(and(
+        eq(employeeSalaryComponents.employeeId, employeeId),
+        eq(employeeSalaryComponents.isActive, true)
+      ))
+      .orderBy(employeeSalaryComponents.createdAt);
+  }
+
+  async setEmployeeSalaryComponent(data: InsertEmployeeSalaryComponent): Promise<EmployeeSalaryComponent> {
+    const [newComponent] = await db
+      .insert(employeeSalaryComponents)
+      .values(data)
+      .returning();
+    return newComponent;
+  }
+
+  async updateEmployeeSalaryComponent(id: number, data: Partial<InsertEmployeeSalaryComponent>): Promise<EmployeeSalaryComponent> {
+    const [updatedComponent] = await db
+      .update(employeeSalaryComponents)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(employeeSalaryComponents.id, id))
+      .returning();
+    return updatedComponent;
+  }
+
+  async deleteEmployeeSalaryComponent(id: number): Promise<void> {
+    await db
+      .update(employeeSalaryComponents)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(employeeSalaryComponents.id, id));
   }
 }
 
