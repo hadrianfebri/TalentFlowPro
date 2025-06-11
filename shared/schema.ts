@@ -8,6 +8,7 @@ import {
   serial,
   integer,
   decimal,
+  bigint,
   boolean,
   date,
   time,
@@ -328,7 +329,7 @@ export const applicantDocuments = pgTable("applicant_documents", {
   documentType: varchar("document_type").notNull(), // resume, portfolio, certificate, cover_letter, photo
   fileName: varchar("file_name").notNull(),
   filePath: varchar("file_path").notNull(),
-  fileSize: integer("file_size"),
+  fileSize: bigint("file_size", { mode: "number" }),
   mimeType: varchar("mime_type"),
   uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
