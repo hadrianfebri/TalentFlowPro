@@ -723,14 +723,17 @@ export default function Recruitment() {
                                       <FileText className="h-4 w-4" />
                                     </Button>
                                   )}
-                                  <Button variant="ghost" size="sm" title="Detail">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    title="Kelola Status"
+                                    onClick={() => {
+                                      setSelectedApplication(application);
+                                      setIsApplicationDialogOpen(true);
+                                    }}
+                                  >
                                     <Eye className="h-4 w-4" />
                                   </Button>
-                                  {application.stage === 'applied' && (
-                                    <Button variant="ghost" size="sm" title="Lanjut ke Interview">
-                                      <ArrowRight className="h-4 w-4" />
-                                    </Button>
-                                  )}
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -745,6 +748,163 @@ export default function Recruitment() {
           </Tabs>
         </main>
       </div>
+
+      {/* Application Status Management Dialog */}
+      <Dialog open={isApplicationDialogOpen} onOpenChange={setIsApplicationDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kelola Status Lamaran</DialogTitle>
+          </DialogHeader>
+          
+          {selectedApplication && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const stage = formData.get("stage") as string;
+              const notes = formData.get("notes") as string;
+              const interviewDate = formData.get("interviewDate") as string;
+              const offerAmount = formData.get("offerAmount") as string;
+
+              updateApplicationMutation.mutate({
+                id: selectedApplication.id,
+                stage,
+                notes: notes || undefined,
+                interviewDate: interviewDate || undefined,
+                offerAmount: offerAmount || undefined,
+              });
+            }} className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Pelamar</Label>
+                <p className="text-sm text-muted-foreground">
+                  {selectedApplication.applicantName} - {selectedApplication.job.title}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="stage">Status Baru</Label>
+                <Select name="stage" defaultValue={selectedApplication.stage}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="applied">Melamar</SelectItem>
+                    <SelectItem value="screening">Screening</SelectItem>
+                    <SelectItem value="interview">Interview</SelectItem>
+                    <SelectItem value="test">Tes</SelectItem>
+                    <SelectItem value="offer">Penawaran</SelectItem>
+                    <SelectItem value="hired">Diterima</SelectItem>
+                    <SelectItem value="rejected">Ditolak</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="interviewDate">Tanggal Interview (opsional)</Label>
+                <Input 
+                  name="interviewDate" 
+                  type="datetime-local"
+                  defaultValue={selectedApplication.interviewDate ? 
+                    new Date(selectedApplication.interviewDate).toISOString().slice(0, 16) : ""}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="offerAmount">Nominal Penawaran (opsional)</Label>
+                <Input 
+                  name="offerAmount" 
+                  placeholder="Rp 8.000.000"
+                  defaultValue={selectedApplication.offerAmount || ""}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Catatan</Label>
+                <Textarea 
+                  name="notes" 
+                  placeholder="Tambahkan catatan mengenai status ini..."
+                  defaultValue={selectedApplication.notes || ""}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsApplicationDialogOpen(false)}
+                >
+                  Batal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateApplicationMutation.isPending}
+                >
+                  {updateApplicationMutation.isPending ? "Menyimpan..." : "Perbarui Status"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Job Status Management Dialog */}
+      <Dialog open={isJobStatusDialogOpen} onOpenChange={setIsJobStatusDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kelola Status Lowongan</DialogTitle>
+          </DialogHeader>
+          
+          {selectedJob && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const status = formData.get("status") as string;
+
+              updateJobStatusMutation.mutate({
+                id: selectedJob.id,
+                status,
+              });
+            }} className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Lowongan</Label>
+                <p className="text-sm text-muted-foreground">
+                  {selectedJob.title} - {selectedJob.location}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status Baru</Label>
+                <Select name="status" defaultValue={selectedJob.status}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Aktif</SelectItem>
+                    <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                    <SelectItem value="closed">Ditutup</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsJobStatusDialogOpen(false)}
+                >
+                  Batal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateJobStatusMutation.isPending}
+                >
+                  {updateJobStatusMutation.isPending ? "Menyimpan..." : "Perbarui Status"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
