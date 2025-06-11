@@ -665,28 +665,8 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error calculating payroll:", error);
       console.error("Error details:", error);
-      // Return mock data for demonstration
-      const mockPayroll = {
-        id: 1,
-        employeeId: 1,
-        period: period,
-        basicSalary: "5000000",
-        allowances: { base: 500000 },
-        overtimePay: "0",
-        grossSalary: "5500000",
-        bpjsHealth: "220000",
-        bpjsEmployment: "110000",
-        pph21: "0",
-        deductions: { total: 330000, bpjs: 330000, tax: 0 },
-        netSalary: "5170000",
-        status: "processed",
-        processedAt: new Date(),
-        paidAt: null,
-        slipGenerated: false,
-        createdAt: new Date(),
-      };
-      
-      return [mockPayroll as any];
+      // Return empty array if calculation fails - no mock data
+      return [];
     }
   }
 

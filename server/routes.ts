@@ -889,26 +889,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get payroll record with employee details
       const payrollRecord = await db
-        .select({
-          id: payroll.id,
-          employeeId: payroll.employeeId,
-          period: payroll.period,
-          basicSalary: payroll.basicSalary,
-          allowances: payroll.allowances,
-          overtimePay: payroll.overtimePay,
-          grossSalary: payroll.grossSalary,
-          deductions: payroll.deductions,
-          netSalary: payroll.netSalary,
-          status: payroll.status,
-          processedAt: payroll.processedAt,
-          employee: {
-            firstName: employees.firstName,
-            lastName: employees.lastName,
-            employeeId: employees.employeeId,
-            position: employees.position,
-            department: employees.department,
-          }
-        })
+        .select()
         .from(payroll)
         .innerJoin(employees, eq(payroll.employeeId, employees.id))
         .where(and(
@@ -921,7 +902,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Payroll record not found" });
       }
       
-      const record = payrollRecord[0];
+      const record = {
+        id: payrollRecord[0].payroll.id,
+        employeeId: payrollRecord[0].payroll.employeeId,
+        period: payrollRecord[0].payroll.period,
+        basicSalary: payrollRecord[0].payroll.basicSalary,
+        allowances: payrollRecord[0].payroll.allowances,
+        overtimePay: payrollRecord[0].payroll.overtimePay,
+        deductions: payrollRecord[0].payroll.deductions,
+        netSalary: payrollRecord[0].payroll.netSalary,
+        status: payrollRecord[0].payroll.status,
+        employee: {
+          firstName: payrollRecord[0].employees.firstName,
+          lastName: payrollRecord[0].employees.lastName,
+          employeeId: payrollRecord[0].employees.employeeId,
+          position: payrollRecord[0].employees.position,
+          department: payrollRecord[0].employees.department,
+        }
+      };
       
       // Generate HTML payslip
       const payslipHtml = `
