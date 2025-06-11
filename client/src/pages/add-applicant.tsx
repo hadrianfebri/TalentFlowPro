@@ -205,7 +205,7 @@ export default function AddApplicantPage() {
           </TabsTrigger>
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
-            Upload CSV
+            Upload CV
           </TabsTrigger>
         </TabsList>
 
@@ -594,50 +594,50 @@ export default function AddApplicantPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5" />
-                Upload Data Pelamar (CSV)
+                Upload CV Massal
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                 <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Upload File CSV</h3>
+                <h3 className="text-lg font-semibold mb-2">Upload File CV</h3>
                 <p className="text-gray-600 mb-4">
-                  Pilih file CSV yang berisi data pelamar untuk diimport secara massal
+                  Pilih file Excel (.xlsx/.xls) atau PDF yang berisi data pelamar untuk diimport secara massal
                 </p>
                 <Input
-                  id="csv-file-input"
+                  id="cv-bulk-file-input"
                   type="file"
-                  accept=".csv,text/csv,application/csv"
+                  accept=".xlsx,.xls,.pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/pdf"
                   onChange={(e) => {
-                    console.log("CSV file selection changed:", e.target.files);
+                    console.log("CV bulk file selection changed:", e.target.files);
                     
-                    const csvFileNameSpan = document.getElementById('selected-csv-file-name');
+                    const cvFileNameSpan = document.getElementById('selected-cv-bulk-file-name');
                     if (e.target.files && e.target.files[0]) {
                       const file = e.target.files[0];
-                      console.log("CSV file selected:", {
+                      console.log("CV bulk file selected:", {
                         name: file.name,
                         type: file.type,
                         size: file.size
                       });
                       
-                      if (csvFileNameSpan) {
-                        csvFileNameSpan.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
-                        csvFileNameSpan.className = "text-green-600 font-medium";
+                      if (cvFileNameSpan) {
+                        cvFileNameSpan.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        cvFileNameSpan.className = "text-green-600 font-medium";
                       }
                     } else {
-                      if (csvFileNameSpan) {
-                        csvFileNameSpan.textContent = "Belum ada file";
-                        csvFileNameSpan.className = "text-gray-500";
+                      if (cvFileNameSpan) {
+                        cvFileNameSpan.textContent = "Belum ada file";
+                        cvFileNameSpan.className = "text-gray-500";
                       }
                     }
                     handleBulkUpload(e);
                   }}
                   disabled={bulkUploadMutation.isPending}
-                  className="max-w-xs mx-auto file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                  className="max-w-xs mx-auto file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 <div className="mt-4 space-y-2">
                   <div className="text-sm text-gray-600">
-                    File CSV yang dipilih: <span id="selected-csv-file-name" className="text-gray-500">Belum ada file</span>
+                    File CV yang dipilih: <span id="selected-cv-bulk-file-name" className="text-gray-500">Belum ada file</span>
                   </div>
                   {bulkUploadMutation.isPending && (
                     <p className="text-sm text-blue-600">Mengupload...</p>
@@ -647,32 +647,59 @@ export default function AddApplicantPage() {
                     variant="outline" 
                     size="sm"
                     onClick={() => {
-                      const input = document.getElementById('csv-file-input') as HTMLInputElement;
-                      console.log("CSV input element:", input);
-                      console.log("CSV accept attribute:", input?.accept);
-                      console.log("CSV files in input:", input?.files);
+                      const input = document.getElementById('cv-bulk-file-input') as HTMLInputElement;
+                      console.log("CV bulk input element:", input);
+                      console.log("CV bulk accept attribute:", input?.accept);
+                      console.log("CV bulk files in input:", input?.files);
                     }}
                   >
-                    Test CSV Detection
+                    Test CV Detection
                   </Button>
                 </div>
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">Format CSV yang Dibutuhkan:</h4>
-                <div className="text-sm space-y-1">
-                  <p><strong>Kolom wajib:</strong> applicant_name, applicant_email, job_id</p>
-                  <p><strong>Kolom opsional:</strong> applicant_phone, position_applied, experience_years, education_level, skills, resume_text, cover_letter, stage</p>
+                <h4 className="font-semibold mb-2">Format File yang Didukung:</h4>
+                <div className="text-sm text-gray-700 space-y-3">
+                  <div>
+                    <p><strong>1. File Excel (.xlsx/.xls):</strong></p>
+                    <p className="text-gray-600">Kolom yang dibutuhkan:</p>
+                    <div className="text-xs bg-white p-2 rounded mt-1">
+                      <p><strong>Wajib:</strong> applicant_name, applicant_email, job_id</p>
+                      <p><strong>Opsional:</strong> applicant_phone, experience_years, education_level, skills</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p><strong>2. File PDF:</strong></p>
+                    <p className="text-gray-600">CV pelamar dalam format PDF akan diproses menggunakan AI untuk mengekstrak informasi secara otomatis.</p>
+                  </div>
                 </div>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">Contoh format CSV:</h4>
-                <code className="text-xs bg-white p-2 rounded block overflow-x-auto">
-                  applicant_name,applicant_email,job_id,applicant_phone,experience_years,education_level,skills<br/>
-                  John Doe,john@email.com,1,+62812345678,3,S1,"JavaScript, React"<br/>
-                  Jane Smith,jane@email.com,2,+62887654321,5,S1,"Python, Django"
-                </code>
+                <h4 className="font-semibold mb-2">Contoh format Excel:</h4>
+                <div className="text-xs bg-white p-2 rounded overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-1">applicant_name</th>
+                        <th className="text-left p-1">applicant_email</th>
+                        <th className="text-left p-1">job_id</th>
+                        <th className="text-left p-1">experience_years</th>
+                        <th className="text-left p-1">skills</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="p-1">John Doe</td>
+                        <td className="p-1">john@email.com</td>
+                        <td className="p-1">1</td>
+                        <td className="p-1">3</td>
+                        <td className="p-1">JavaScript, React</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </CardContent>
           </Card>
