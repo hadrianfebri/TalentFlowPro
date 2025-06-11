@@ -16,6 +16,7 @@ import {
   insertJobApplicationSchema,
 } from "@shared/schema";
 import { z } from "zod";
+import { format } from "date-fns";
 
 // AI Insights Generation Function
 async function generateAttendanceInsights(attendanceRecords: any[], employees: any[], period: string) {
@@ -127,6 +128,154 @@ async function generateAttendanceInsights(attendanceRecords: any[], employees: a
       recommendation: 'Silakan coba lagi atau hubungi administrator sistem.'
     }];
   }
+}
+
+// AI Payroll Insights Generation Function
+async function generatePayrollInsights(payrollRecords: any[], employees: any[], period: string) {
+  const insights = [];
+  
+  try {
+    // Analysis 1: Salary Distribution Analysis
+    if (payrollRecords.length > 0) {
+      const salaries = payrollRecords.map(record => parseFloat(record.netSalary));
+      const avgSalary = salaries.reduce((sum, salary) => sum + salary, 0) / salaries.length;
+      const maxSalary = Math.max(...salaries);
+      const minSalary = Math.min(...salaries);
+      const salaryGap = maxSalary - minSalary;
+      
+      if (salaryGap > avgSalary * 2) {
+        insights.push({
+          type: 'salary_disparity',
+          title: 'Kesenjangan Gaji Terdeteksi',
+          description: `Terdapat kesenjangan gaji yang signifikan antara ${formatCurrency(minSalary)} hingga ${formatCurrency(maxSalary)}`,
+          severity: salaryGap > avgSalary * 3 ? 'high' : 'medium',
+          value: salaryGap,
+          trend: 'stable',
+          recommendation: 'Review struktur gaji untuk memastikan keadilan internal. Pertimbangkan implementasi salary grade yang lebih terstruktur.'
+        });
+      }
+    }
+
+    // Analysis 2: Overtime Cost Analysis
+    const overtimeRecords = payrollRecords.filter(record => parseFloat(record.overtimePay) > 0);
+    if (overtimeRecords.length > 0) {
+      const totalOvertimeCost = overtimeRecords.reduce((sum, record) => sum + parseFloat(record.overtimePay), 0);
+      const avgOvertimeCost = totalOvertimeCost / overtimeRecords.length;
+      const overtimePercentage = (overtimeRecords.length / payrollRecords.length) * 100;
+      
+      if (overtimePercentage > 30) {
+        insights.push({
+          type: 'high_overtime',
+          title: 'Biaya Lembur Tinggi',
+          description: `${overtimePercentage.toFixed(1)}% karyawan memiliki lembur dengan total biaya ${formatCurrency(totalOvertimeCost)}`,
+          severity: overtimePercentage > 50 ? 'high' : 'medium',
+          value: totalOvertimeCost,
+          trend: 'up',
+          recommendation: 'Evaluasi beban kerja dan distribusi tugas. Pertimbangkan penambahan karyawan atau optimalisasi proses kerja.'
+        });
+      }
+    }
+
+    // Analysis 3: Tax and Deduction Compliance
+    const taxRecords = payrollRecords.filter(record => parseFloat(record.tax) > 0);
+    const totalTax = taxRecords.reduce((sum, record) => sum + parseFloat(record.tax), 0);
+    const totalBPJS = payrollRecords.reduce((sum, record) => 
+      sum + parseFloat(record.bpjsHealth) + parseFloat(record.bpjsEmployment), 0
+    );
+    
+    insights.push({
+      type: 'compliance_status',
+      title: 'Status Kepatuhan Pajak & BPJS',
+      description: `Total pajak PPh21: ${formatCurrency(totalTax)}, Total BPJS: ${formatCurrency(totalBPJS)}`,
+      severity: 'low',
+      value: totalTax + totalBPJS,
+      trend: 'stable',
+      recommendation: 'Pastikan semua perhitungan pajak dan BPJS sesuai dengan regulasi terbaru. Lakukan review berkala.'
+    });
+
+    // Analysis 4: Payroll Cost Trend
+    const totalPayrollCost = payrollRecords.reduce((sum, record) => sum + parseFloat(record.netSalary), 0);
+    const avgSalaryPerEmployee = payrollRecords.length > 0 ? totalPayrollCost / payrollRecords.length : 0;
+    
+    insights.push({
+      type: 'cost_analysis',
+      title: 'Analisis Biaya Total Payroll',
+      description: `Total biaya payroll periode ${period}: ${formatCurrency(totalPayrollCost)} dengan rata-rata ${formatCurrency(avgSalaryPerEmployee)} per karyawan`,
+      severity: 'low',
+      value: totalPayrollCost,
+      trend: 'stable',
+      recommendation: 'Monitor trend biaya payroll secara konsisten. Bandingkan dengan budget dan proyeksi pertumbuhan perusahaan.'
+    });
+
+    // Analysis 5: Department Cost Distribution
+    const departmentCosts = {};
+    payrollRecords.forEach(record => {
+      const dept = record.employee?.department || 'Tidak Ditentukan';
+      if (!departmentCosts[dept]) {
+        departmentCosts[dept] = { total: 0, count: 0 };
+      }
+      departmentCosts[dept].total += parseFloat(record.netSalary);
+      departmentCosts[dept].count += 1;
+    });
+
+    const departments = Object.keys(departmentCosts);
+    if (departments.length > 1) {
+      const costByDept = departments.map(dept => ({
+        department: dept,
+        total: departmentCosts[dept].total,
+        average: departmentCosts[dept].total / departmentCosts[dept].count,
+        count: departmentCosts[dept].count
+      })).sort((a, b) => b.total - a.total);
+
+      const highestCostDept = costByDept[0];
+      insights.push({
+        type: 'department_analysis',
+        title: 'Distribusi Biaya per Departemen',
+        description: `Departemen ${highestCostDept.department} memiliki biaya payroll tertinggi: ${formatCurrency(highestCostDept.total)} untuk ${highestCostDept.count} karyawan`,
+        severity: 'low',
+        value: highestCostDept.total,
+        trend: 'stable',
+        recommendation: 'Analisis ROI per departemen untuk optimalisasi alokasi budget dan evaluasi produktivitas.'
+      });
+    }
+
+    // Analysis 6: Salary Benchmarking Insight
+    if (payrollRecords.length > 5) {
+      const medianSalary = [...payrollRecords.map(r => parseFloat(r.netSalary))].sort((a, b) => a - b)[Math.floor(payrollRecords.length / 2)];
+      const avgSalary = payrollRecords.reduce((sum, r) => sum + parseFloat(r.netSalary), 0) / payrollRecords.length;
+      
+      insights.push({
+        type: 'salary_benchmarking',
+        title: 'Benchmarking Struktur Gaji',
+        description: `Median gaji: ${formatCurrency(medianSalary)}, Rata-rata: ${formatCurrency(avgSalary)}`,
+        severity: 'low',
+        value: avgSalary,
+        trend: Math.abs(medianSalary - avgSalary) > avgSalary * 0.15 ? 'up' : 'stable',
+        recommendation: 'Lakukan survey gaji industri untuk memastikan kompetitivitas kompensasi. Pertimbangkan adjustments berkala.'
+      });
+    }
+
+    return insights;
+  } catch (error) {
+    console.error('Error generating payroll AI insights:', error);
+    return [{
+      type: 'error',
+      title: 'Error dalam Analisis Payroll AI',
+      description: 'Terjadi kesalahan saat menganalisis data payroll',
+      severity: 'medium' as const,
+      recommendation: 'Silakan coba lagi atau hubungi administrator sistem.'
+    }];
+  }
+}
+
+// Helper function for currency formatting in insights
+function formatCurrency(amount: string | number) {
+  const num = typeof amount === "string" ? parseFloat(amount) : amount;
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(num);
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -554,6 +703,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating AI insights:", error);
       res.status(500).json({ message: "Failed to generate AI insights" });
+    }
+  });
+
+  // Payroll Statistics API
+  app.get('/api/payroll/stats', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const companyId = req.userProfile?.companyId;
+      if (!companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      const { period } = req.query;
+      const selectedPeriod = period || format(new Date(), "yyyy-MM");
+      
+      // Get payroll records for the period
+      const payrollRecords = await storage.getPayroll(companyId, selectedPeriod);
+      
+      // Calculate statistics
+      const totalEmployees = await storage.getEmployees(companyId).then(emp => emp.length);
+      const totalGrossSalary = payrollRecords.reduce((sum, record) => 
+        sum + parseFloat(record.basicSalary) + parseFloat(record.allowances) + parseFloat(record.overtimePay), 0
+      );
+      const totalNetSalary = payrollRecords.reduce((sum, record) => sum + parseFloat(record.netSalary), 0);
+      const totalDeductions = payrollRecords.reduce((sum, record) => sum + parseFloat(record.deductions), 0);
+      const totalTax = payrollRecords.reduce((sum, record) => sum + parseFloat(record.tax), 0);
+      
+      const processed = payrollRecords.filter(record => record.status === 'processed' || record.status === 'approved' || record.status === 'paid').length;
+      const pending = payrollRecords.filter(record => record.status === 'draft' || record.status === 'pending').length;
+      const paid = payrollRecords.filter(record => record.status === 'paid').length;
+
+      const stats = {
+        totalEmployees,
+        totalGrossSalary,
+        totalNetSalary,
+        totalDeductions,
+        totalTax,
+        processed,
+        pending,
+        paid
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching payroll statistics:", error);
+      res.status(500).json({ message: "Failed to fetch payroll statistics" });
+    }
+  });
+
+  // Process Payroll API
+  app.post('/api/payroll/process', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const companyId = req.userProfile?.companyId;
+      if (!companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      const { period, employeeIds } = req.body;
+      
+      // Calculate payroll for specified employees or all employees
+      const payrollRecords = await storage.calculatePayroll(companyId, period, employeeIds);
+      
+      res.json(payrollRecords);
+    } catch (error) {
+      console.error("Error processing payroll:", error);
+      res.status(500).json({ message: "Failed to process payroll" });
+    }
+  });
+
+  // Generate Payslip API
+  app.post('/api/payroll/:id/payslip', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Generate payslip PDF
+      const pdfBuffer = await storage.generatePayslip(parseInt(id));
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="payslip-${id}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating payslip:", error);
+      res.status(500).json({ message: "Failed to generate payslip" });
+    }
+  });
+
+  // AI Insights for Payroll
+  app.post('/api/payroll/ai-insights', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const companyId = req.userProfile?.companyId;
+      if (!companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      const { period } = req.body;
+      
+      // Get payroll data for analysis
+      const payrollRecords = await storage.getPayroll(companyId, period);
+      const employees = await storage.getEmployees(companyId);
+      
+      // Generate AI insights using DeepSeek-like analysis
+      const insights = await generatePayrollInsights(payrollRecords, employees, period);
+      
+      res.json(insights);
+    } catch (error) {
+      console.error("Error generating payroll AI insights:", error);
+      res.status(500).json({ message: "Failed to generate payroll AI insights" });
     }
   });
 
