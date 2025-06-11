@@ -81,6 +81,7 @@ export default function Documents() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [filterEmployee, setFilterEmployee] = useState("all");
 
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
@@ -142,8 +143,17 @@ export default function Documents() {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === "all" || doc.type === filterType;
-    return matchesSearch && matchesType;
+    const matchesEmployee = filterEmployee === "all" || 
+                           (filterEmployee === "company" && !doc.employeeId) ||
+                           doc.employeeId?.toString() === filterEmployee;
+    return matchesSearch && matchesType && matchesEmployee;
   }) || [];
+
+  const getEmployeeName = (employeeId?: number) => {
+    if (!employeeId) return "Dokumen Perusahaan";
+    const employee = employees?.find(emp => emp.id === employeeId);
+    return employee ? `${employee.firstName} ${employee.lastName}` : "Karyawan Tidak Ditemukan";
+  };
 
   const getDocumentIcon = (type: string) => {
     switch (type) {
@@ -274,6 +284,21 @@ export default function Documents() {
                       <SelectItem value="policy">Kebijakan</SelectItem>
                       <SelectItem value="letter">Surat</SelectItem>
                       <SelectItem value="template">Template</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={filterEmployee} onValueChange={setFilterEmployee}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filter Karyawan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Dokumen</SelectItem>
+                      <SelectItem value="company">Dokumen Perusahaan</SelectItem>
+                      {employees?.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id.toString()}>
+                          {emp.firstName} {emp.lastName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -445,12 +470,14 @@ export default function Documents() {
                           <TableCell>
                             {document.employeeId ? (
                               <div className="text-sm">
-                                <p>Karyawan Spesifik</p>
-                                <p className="text-muted-foreground">ID: {document.employeeId}</p>
+                                <p className="font-medium">{getEmployeeName(document.employeeId)}</p>
+                                <p className="text-muted-foreground">
+                                  ID: {employees?.find(emp => emp.id === document.employeeId)?.employeeId || document.employeeId}
+                                </p>
                               </div>
                             ) : (
                               <Badge className="bg-blue-100 text-blue-800">
-                                Dokumen Umum
+                                Dokumen Perusahaan
                               </Badge>
                             )}
                           </TableCell>

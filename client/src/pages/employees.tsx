@@ -36,6 +36,24 @@ import {
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import type { Employee, InsertEmployee, SalaryComponent, EmployeeSalaryComponent } from "@shared/schema";
+
+interface Document {
+  id: number;
+  employeeId?: number;
+  companyId: string;
+  type: string;
+  name: string;
+  description?: string;
+  filePath: string;
+  fileSize?: number;
+  mimeType?: string;
+  isTemplate: boolean;
+  templateVariables?: any;
+  signedBy?: any;
+  signedAt?: string;
+  createdBy: string;
+  createdAt: string;
+}
 import { z } from "zod";
 
 // Define form schema for employee data
