@@ -43,7 +43,12 @@ import {
   Upload,
   File,
   FileCheck,
-  Users
+  Users,
+  Eye,
+  MoreHorizontal,
+  CheckCircle,
+  XCircle,
+  Clock
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { format } from "date-fns";
@@ -82,6 +87,9 @@ export default function Documents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterEmployee, setFilterEmployee] = useState("all");
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
@@ -118,6 +126,36 @@ export default function Documents() {
       toast({
         title: "Error",
         description: "Gagal menambahkan dokumen",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateDocumentStatusMutation = useMutation({
+    mutationFn: ({ id, signed }: { id: number; signed: boolean }) => 
+      apiRequest("PATCH", `/api/documents/${id}/status`, { signed }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      toast({
+        title: "Berhasil",
+        description: "Status dokumen berhasil diperbarui",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Gagal memperbarui status dokumen",
         variant: "destructive",
       });
     },
@@ -508,21 +546,53 @@ export default function Documents() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
+                            <div className="flex justify-end space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title="Lihat Detail"
+                                onClick={() => {
+                                  setSelectedDocument(document);
+                                  setIsViewDialogOpen(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 title="Download"
+                                onClick={() => {
+                                  // Placeholder for download functionality
+                                  toast({
+                                    title: "Download",
+                                    description: "Fitur download akan segera tersedia",
+                                  });
+                                }}
                               >
                                 <Download className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                title="Edit"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                              {!document.signedBy ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Tandatangani Dokumen"
+                                  onClick={() => updateDocumentStatusMutation.mutate({ id: document.id, signed: true })}
+                                  disabled={updateDocumentStatusMutation.isPending}
+                                >
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Batalkan Tanda Tangan"
+                                  onClick={() => updateDocumentStatusMutation.mutate({ id: document.id, signed: false })}
+                                  disabled={updateDocumentStatusMutation.isPending}
+                                >
+                                  <XCircle className="h-4 w-4 text-red-600" />
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -535,6 +605,118 @@ export default function Documents() {
           </Card>
         </main>
       </div>
+
+      {/* Document View Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detail Dokumen</DialogTitle>
+          </DialogHeader>
+          {selectedDocument && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Nama Dokumen</label>
+                  <p className="text-sm font-medium">{selectedDocument.name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Jenis</label>
+                  <div className="text-sm font-medium">
+                    <Badge variant="outline">
+                      {getDocumentTypeName(selectedDocument.type)}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Karyawan</label>
+                  <p className="text-sm font-medium">
+                    {selectedDocument.employeeId ? getEmployeeName(selectedDocument.employeeId) : "Dokumen Perusahaan"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Status</label>
+                  <div className="text-sm font-medium">
+                    {selectedDocument.signedBy ? (
+                      <Badge className="bg-green-100 text-green-800">
+                        Ditandatangani
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">
+                        Draft
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Dibuat</label>
+                  <p className="text-sm font-medium">
+                    {format(new Date(selectedDocument.createdAt), 'dd MMM yyyy HH:mm', { locale: id })}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Dibuat Oleh</label>
+                  <p className="text-sm font-medium">{selectedDocument.createdBy}</p>
+                </div>
+              </div>
+              
+              {selectedDocument.description && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Deskripsi</label>
+                  <p className="text-sm">{selectedDocument.description}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">File Path</label>
+                <p className="text-sm text-muted-foreground">{selectedDocument.filePath}</p>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      toast({
+                        title: "Download",
+                        description: "Fitur download akan segera tersedia",
+                      });
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+                <div className="flex space-x-2">
+                  {!selectedDocument.signedBy ? (
+                    <Button
+                      onClick={() => {
+                        updateDocumentStatusMutation.mutate({ id: selectedDocument.id, signed: true });
+                        setIsViewDialogOpen(false);
+                      }}
+                      disabled={updateDocumentStatusMutation.isPending}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Tandatangani
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        updateDocumentStatusMutation.mutate({ id: selectedDocument.id, signed: false });
+                        setIsViewDialogOpen(false);
+                      }}
+                      disabled={updateDocumentStatusMutation.isPending}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Batalkan Tanda Tangan
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
