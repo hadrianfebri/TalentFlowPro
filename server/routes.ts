@@ -1106,12 +1106,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/employee-salary-components', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
+      console.log("Received employee salary component data:", req.body);
       const validatedData = insertEmployeeSalaryComponentSchema.parse(req.body);
+      console.log("Validated data:", validatedData);
       const component = await storage.setEmployeeSalaryComponent(validatedData);
       res.status(201).json(component);
     } catch (error) {
       console.error("Error creating employee salary component:", error);
-      res.status(500).json({ message: "Failed to create employee salary component" });
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+      }
+      res.status(500).json({ message: "Failed to create employee salary component", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
