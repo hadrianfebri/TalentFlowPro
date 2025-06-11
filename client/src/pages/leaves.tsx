@@ -34,6 +34,12 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Calendar, 
   Plus, 
@@ -41,7 +47,11 @@ import {
   X, 
   Clock,
   CalendarDays,
-  User
+  User,
+  Filter,
+  MoreHorizontal,
+  FileText,
+  AlertTriangle
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { format } from "date-fns";
@@ -79,6 +89,11 @@ export default function Leaves() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [selectedLeaveForReject, setSelectedLeaveForReject] = useState<LeaveRequest | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const { data: leaves, isLoading } = useQuery<LeaveRequest[]>({
     queryKey: ["/api/leaves"],
@@ -154,6 +169,9 @@ export default function Leaves() {
       apiRequest("PUT", `/api/leaves/${id}/reject`, { rejectionReason: reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/leaves"] });
+      setIsRejectDialogOpen(false);
+      setSelectedLeaveForReject(null);
+      setRejectionReason("");
       toast({
         title: "Berhasil",
         description: "Pengajuan cuti telah ditolak",
