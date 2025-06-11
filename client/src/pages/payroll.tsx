@@ -98,6 +98,9 @@ export default function Payroll() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isProcessDialogOpen, setIsProcessDialogOpen] = useState(false);
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
+  const [isOvertimeDialogOpen, setIsOvertimeDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [overtimeHours, setOvertimeHours] = useState("");
   const [bulkAction, setBulkAction] = useState<string>("");
 
   // Check user permissions
@@ -155,33 +158,85 @@ export default function Payroll() {
     },
   });
 
-  // Generate payslip mutation
-  const generatePayslipMutation = useMutation({
-    mutationFn: async (payrollId: number) => {
-      const response = await fetch(`/api/payroll/${payrollId}/payslip`, {
-        method: "POST",
+  // Update payroll status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ payrollId, status }: { payrollId: number, status: string }) => {
+      const response = await fetch(`/api/payroll/${payrollId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status }),
       });
       if (!response.ok) {
-        throw new Error("Failed to generate payslip");
+        throw new Error("Failed to update status");
       }
-      return response.blob();
+      return response.json();
     },
-    onSuccess: (blob, payrollId) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `payslip-${payrollId}.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/stats"] });
       toast({
-        title: "Slip Gaji Berhasil Dibuat",
-        description: "File PDF telah didownload",
+        title: "Status Updated",
+        description: "Status payroll berhasil diperbarui",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Gagal membuat slip gaji",
+        description: "Gagal memperbarui status",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update overtime mutation
+  const updateOvertimeMutation = useMutation({
+    mutationFn: async ({ payrollId, overtimeHours }: { payrollId: number, overtimeHours: number }) => {
+      const response = await fetch(`/api/payroll/${payrollId}/overtime`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ overtimeHours }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update overtime");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/stats"] });
+      setIsOvertimeDialogOpen(false);
+      setOvertimeHours("");
+      toast({
+        title: "Lembur Updated",
+        description: "Jam lembur berhasil diperbarui",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Gagal memperbarui jam lembur",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Generate payslip mutation
+  const generatePayslipMutation = useMutation({
+    mutationFn: async (payrollId: number) => {
+      window.open(`/api/payroll/${payrollId}/payslip`, '_blank');
+    },
+    onSuccess: (_, payrollId) => {
+      toast({
+        title: "Slip Gaji Dibuka",
+        description: "Slip gaji telah dibuka di tab baru",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Gagal membuka slip gaji",
         variant: "destructive",
       });
     },
@@ -512,12 +567,33 @@ export default function Payroll() {
                               >
                                 <FileText className="w-4 h-4" />
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Send className="w-4 h-4" />
-                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem onClick={() => {
+                                    setSelectedEmployee(record);
+                                    setIsOvertimeDialogOpen(true);
+                                  }}>
+                                    Input Lembur
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ payrollId: record.id, status: 'processed' })}>
+                                    Ubah ke Diproses
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ payrollId: record.id, status: 'approved' })}>
+                                    Ubah ke Disetujui
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ payrollId: record.id, status: 'paid' })}>
+                                    Ubah ke Dibayar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ payrollId: record.id, status: 'rejected' })}>
+                                    Ubah ke Ditolak
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </td>
                         </tr>
@@ -831,6 +907,49 @@ export default function Payroll() {
                   </Card>
                 </TabsContent>
               </Tabs>
+            </DialogContent>
+          </Dialog>
+
+          {/* Overtime Input Dialog */}
+          <Dialog open={isOvertimeDialogOpen} onOpenChange={setIsOvertimeDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Input Jam Lembur</DialogTitle>
+                <DialogDescription>
+                  Masukkan jam lembur untuk {selectedEmployee?.employee?.firstName} {selectedEmployee?.employee?.lastName}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Jam Lembur</label>
+                  <Input
+                    type="number"
+                    value={overtimeHours}
+                    onChange={(e) => setOvertimeHours(e.target.value)}
+                    placeholder="Masukkan jam lembur"
+                    min="0"
+                    step="0.5"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsOvertimeDialogOpen(false)}>
+                    Batal
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      if (selectedEmployee && overtimeHours) {
+                        updateOvertimeMutation.mutate({
+                          payrollId: selectedEmployee.id,
+                          overtimeHours: parseFloat(overtimeHours)
+                        });
+                      }
+                    }}
+                    disabled={!overtimeHours || updateOvertimeMutation.isPending}
+                  >
+                    {updateOvertimeMutation.isPending ? "Menyimpan..." : "Simpan"}
+                  </Button>
+                </div>
+              </div>
             </DialogContent>
           </Dialog>
         </main>

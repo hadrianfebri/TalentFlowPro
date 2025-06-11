@@ -796,7 +796,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add Overtime Hours API
+  // Add Overtime Hours API for Payroll
+  app.patch('/api/payroll/:id/overtime', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { overtimeHours } = req.body;
+      
+      // Calculate overtime pay based on hours
+      const hourlyOvertimeRate = 50000; // Base overtime rate per hour
+      const overtimePay = (overtimeHours * hourlyOvertimeRate).toString();
+      
+      const [updatedPayroll] = await db
+        .update(payroll)
+        .set({ 
+          overtimePay: overtimePay,
+          updatedAt: new Date()
+        })
+        .where(eq(payroll.id, parseInt(id)))
+        .returning();
+      
+      // Recalculate net salary
+      const basicSalary = parseFloat(updatedPayroll.basicSalary);
+      const allowances = parseFloat(updatedPayroll.allowances as string) || 0;
+      const newOvertimePay = parseFloat(overtimePay);
+      const deductions = parseFloat(updatedPayroll.deductions as string) || 0;
+      const grossSalary = basicSalary + allowances + newOvertimePay;
+      const netSalary = grossSalary - deductions;
+      
+      // Update with recalculated values
+      const [finalPayroll] = await db
+        .update(payroll)
+        .set({ 
+          grossSalary: grossSalary.toString(),
+          netSalary: netSalary.toString()
+        })
+        .where(eq(payroll.id, parseInt(id)))
+        .returning();
+      
+      res.json(finalPayroll);
+    } catch (error) {
+      console.error("Error updating overtime hours:", error);
+      res.status(500).json({ message: "Failed to update overtime hours" });
+    }
+  });
+
+  // Add Overtime Hours API for Attendance
   app.patch('/api/attendance/:id/overtime', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
