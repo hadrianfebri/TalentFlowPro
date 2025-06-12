@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { SupportedLanguage, translations, getTranslation, SUPPORTED_LANGUAGES } from '@shared/i18n';
+import { SupportedLanguage, SUPPORTED_LANGUAGES } from '@shared/i18n';
 
 interface LanguageContextType {
   currentLanguage: SupportedLanguage;
@@ -11,45 +11,300 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// Simple translation function
+function getTranslation(language: SupportedLanguage, key: string): string {
+  try {
+    const keys = key.split('.');
+    let value: any = translations[language];
+    
+    for (const k of keys) {
+      if (value && typeof value === 'object') {
+        value = value[k];
+      } else {
+        // Fallback to Indonesian if translation not found
+        value = translations['id'];
+        for (const fallbackKey of keys) {
+          if (value && typeof value === 'object') {
+            value = value[fallbackKey];
+          } else {
+            return key; // Return key if no translation found
+          }
+        }
+        break;
+      }
+    }
+    
+    return typeof value === 'string' ? value : key;
+  } catch {
+    return key;
+  }
+}
+
+// Basic translations for testing
+const translations: Record<SupportedLanguage, any> = {
+  id: {
+    nav: {
+      dashboard: 'Dashboard',
+      employees: 'Data Karyawan',
+      attendance: 'Absensi & Timesheet',
+      payroll: 'Payroll & Slip Gaji',
+      leaves: 'Cuti & Izin',
+      documents: 'Dokumen HR',
+      reimbursements: 'Reimbursement',
+      performance: 'Performance Review',
+      jobs: 'Recruitment & Jobs',
+      applications: 'Tambah Pelamar',
+      settings: 'Pengaturan',
+      logout: 'Keluar'
+    }
+  },
+  en: {
+    nav: {
+      dashboard: 'Dashboard',
+      employees: 'Employees',
+      attendance: 'Attendance & Timesheet',
+      payroll: 'Payroll & Pay Slips',
+      leaves: 'Leave & Permissions',
+      documents: 'HR Documents',
+      reimbursements: 'Reimbursements',
+      performance: 'Performance Review',
+      jobs: 'Recruitment & Jobs',
+      applications: 'Add Applicant',
+      settings: 'Settings',
+      logout: 'Logout'
+    }
+  },
+  ms: {
+    nav: {
+      dashboard: 'Papan Pemuka',
+      employees: 'Data Pekerja',
+      attendance: 'Kehadiran & Timesheet',
+      payroll: 'Gaji & Slip Gaji',
+      leaves: 'Cuti & Kebenaran',
+      documents: 'Dokumen HR',
+      reimbursements: 'Tuntutan Balik',
+      performance: 'Ulasan Prestasi',
+      jobs: 'Pengambilan & Kerja',
+      applications: 'Tambah Pemohon',
+      settings: 'Tetapan',
+      logout: 'Log Keluar'
+    }
+  },
+  th: {
+    nav: {
+      dashboard: 'แดชบอร์ด',
+      employees: 'ข้อมูลพนักงาน',
+      attendance: 'การเข้างาน & ไทม์ชีต',
+      payroll: 'เงินเดือน & สลิปเงินเดือน',
+      leaves: 'การลา & การอนุญาต',
+      documents: 'เอกสาร HR',
+      reimbursements: 'การเบิกเงิน',
+      performance: 'การประเมินผลงาน',
+      jobs: 'การสรรหา & งาน',
+      applications: 'เพิ่มผู้สมัคร',
+      settings: 'การตั้งค่า',
+      logout: 'ออกจากระบบ'
+    }
+  },
+  vi: {
+    nav: {
+      dashboard: 'Bảng Điều Khiển',
+      employees: 'Dữ Liệu Nhân Viên',
+      attendance: 'Chấm Công & Bảng Chấm',
+      payroll: 'Lương & Phiếu Lương',
+      leaves: 'Nghỉ Phép & Cho Phép',
+      documents: 'Tài Liệu HR',
+      reimbursements: 'Hoàn Tiền',
+      performance: 'Đánh Giá Hiệu Suất',
+      jobs: 'Tuyển Dụng & Việc Làm',
+      applications: 'Thêm Ứng Viên',
+      settings: 'Cài Đặt',
+      logout: 'Đăng Xuất'
+    }
+  },
+  ph: {
+    nav: {
+      dashboard: 'Dashboard',
+      employees: 'Data ng Empleyado',
+      attendance: 'Attendance & Timesheet',
+      payroll: 'Payroll & Pay Slips',
+      leaves: 'Leave & Pahintulot',
+      documents: 'HR Documents',
+      reimbursements: 'Reimbursements',
+      performance: 'Performance Review',
+      jobs: 'Recruitment & Jobs',
+      applications: 'Magdagdag ng Aplikante',
+      settings: 'Mga Setting',
+      logout: 'Mag-logout'
+    }
+  },
+  zh: {
+    nav: {
+      dashboard: '仪表板',
+      employees: '员工数据',
+      attendance: '考勤与工时表',
+      payroll: '工资单与薪资',
+      leaves: '请假与许可',
+      documents: '人力资源文档',
+      reimbursements: '报销',
+      performance: '绩效评估',
+      jobs: '招聘与职位',
+      applications: '添加申请人',
+      settings: '设置',
+      logout: '退出登录'
+    }
+  },
+  ja: {
+    nav: {
+      dashboard: 'ダッシュボード',
+      employees: '従業員データ',
+      attendance: '出席 & タイムシート',
+      payroll: '給与 & 給与明細',
+      leaves: '休暇 & 許可',
+      documents: 'HR文書',
+      reimbursements: '償還',
+      performance: 'パフォーマンス評価',
+      jobs: '採用 & 求人',
+      applications: '応募者を追加',
+      settings: '設定',
+      logout: 'ログアウト'
+    }
+  },
+  ko: {
+    nav: {
+      dashboard: '대시보드',
+      employees: '직원 데이터',
+      attendance: '출석 & 타임시트',
+      payroll: '급여 & 급여명세서',
+      leaves: '휴가 & 허가',
+      documents: 'HR 문서',
+      reimbursements: '환급',
+      performance: '성과 평가',
+      jobs: '채용 & 일자리',
+      applications: '지원자 추가',
+      settings: '설정',
+      logout: '로그아웃'
+    }
+  },
+  hi: {
+    nav: {
+      dashboard: 'डैशबोर्ड',
+      employees: 'कर्मचारी डेटा',
+      attendance: 'उपस्थिति और टाइमशीट',
+      payroll: 'वेतन और पे स्लिप',
+      leaves: 'छुट्टी और अनुमति',
+      documents: 'HR दस्तावेज़',
+      reimbursements: 'प्रतिपूर्ति',
+      performance: 'प्रदर्शन समीक्षा',
+      jobs: 'भर्ती और नौकरियां',
+      applications: 'आवेदक जोड़ें',
+      settings: 'सेटिंग्स',
+      logout: 'लॉग आउट'
+    }
+  },
+  ar: {
+    nav: {
+      dashboard: 'لوحة التحكم',
+      employees: 'بيانات الموظفين',
+      attendance: 'الحضور وجدول الأوقات',
+      payroll: 'كشوف المرتبات وقسائم الراتب',
+      leaves: 'الإجازات والأذونات',
+      documents: 'وثائق الموارد البشرية',
+      reimbursements: 'المبالغ المستردة',
+      performance: 'مراجعة الأداء',
+      jobs: 'التوظيف والوظائف',
+      applications: 'إضافة متقدم',
+      settings: 'الإعدادات',
+      logout: 'تسجيل الخروج'
+    }
+  },
+  es: {
+    nav: {
+      dashboard: 'Panel de Control',
+      employees: 'Datos de Empleados',
+      attendance: 'Asistencia y Hoja de Tiempo',
+      payroll: 'Nómina y Recibos de Pago',
+      leaves: 'Licencias y Permisos',
+      documents: 'Documentos de RRHH',
+      reimbursements: 'Reembolsos',
+      performance: 'Evaluación de Rendimiento',
+      jobs: 'Reclutamiento y Empleos',
+      applications: 'Agregar Candidato',
+      settings: 'Configuraciones',
+      logout: 'Cerrar Sesión'
+    }
+  },
+  pt: {
+    nav: {
+      dashboard: 'Painel de Controle',
+      employees: 'Dados dos Funcionários',
+      attendance: 'Presença e Folha de Ponto',
+      payroll: 'Folha de Pagamento e Contracheques',
+      leaves: 'Licenças e Permissões',
+      documents: 'Documentos de RH',
+      reimbursements: 'Reembolsos',
+      performance: 'Avaliação de Desempenho',
+      jobs: 'Recrutamento e Empregos',
+      applications: 'Adicionar Candidato',
+      settings: 'Configurações',
+      logout: 'Sair'
+    }
+  },
+  fr: {
+    nav: {
+      dashboard: 'Tableau de Bord',
+      employees: 'Données des Employés',
+      attendance: 'Présence et Feuille de Temps',
+      payroll: 'Paie et Fiches de Paie',
+      leaves: 'Congés et Permissions',
+      documents: 'Documents RH',
+      reimbursements: 'Remboursements',
+      performance: 'Évaluation de Performance',
+      jobs: 'Recrutement et Emplois',
+      applications: 'Ajouter un Candidat',
+      settings: 'Paramètres',
+      logout: 'Se Déconnecter'
+    }
+  },
+  de: {
+    nav: {
+      dashboard: 'Dashboard',
+      employees: 'Mitarbeiterdaten',
+      attendance: 'Anwesenheit & Zeiterfassung',
+      payroll: 'Gehaltsabrechnung & Lohnzettel',
+      leaves: 'Urlaub & Genehmigungen',
+      documents: 'HR-Dokumente',
+      reimbursements: 'Erstattungen',
+      performance: 'Leistungsbewertung',
+      jobs: 'Rekrutierung & Stellen',
+      applications: 'Bewerber hinzufügen',
+      settings: 'Einstellungen',
+      logout: 'Abmelden'
+    }
+  },
+  ru: {
+    nav: {
+      dashboard: 'Панель управления',
+      employees: 'Данные сотрудников',
+      attendance: 'Посещаемость и табель',
+      payroll: 'Зарплата и расчетные листы',
+      leaves: 'Отпуска и разрешения',
+      documents: 'HR документы',
+      reimbursements: 'Возмещения',
+      performance: 'Оценка производительности',
+      jobs: 'Набор персонала и вакансии',
+      applications: 'Добавить кандидата',
+      settings: 'Настройки',
+      logout: 'Выйти'
+    }
+  }
+};
+
 // RTL languages
 const RTL_LANGUAGES: SupportedLanguage[] = ['ar'];
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>(() => {
-    // Check localStorage first
-    const stored = localStorage.getItem('hr-app-language');
-    if (stored && stored in SUPPORTED_LANGUAGES) {
-      return stored as SupportedLanguage;
-    }
-    
-    // Detect from browser language
-    const browserLang = navigator.language.toLowerCase();
-    
-    // Direct match
-    if (browserLang in SUPPORTED_LANGUAGES) {
-      return browserLang as SupportedLanguage;
-    }
-    
-    // Match by language code (e.g., 'en-US' -> 'en')
-    const langCode = browserLang.split('-')[0];
-    if (langCode in SUPPORTED_LANGUAGES) {
-      return langCode as SupportedLanguage;
-    }
-    
-    // Default to Indonesian for Southeast Asia regions, English for others
-    const asianLanguages = ['zh', 'ja', 'ko', 'th', 'vi', 'ms'];
-    if (asianLanguages.some(lang => browserLang.includes(lang))) {
-      if (browserLang.includes('zh')) return 'zh';
-      if (browserLang.includes('ja')) return 'ja';
-      if (browserLang.includes('ko')) return 'ko';
-      if (browserLang.includes('th')) return 'th';
-      if (browserLang.includes('vi')) return 'vi';
-      if (browserLang.includes('ms')) return 'ms';
-      return 'id'; // Default to Indonesian for SEA
-    }
-    
-    return 'en'; // Default fallback
-  });
+  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('id');
 
   const setLanguage = (language: SupportedLanguage) => {
     setCurrentLanguage(language);
@@ -67,7 +322,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const isRTL = RTL_LANGUAGES.includes(currentLanguage);
 
   useEffect(() => {
-    // Set initial document properties
+    // Check localStorage for saved language
+    const stored = localStorage.getItem('hr-app-language');
+    if (stored && stored in SUPPORTED_LANGUAGES) {
+      setCurrentLanguage(stored as SupportedLanguage);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Set document properties
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
     document.documentElement.lang = currentLanguage;
   }, [currentLanguage, isRTL]);
@@ -93,68 +356,4 @@ export function useLanguage() {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
-}
-
-// Hook untuk mendapatkan formatted currency
-export function useCurrency() {
-  const { currentLanguage } = useLanguage();
-  
-  const formatCurrency = (amount: number): string => {
-    const config = SUPPORTED_LANGUAGES[currentLanguage];
-    try {
-      const formatter = new Intl.NumberFormat(currentLanguage === 'en' ? 'en-US' : currentLanguage, {
-        style: 'currency',
-        currency: config.currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
-      return formatter.format(amount);
-    } catch {
-      // Fallback jika currency tidak didukung
-      return `${config.currency} ${amount.toLocaleString()}`;
-    }
-  };
-  
-  return { formatCurrency, currency: SUPPORTED_LANGUAGES[currentLanguage].currency };
-}
-
-// Hook untuk mendapatkan formatted date
-export function useDate() {
-  const { currentLanguage } = useLanguage();
-  
-  const formatDate = (date: Date | string): string => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    
-    try {
-      const formatter = new Intl.DateTimeFormat(currentLanguage === 'en' ? 'en-US' : currentLanguage, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
-      return formatter.format(dateObj);
-    } catch {
-      // Fallback format
-      return dateObj.toLocaleDateString();
-    }
-  };
-  
-  const formatDateTime = (date: Date | string): string => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    
-    try {
-      const formatter = new Intl.DateTimeFormat(currentLanguage === 'en' ? 'en-US' : currentLanguage, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-      return formatter.format(dateObj);
-    } catch {
-      // Fallback format
-      return dateObj.toLocaleString();
-    }
-  };
-  
-  return { formatDate, formatDateTime };
 }
