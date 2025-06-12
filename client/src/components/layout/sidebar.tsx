@@ -1,6 +1,5 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { usePermissions } from "@/hooks/usePermissions";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Users, 
@@ -20,7 +19,6 @@ import {
 
 export default function Sidebar() {
   const [location] = useLocation();
-  const { hasPermission } = usePermissions();
   const { t } = useLanguage();
 
   const navigationItems = [
@@ -28,106 +26,73 @@ export default function Sidebar() {
       name: t('nav.dashboard'),
       href: "/",
       icon: LayoutDashboard,
-      resource: "dashboard",
-      allowedRoles: ["admin", "hr", "employee"],
     },
     {
       name: t('nav.employees'),
       href: "/employees",
       icon: Users,
-      resource: "employees",
-      allowedRoles: ["admin", "hr", "employee"],
     },
     {
       name: t('nav.attendance'),
       href: "/attendance",
       icon: Clock,
-      resource: "attendance",
-      allowedRoles: ["admin", "hr", "employee"],
     },
     {
       name: t('nav.payroll'),
       href: "/payroll",
       icon: DollarSign,
-      resource: "payroll",
-      allowedRoles: ["admin", "hr", "employee"],
     },
     {
       name: "Komponen Gaji",
       href: "/salary-components",
       icon: DollarSign,
-      resource: "salary-components",
-      allowedRoles: ["admin", "hr"],
     },
     {
       name: t('nav.leaves'),
       href: "/leaves",
       icon: Calendar,
-      resource: "leaves",
-      allowedRoles: ["admin", "hr", "employee"],
     },
     {
       name: t('nav.documents'),
       href: "/documents",
       icon: FileText,
-      resource: "documents",
-      allowedRoles: ["admin", "hr", "employee"],
     },
     {
       name: t('nav.reimbursements'),
       href: "/reimbursement",
       icon: Receipt,
-      resource: "reimbursements",
-      allowedRoles: ["admin", "hr", "employee"],
     },
     {
       name: t('nav.performance'),
       href: "/performance",
       icon: BarChart3,
-      resource: "performance",
-      allowedRoles: ["admin", "hr", "employee"],
     },
     {
       name: t('nav.jobs'),
       href: "/recruitment",
       icon: UserPlus,
-      resource: "recruitment",
-      allowedRoles: ["admin", "hr"],
     },
     {
       name: t('nav.applications'),
       href: "/add-applicant",
       icon: UserCheck,
-      resource: "recruitment",
-      allowedRoles: ["admin", "hr"],
     },
     {
       name: "Upload Pelamar",
       href: "/applicant-upload",
       icon: Gift,
-      resource: "recruitment",
-      allowedRoles: ["admin", "hr"],
     },
     {
       name: "AI Testing",
       href: "/ai-testing",
       icon: Brain,
-      resource: "ai-testing",
-      allowedRoles: ["admin", "hr"],
     },
     {
       name: t('nav.settings'),
       href: "/settings",
       icon: Settings,
-      resource: "settings",
-      allowedRoles: ["admin"],
     },
   ];
-
-  // Filter navigation items based on permissions
-  const filteredItems = navigationItems.filter(item => 
-    hasPermission(item.resource, 'read')
-  );
 
   return (
     <aside className="w-64 bg-card border-r border-border shadow-sm">
@@ -145,7 +110,7 @@ export default function Sidebar() {
 
       <nav className="p-4">
         <ul className="space-y-2">
-          {filteredItems.map((item) => {
+          {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.href || 
               (item.href !== "/" && location.startsWith(item.href));
