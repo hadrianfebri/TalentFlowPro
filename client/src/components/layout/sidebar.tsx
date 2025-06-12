@@ -96,10 +96,10 @@ export default function Sidebar() {
 
   return (
     <aside className={cn(
-      "w-64 bg-card shadow-sm",
+      "w-64 bg-card shadow-sm h-screen flex flex-col",
       isRTL ? "border-l border-border" : "border-r border-border"
     )}>
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-border flex-shrink-0">
         <div className={cn(
           "flex items-center",
           isRTL ? "space-x-reverse space-x-3" : "space-x-3"
@@ -114,7 +114,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="p-4">
+      <nav className="p-4 flex-1 overflow-y-auto">
         <ul className="space-y-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;

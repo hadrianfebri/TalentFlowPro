@@ -14,6 +14,10 @@ import { Badge } from "../components/ui/badge";
 import { Separator } from "../components/ui/separator";
 import { Plus, X, Upload, Brain, FileText, User, Briefcase, GraduationCap, Award } from "lucide-react";
 import { useToast } from "../hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 import * as z from "zod";
 
 // Enhanced schema for manual applicant upload
@@ -43,7 +47,9 @@ const manualApplicantSchema = insertJobApplicationSchema.extend({
 type FormData = z.infer<typeof manualApplicantSchema>;
 
 export default function ApplicantUpload() {
+  const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
+  const { t, isRTL } = useLanguage();
   const queryClient = useQueryClient();
   
   const [currentEducation, setCurrentEducation] = useState({ institution: "", degree: "", field: "", year: "", gpa: "" });
@@ -209,16 +215,35 @@ export default function ApplicantUpload() {
     setCurrentExperience({ ...currentExperience, achievements: newAchievements });
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Upload Data Pelamar</h1>
-          <p className="text-muted-foreground">
-            Input data pelamar secara manual dengan analisis AI otomatis
-          </p>
-        </div>
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar />
+      
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header pageTitle="Upload Data Pelamar" />
+        
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Upload Data Pelamar</h1>
+                <p className="text-muted-foreground">
+                  Input data pelamar secara manual dengan analisis AI otomatis
+                </p>
+              </div>
+            </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -734,6 +759,9 @@ export default function ApplicantUpload() {
           </div>
         </form>
       </Form>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
