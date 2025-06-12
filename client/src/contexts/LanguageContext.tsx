@@ -70,7 +70,8 @@ const translations: Record<SupportedLanguage, any> = {
       totalEmployees: 'Total Karyawan',
       todayAttendance: 'Hadir Hari Ini',
       pendingLeaves: 'Cuti Pending',
-      monthlyPayroll: 'Payroll Bulan Ini'
+      monthlyPayroll: 'Payroll Bulan Ini',
+      recentActivities: 'Aktivitas Terbaru'
     }
   },
   en: {
@@ -93,7 +94,8 @@ const translations: Record<SupportedLanguage, any> = {
       totalEmployees: 'Total Employees',
       todayAttendance: 'Today Attendance',
       pendingLeaves: 'Pending Leaves',
-      monthlyPayroll: 'Monthly Payroll'
+      monthlyPayroll: 'Monthly Payroll',
+      recentActivities: 'Recent Activities'
     }
   },
   ms: {
@@ -244,7 +246,8 @@ const translations: Record<SupportedLanguage, any> = {
       totalEmployees: 'إجمالي الموظفين',
       todayAttendance: 'حضور اليوم',
       pendingLeaves: 'الإجازات المعلقة',
-      monthlyPayroll: 'الراتب الشهري'
+      monthlyPayroll: 'الراتب الشهري',
+      recentActivities: 'الأنشطة الحديثة'
     }
   },
   es: {

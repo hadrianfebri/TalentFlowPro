@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Activity {
   id: string;
@@ -69,6 +70,7 @@ const getActivityIconColor = (type: Activity['type']) => {
 };
 
 export default function ActivityFeed() {
+  const { t } = useLanguage();
   const { data: activities, isLoading } = useQuery<Activity[]>({
     queryKey: ["/api/dashboard/activities"],
   });
@@ -78,7 +80,7 @@ export default function ActivityFeed() {
       <Card className="border border-border shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Aktivitas Terbaru</CardTitle>
+            <CardTitle className="text-lg font-semibold">{t('dashboard.recentActivities')}</CardTitle>
             <Skeleton className="h-8 w-20" />
           </div>
         </CardHeader>
@@ -104,7 +106,7 @@ export default function ActivityFeed() {
     return (
       <Card className="border border-border shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Aktivitas Terbaru</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('dashboard.recentActivities')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
