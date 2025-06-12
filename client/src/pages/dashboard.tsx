@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import StatsCards from "@/components/dashboard/stats-cards";
@@ -12,6 +13,7 @@ import AnalyticsCharts from "@/components/dashboard/analytics-charts";
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -44,7 +46,7 @@ export default function Dashboard() {
       <Sidebar />
       
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Header pageTitle="Dashboard" />
+        <Header pageTitle={t('nav.dashboard')} />
         
         <main className="flex-1 overflow-y-auto p-6">
           {/* Quick Stats Cards */}

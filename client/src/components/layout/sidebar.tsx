@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Users, 
   Clock, 
@@ -17,185 +18,161 @@ import {
   UserCheck
 } from "lucide-react";
 
-const navigationItems = [
-  {
-    name: "Dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-    resource: "dashboard",
-    allowedRoles: ["admin", "hr", "employee"],
-  },
-  {
-    name: "Data Karyawan",
-    href: "/employees",
-    icon: Users,
-    resource: "employees",
-    allowedRoles: ["admin", "hr", "employee"],
-  },
-  {
-    name: "Absensi & Timesheet",
-    href: "/attendance",
-    icon: Clock,
-    resource: "attendance",
-    allowedRoles: ["admin", "hr", "employee"],
-  },
-  {
-    name: "Payroll & Slip Gaji",
-    href: "/payroll",
-    icon: DollarSign,
-    resource: "payroll",
-    allowedRoles: ["admin", "hr", "employee"],
-  },
-  {
-    name: "Komponen Gaji",
-    href: "/salary-components",
-    icon: DollarSign,
-    resource: "salary-components",
-    allowedRoles: ["admin", "hr"],
-  },
-  {
-    name: "Cuti & Izin",
-    href: "/leaves",
-    icon: Calendar,
-    resource: "leaves",
-    allowedRoles: ["admin", "hr", "employee"],
-  },
-  {
-    name: "Dokumen & Template",
-    href: "/documents",
-    icon: FileText,
-    resource: "documents",
-    allowedRoles: ["admin", "hr", "employee"],
-  },
-  {
-    name: "Reimbursement",
-    href: "/reimbursement",
-    icon: Receipt,
-    resource: "reimbursements",
-    allowedRoles: ["admin", "hr", "employee"],
-  },
-  {
-    name: "Performance",
-    href: "/performance",
-    icon: BarChart3,
-    resource: "performance",
-    allowedRoles: ["admin", "hr", "employee"],
-  },
-  {
-    name: "Recruitment",
-    href: "/recruitment",
-    icon: UserPlus,
-    resource: "recruitment",
-    allowedRoles: ["admin", "hr"], // Hanya Admin dan HR
-  },
-  {
-    name: "Tambah Pelamar",
-    href: "/add-applicant",
-    icon: UserCheck,
-    resource: "add-applicant",
-    allowedRoles: ["admin", "hr"], // Hanya Admin dan HR
-  },
-  {
-    name: "AI Testing",
-    href: "/ai-testing",
-    icon: Brain,
-    resource: "ai-testing",
-    allowedRoles: ["admin", "hr"], // Hanya Admin dan HR
-  },
-  {
-    name: "Pengaturan",
-    href: "/settings",
-    icon: Settings,
-    resource: "settings",
-    allowedRoles: ["admin"], // Hanya Admin
-  },
-];
-
-const momentumLoopItems = [
-  {
-    name: "AI Analytics",
-    href: "/ai-analytics",
-    icon: Brain,
-  },
-  {
-    name: "Reward Wallet",
-    href: "/rewards",
-    icon: Gift,
-  },
-];
-
 export default function Sidebar() {
   const [location] = useLocation();
-  const { userRole, isAdminOrHR } = usePermissions();
+  const { hasPermission } = usePermissions();
+  const { t } = useLanguage();
+
+  const navigationItems = [
+    {
+      name: t('nav.dashboard'),
+      href: "/",
+      icon: LayoutDashboard,
+      resource: "dashboard",
+      allowedRoles: ["admin", "hr", "employee"],
+    },
+    {
+      name: t('nav.employees'),
+      href: "/employees",
+      icon: Users,
+      resource: "employees",
+      allowedRoles: ["admin", "hr", "employee"],
+    },
+    {
+      name: t('nav.attendance'),
+      href: "/attendance",
+      icon: Clock,
+      resource: "attendance",
+      allowedRoles: ["admin", "hr", "employee"],
+    },
+    {
+      name: t('nav.payroll'),
+      href: "/payroll",
+      icon: DollarSign,
+      resource: "payroll",
+      allowedRoles: ["admin", "hr", "employee"],
+    },
+    {
+      name: "Komponen Gaji",
+      href: "/salary-components",
+      icon: DollarSign,
+      resource: "salary-components",
+      allowedRoles: ["admin", "hr"],
+    },
+    {
+      name: t('nav.leaves'),
+      href: "/leaves",
+      icon: Calendar,
+      resource: "leaves",
+      allowedRoles: ["admin", "hr", "employee"],
+    },
+    {
+      name: t('nav.documents'),
+      href: "/documents",
+      icon: FileText,
+      resource: "documents",
+      allowedRoles: ["admin", "hr", "employee"],
+    },
+    {
+      name: t('nav.reimbursements'),
+      href: "/reimbursement",
+      icon: Receipt,
+      resource: "reimbursements",
+      allowedRoles: ["admin", "hr", "employee"],
+    },
+    {
+      name: t('nav.performance'),
+      href: "/performance",
+      icon: BarChart3,
+      resource: "performance",
+      allowedRoles: ["admin", "hr", "employee"],
+    },
+    {
+      name: t('nav.jobs'),
+      href: "/recruitment",
+      icon: UserPlus,
+      resource: "recruitment",
+      allowedRoles: ["admin", "hr"],
+    },
+    {
+      name: t('nav.applications'),
+      href: "/add-applicant",
+      icon: UserCheck,
+      resource: "recruitment",
+      allowedRoles: ["admin", "hr"],
+    },
+    {
+      name: "Upload Pelamar",
+      href: "/applicant-upload",
+      icon: Gift,
+      resource: "recruitment",
+      allowedRoles: ["admin", "hr"],
+    },
+    {
+      name: "AI Testing",
+      href: "/ai-testing",
+      icon: Brain,
+      resource: "ai-testing",
+      allowedRoles: ["admin", "hr"],
+    },
+    {
+      name: t('nav.settings'),
+      href: "/settings",
+      icon: Settings,
+      resource: "settings",
+      allowedRoles: ["admin"],
+    },
+  ];
+
+  // Filter navigation items based on permissions
+  const filteredItems = navigationItems.filter(item => 
+    hasPermission(item.resource, 'read')
+  );
 
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col">
-      <div className="flex flex-col flex-grow pt-5 overflow-y-auto bg-card border-r border-border sidebar-nav">
-        {/* Logo Section */}
-        <div className="flex items-center flex-shrink-0 px-6 pb-6">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Users className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="ml-3 text-xl font-bold text-foreground">TalentFlow.ai</span>
+    <aside className="w-64 bg-card border-r border-border shadow-sm">
+      <div className="p-6 border-b border-border">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">TF</span>
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-foreground">TalentFlow</h2>
+            <p className="text-xs text-muted-foreground">HR Management</p>
           </div>
         </div>
-        
-        {/* Navigation Menu */}
-        <nav className="flex-1 px-3 space-y-1">
-          {navigationItems
-            .filter((item) => item.allowedRoles.includes(userRole.role))
-            .map((item) => {
-              const isActive = location === item.href;
-              return (
-                <Link key={item.name} href={item.href}>
-                  <div
-                    className={cn(
-                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    )}
-                  >
-                    <item.icon className="mr-3 h-4 w-4" />
-                    {item.name}
-                  </div>
-                </Link>
-              );
-            })}
-          
-          {/* Momentum Loop Feature */}
-          <div className="mt-6 pt-4 border-t border-border">
-            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Momentum Loop™
-            </p>
-            {momentumLoopItems.map((item) => {
-              const isActive = location === item.href;
-              return (
-                <Link key={item.name} href={item.href}>
-                  <div
-                    className={cn(
-                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    )}
-                  >
-                    <item.icon 
-                      className={cn(
-                        "mr-3 h-4 w-4",
-                        item.name === "AI Analytics" && "text-primary",
-                        item.name === "Reward Wallet" && "text-secondary"
-                      )} 
-                    />
-                    {item.name}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
       </div>
-    </div>
+
+      <nav className="p-4">
+        <ul className="space-y-2">
+          {filteredItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location === item.href || 
+              (item.href !== "/" && location.startsWith(item.href));
+
+            return (
+              <li key={item.name}>
+                <Link href={item.href}>
+                  <div
+                    className={cn(
+                      "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground group cursor-pointer",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className={cn(
+                      "h-5 w-5 transition-colors",
+                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground"
+                    )} />
+                    <span className="flex-1">{item.name}</span>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </aside>
   );
 }
