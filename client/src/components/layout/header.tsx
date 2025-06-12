@@ -3,6 +3,8 @@ import { Menu, Search, Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface HeaderProps {
   pageTitle: string;
@@ -10,6 +12,7 @@ interface HeaderProps {
 
 export default function Header({ pageTitle }: HeaderProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [notificationCount] = useState(3);
 
   const handleLogout = () => {
@@ -35,11 +38,14 @@ export default function Header({ pageTitle }: HeaderProps) {
           <div className="relative hidden lg:block">
             <Input
               type="text"
-              placeholder="Cari karyawan, dokumen..."
+              placeholder={t('actions.search') + ' ' + t('employees.title').toLowerCase() + ', ' + t('nav.documents').toLowerCase() + '...'}
               className="w-80 pl-10 pr-4 py-2"
             />
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           </div>
+          
+          {/* Language Selector */}
+          <LanguageSelector />
           
           {/* Notifications */}
           <Button
