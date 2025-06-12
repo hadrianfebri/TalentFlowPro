@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { cn } from "@/lib/utils";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import StatsCards from "@/components/dashboard/stats-cards";
@@ -13,7 +14,7 @@ import AnalyticsCharts from "@/components/dashboard/analytics-charts";
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

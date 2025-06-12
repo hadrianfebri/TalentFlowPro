@@ -127,14 +127,15 @@ export default function Sidebar() {
                   <div
                     className={cn(
                       "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground group cursor-pointer",
-                      isRTL ? "space-x-reverse space-x-3" : "space-x-3",
                       isActive
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                     style={{ 
                       fontFamily: isRTL ? "'Noto Sans Arabic', 'Segoe UI', sans-serif" : "inherit",
-                      direction: isRTL ? "rtl" : "ltr"
+                      direction: isRTL ? "rtl" : "ltr",
+                      gap: "0.75rem",
+                      flexDirection: isRTL ? "row-reverse" : "row"
                     }}
                   >
                     <Icon className={cn(
