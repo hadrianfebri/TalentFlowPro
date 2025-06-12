@@ -111,7 +111,7 @@ export default function ActivityFeed() {
         <CardContent>
           <div className="text-center py-8">
             <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">Belum ada aktivitas terbaru</p>
+            <p className="text-muted-foreground">{t('dashboard.noActivities')}</p>
           </div>
         </CardContent>
       </Card>
@@ -122,9 +122,9 @@ export default function ActivityFeed() {
     <Card className="border border-border shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-foreground">Aktivitas Terbaru</CardTitle>
+          <CardTitle className="text-lg font-semibold text-foreground">{t('dashboard.recentActivities')}</CardTitle>
           <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-            Lihat Semua
+            {t('dashboard.viewAll')}
             <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         </div>

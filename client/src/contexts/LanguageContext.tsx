@@ -71,7 +71,9 @@ const translations: Record<SupportedLanguage, any> = {
       todayAttendance: 'Hadir Hari Ini',
       pendingLeaves: 'Cuti Pending',
       monthlyPayroll: 'Payroll Bulan Ini',
-      recentActivities: 'Aktivitas Terbaru'
+      recentActivities: 'Aktivitas Terbaru',
+      viewAll: 'Lihat Semua',
+      noActivities: 'Belum ada aktivitas terbaru'
     }
   },
   en: {
@@ -95,7 +97,9 @@ const translations: Record<SupportedLanguage, any> = {
       todayAttendance: 'Today Attendance',
       pendingLeaves: 'Pending Leaves',
       monthlyPayroll: 'Monthly Payroll',
-      recentActivities: 'Recent Activities'
+      recentActivities: 'Recent Activities',
+      viewAll: 'View All',
+      noActivities: 'No recent activities'
     }
   },
   ms: {
@@ -247,7 +251,9 @@ const translations: Record<SupportedLanguage, any> = {
       todayAttendance: 'حضور اليوم',
       pendingLeaves: 'الإجازات المعلقة',
       monthlyPayroll: 'الراتب الشهري',
-      recentActivities: 'الأنشطة الحديثة'
+      recentActivities: 'الأنشطة الحديثة',
+      viewAll: 'عرض الجميع',
+      noActivities: 'لا توجد أنشطة حديثة'
     }
   },
   es: {
