@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Clock, Calendar, DollarSign, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DashboardStats {
   totalEmployees: number;
@@ -15,6 +16,7 @@ interface DashboardStats {
 }
 
 export default function StatsCards() {
+  const { t } = useLanguage();
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
   });
@@ -46,7 +48,7 @@ export default function StatsCards() {
         <Card className="stats-card border-destructive/20">
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-sm text-destructive">Gagal memuat data statistik</p>
+              <p className="text-sm text-destructive">{t('dashboard.statsError')}</p>
             </div>
           </CardContent>
         </Card>
@@ -56,7 +58,7 @@ export default function StatsCards() {
 
   const statCards = [
     {
-      title: "Total Karyawan",
+      title: t('dashboard.totalEmployees'),
       value: stats.totalEmployees.toString(),
       change: stats.employeeGrowth,
       icon: Users,
@@ -65,7 +67,7 @@ export default function StatsCards() {
       changeColor: "text-secondary",
     },
     {
-      title: "Hadir Hari Ini",
+      title: t('dashboard.todayAttendance'),
       value: stats.todayAttendance.toString(),
       change: stats.attendanceRate,
       icon: Clock,
@@ -74,7 +76,7 @@ export default function StatsCards() {
       changeColor: "text-secondary",
     },
     {
-      title: "Cuti Pending",
+      title: t('dashboard.pendingLeaves'),
       value: stats.pendingLeaves.toString(),
       change: stats.urgentLeaves,
       icon: Calendar,
@@ -83,7 +85,7 @@ export default function StatsCards() {
       changeColor: "text-destructive",
     },
     {
-      title: "Payroll Bulan Ini",
+      title: t('dashboard.monthlyPayroll'),
       value: stats.monthlyPayroll,
       change: stats.payrollStatus,
       icon: DollarSign,

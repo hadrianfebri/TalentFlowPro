@@ -64,6 +64,13 @@ const translations: Record<SupportedLanguage, any> = {
       applications: 'Tambah Pelamar',
       settings: 'Pengaturan',
       logout: 'Keluar'
+    },
+    dashboard: {
+      statsError: 'Gagal memuat data statistik',
+      totalEmployees: 'Total Karyawan',
+      todayAttendance: 'Hadir Hari Ini',
+      pendingLeaves: 'Cuti Pending',
+      monthlyPayroll: 'Payroll Bulan Ini'
     }
   },
   en: {
@@ -80,6 +87,13 @@ const translations: Record<SupportedLanguage, any> = {
       applications: 'Add Applicant',
       settings: 'Settings',
       logout: 'Logout'
+    },
+    dashboard: {
+      statsError: 'Failed to load statistics',
+      totalEmployees: 'Total Employees',
+      todayAttendance: 'Today Attendance',
+      pendingLeaves: 'Pending Leaves',
+      monthlyPayroll: 'Monthly Payroll'
     }
   },
   ms: {
@@ -224,6 +238,13 @@ const translations: Record<SupportedLanguage, any> = {
       applications: 'إضافة متقدم',
       settings: 'الإعدادات',
       logout: 'تسجيل الخروج'
+    },
+    dashboard: {
+      statsError: 'فشل في تحميل الإحصائيات',
+      totalEmployees: 'إجمالي الموظفين',
+      todayAttendance: 'حضور اليوم',
+      pendingLeaves: 'الإجازات المعلقة',
+      monthlyPayroll: 'الراتب الشهري'
     }
   },
   es: {
