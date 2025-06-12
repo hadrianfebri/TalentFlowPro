@@ -1,10 +1,8 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -12,42 +10,28 @@ interface State {
   error?: Error;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false
-  };
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
-  public static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
-  public render() {
+  render() {
     if (this.state.hasError) {
-      // Don't show error boundary for authentication issues
-      if (this.state.error?.message?.includes('401') || this.state.error?.message?.includes('403')) {
-        return this.props.children;
-      }
-      
-      return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Alert className="max-w-md">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Terjadi Kesalahan</AlertTitle>
-            <AlertDescription className="mt-2">
-              Aplikasi mengalami masalah. Silakan refresh halaman atau coba lagi nanti.
-            </AlertDescription>
-            <Button 
-              onClick={() => window.location.reload()} 
-              className="mt-4 w-full"
-              variant="outline"
-            >
-              Refresh Halaman
-            </Button>
-          </Alert>
+      return this.props.fallback || (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h2 className="text-red-800 font-semibold">Something went wrong</h2>
+          <p className="text-red-600 text-sm mt-1">
+            Please refresh the page or try switching to a different language.
+          </p>
         </div>
       );
     }
@@ -55,5 +39,3 @@ class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
-export default ErrorBoundary;

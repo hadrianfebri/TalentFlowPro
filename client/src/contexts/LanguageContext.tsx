@@ -11,31 +11,39 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// Simple translation function
+// Enhanced translation function with better error handling
 function getTranslation(language: SupportedLanguage, key: string): string {
   try {
+    // Check if language exists in translations
+    if (!translations[language]) {
+      console.warn(`Language ${language} not found, falling back to Indonesian`);
+      language = 'id';
+    }
+
     const keys = key.split('.');
     let value: any = translations[language];
     
     for (const k of keys) {
-      if (value && typeof value === 'object') {
+      if (value && typeof value === 'object' && value.hasOwnProperty(k)) {
         value = value[k];
       } else {
         // Fallback to Indonesian if translation not found
-        value = translations['id'];
+        console.warn(`Translation key ${key} not found for ${language}, using fallback`);
+        let fallbackValue: any = translations['id'];
         for (const fallbackKey of keys) {
-          if (value && typeof value === 'object') {
-            value = value[fallbackKey];
+          if (fallbackValue && typeof fallbackValue === 'object' && fallbackValue.hasOwnProperty(fallbackKey)) {
+            fallbackValue = fallbackValue[fallbackKey];
           } else {
             return key; // Return key if no translation found
           }
         }
-        break;
+        return typeof fallbackValue === 'string' ? fallbackValue : key;
       }
     }
     
     return typeof value === 'string' ? value : key;
-  } catch {
+  } catch (error) {
+    console.error(`Translation error for key ${key} in language ${language}:`, error);
     return key;
   }
 }
@@ -307,32 +315,69 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('id');
 
   const setLanguage = (language: SupportedLanguage) => {
-    setCurrentLanguage(language);
-    localStorage.setItem('hr-app-language', language);
-    
-    // Update document direction for RTL languages
-    document.documentElement.dir = RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr';
-    document.documentElement.lang = language;
+    try {
+      // Validate language exists in translations
+      if (!translations[language]) {
+        console.warn(`Language ${language} not supported, falling back to Indonesian`);
+        language = 'id';
+      }
+      
+      setCurrentLanguage(language);
+      localStorage.setItem('hr-app-language', language);
+      
+      // Update document direction for RTL languages
+      const isRTL = RTL_LANGUAGES.includes(language);
+      document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+      document.documentElement.lang = language;
+      
+      // Add language-specific class for styling
+      document.documentElement.className = document.documentElement.className
+        .replace(/lang-\w+/g, '') + ` lang-${language}`;
+        
+    } catch (error) {
+      console.error('Error setting language:', error);
+      // Fallback to Indonesian on error
+      setCurrentLanguage('id');
+      document.documentElement.dir = 'ltr';
+      document.documentElement.lang = 'id';
+    }
   };
 
   const t = (key: string): string => {
-    return getTranslation(currentLanguage, key);
+    try {
+      return getTranslation(currentLanguage, key);
+    } catch (error) {
+      console.error(`Translation error for key "${key}":`, error);
+      return key; // Return the key itself as fallback
+    }
   };
 
   const isRTL = RTL_LANGUAGES.includes(currentLanguage);
 
   useEffect(() => {
-    // Check localStorage for saved language
-    const stored = localStorage.getItem('hr-app-language');
-    if (stored && stored in SUPPORTED_LANGUAGES) {
-      setCurrentLanguage(stored as SupportedLanguage);
+    try {
+      // Check localStorage for saved language
+      const stored = localStorage.getItem('hr-app-language');
+      if (stored && stored in SUPPORTED_LANGUAGES && translations[stored as SupportedLanguage]) {
+        setLanguage(stored as SupportedLanguage);
+      } else {
+        // Set default language if no valid stored language
+        setLanguage('id');
+      }
+    } catch (error) {
+      console.error('Error loading saved language:', error);
+      setLanguage('id'); // Fallback to Indonesian
     }
   }, []);
 
   useEffect(() => {
-    // Set document properties
-    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-    document.documentElement.lang = currentLanguage;
+    try {
+      // Set document properties safely
+      document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+      document.documentElement.lang = currentLanguage;
+    } catch (error) {
+      console.error('Error updating document properties:', error);
+    }
   }, [currentLanguage, isRTL]);
 
   return (

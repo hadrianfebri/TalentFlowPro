@@ -19,7 +19,7 @@ import {
 
 export default function Sidebar() {
   const [location] = useLocation();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
 
   const navigationItems = [
     {
@@ -95,9 +95,15 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-card border-r border-border shadow-sm">
+    <aside className={cn(
+      "w-64 bg-card shadow-sm",
+      isRTL ? "border-l border-border" : "border-r border-border"
+    )}>
       <div className="p-6 border-b border-border">
-        <div className="flex items-center space-x-3">
+        <div className={cn(
+          "flex items-center",
+          isRTL ? "space-x-reverse space-x-3" : "space-x-3"
+        )}>
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">TF</span>
           </div>
@@ -120,17 +126,27 @@ export default function Sidebar() {
                 <Link href={item.href}>
                   <div
                     className={cn(
-                      "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground group cursor-pointer",
+                      "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground group cursor-pointer",
+                      isRTL ? "space-x-reverse space-x-3" : "space-x-3",
                       isActive
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     )}
+                    style={{ 
+                      fontFamily: isRTL ? "'Noto Sans Arabic', 'Segoe UI', sans-serif" : "inherit",
+                      direction: isRTL ? "rtl" : "ltr"
+                    }}
                   >
                     <Icon className={cn(
-                      "h-5 w-5 transition-colors",
+                      "h-5 w-5 transition-colors flex-shrink-0",
                       isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground"
                     )} />
-                    <span className="flex-1">{item.name}</span>
+                    <span className="flex-1 text-right" style={{ 
+                      textAlign: isRTL ? "right" : "left",
+                      unicodeBidi: "embed"
+                    }}>
+                      {item.name}
+                    </span>
                   </div>
                 </Link>
               </li>

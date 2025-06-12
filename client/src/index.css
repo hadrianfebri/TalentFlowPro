@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -111,6 +117,70 @@
 
 .reward-badge {
   background: linear-gradient(135deg, hsl(45, 100%, 60%) 0%, hsl(25, 100%, 60%) 100%);
+}
+
+/* RTL Language Support */
+[dir="rtl"] {
+  font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+[dir="rtl"] .flex {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .space-x-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-left: 0.75rem;
+  margin-right: 0;
+}
+
+[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  margin-left: 0.75rem;
+  margin-right: 0;
+}
+
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+/* Arabic language specific styles */
+[lang="ar"] {
+  font-family: 'Noto Sans Arabic', serif;
+  font-feature-settings: "liga" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+}
+
+[lang="ar"] * {
+  unicode-bidi: embed;
+  direction: rtl;
+}
+
+/* Thai language specific styles */
+[lang="th"] {
+  font-family: 'Noto Sans Thai', sans-serif;
+}
+
+/* Japanese language specific styles */
+[lang="ja"] {
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* Korean language specific styles */
+[lang="ko"] {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* Chinese language specific styles */
+[lang="zh"] {
+  font-family: 'Noto Sans SC', sans-serif;
+}
+
+/* Error handling for unsupported languages */
+.language-fallback {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Chart styles */
