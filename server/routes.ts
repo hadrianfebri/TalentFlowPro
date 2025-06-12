@@ -5,6 +5,7 @@ import { db } from "./db";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupSwagger } from "./swagger";
 import { getUserProfile, requireAdminOrHR, requireAdmin, requireEmployeeAccess, AuthenticatedRequest } from "./rbac";
+import { i18nMiddleware, detectLanguage, getApiMessage } from "./i18n";
 import {
   insertEmployeeSchema,
   insertAttendanceSchema,
@@ -3014,6 +3015,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating AI insights:", error);
       res.status(500).json({ message: "Failed to generate AI insights" });
+    }
+  });
+
+  // Language Management Endpoints
+  /**
+   * @swagger
+   * /languages:
+   *   get:
+   *     summary: Get supported languages list
+   *     tags: [Settings]
+   *     responses:
+   *       200:
+   *         description: Languages list retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 languages:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       code:
+   *                         type: string
+   *                         example: "id"
+   *                       name:
+   *                         type: string
+   *                         example: "Indonesian"
+   *                       nativeName:
+   *                         type: string
+   *                         example: "Bahasa Indonesia"
+   *                       flag:
+   *                         type: string
+   *                         example: "🇮🇩"
+   *                       currency:
+   *                         type: string
+   *                         example: "IDR"
+   *                       region:
+   *                         type: string
+   *                         example: "Southeast Asia"
+   */
+  app.get('/api/languages', (req: any, res) => {
+    try {
+      const { SUPPORTED_LANGUAGES } = require('@shared/i18n');
+      const languages = Object.entries(SUPPORTED_LANGUAGES).map(([code, config]: [string, any]) => ({
+        code,
+        ...config
+      }));
+      
+      res.json({ languages });
+    } catch (error) {
+      console.error("Error fetching languages:", error);
+      res.status(500).json({ message: "Failed to fetch languages" });
+    }
+  });
+
+  /**
+   * @swagger
+   * /translations/{language}:
+   *   get:
+   *     summary: Get translations for specific language
+   *     tags: [Settings]
+   *     parameters:
+   *       - in: path
+   *         name: language
+   *         required: true
+   *         schema:
+   *           type: string
+   *           enum: [id, en, ms, th, vi, ph, zh, ja, ko, hi, ar, es, pt, fr, de, ru]
+   *         description: Language code
+   *     responses:
+   *       200:
+   *         description: Translations retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 language:
+   *                   type: string
+   *                 translations:
+   *                   type: object
+   *       404:
+   *         description: Language not supported
+   */
+  app.get('/api/translations/:language', (req: any, res) => {
+    try {
+      const { language } = req.params;
+      const { translations, SUPPORTED_LANGUAGES } = require('@shared/i18n');
+      
+      if (!SUPPORTED_LANGUAGES[language]) {
+        return res.status(404).json({
+          message: `Language ${language} not supported`
+        });
+      }
+      
+      const languageTranslations = translations[language];
+      
+      res.json({
+        language,
+        translations: languageTranslations
+      });
+    } catch (error) {
+      console.error("Error fetching translations:", error);
+      res.status(500).json({ message: "Failed to fetch translations" });
     }
   });
 
