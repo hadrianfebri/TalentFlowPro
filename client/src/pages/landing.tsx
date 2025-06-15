@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Clock, DollarSign, FileText, Receipt, BarChart3, UserPlus, Brain } from "lucide-react";
+import { Users, Clock, DollarSign, FileText, Receipt, BarChart3, UserPlus, Brain, Building2, UserCheck } from "lucide-react";
+import { Link } from "wouter";
+import talentWhizLogo from "@assets/TALENTWHIZ_COLOR_1749955055542.png";
 
 const features = [
   {
@@ -46,28 +48,43 @@ const features = [
 ];
 
 export default function Landing() {
-  const handleLogin = () => {
+  const handleReplit = () => {
     window.location.href = "/api/login";
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm">
+      <header className="border-b border-[#2f4f2f]/20 bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-primary-foreground" />
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg p-1">
+                <img 
+                  src={talentWhizLogo} 
+                  alt="TalentWhiz.ai Logo" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">TalentFlow.ai</h1>
-                <p className="text-xs text-muted-foreground">UMKM Essentials</p>
+                <h1 className="text-xl font-bold text-[#2f4f2f]">TalentWhiz.ai</h1>
+                <p className="text-xs text-[#519e51] font-medium">UMKM Essentials</p>
               </div>
             </div>
-            <Button onClick={handleLogin} className="bg-primary hover:bg-primary/90">
-              Masuk dengan Replit
-            </Button>
+            <div className="flex space-x-2">
+              <Link href="/hr-login">
+                <Button className="bg-[#2f4f2f] hover:bg-[#519e51] text-white">
+                  <Building2 className="w-4 h-4 mr-2" />
+                  Login Admin/HR
+                </Button>
+              </Link>
+              <Link href="/employee-login">
+                <Button variant="outline" className="border-[#2f4f2f] text-[#2f4f2f] hover:bg-[#519e51] hover:text-white">
+                  <UserCheck className="w-4 h-4 mr-2" />
+                  Login Karyawan
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -83,16 +100,25 @@ export default function Landing() {
               untuk UMKM Indonesia
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              TalentFlow.ai UMKM Essentials mengganti pengelolaan SDM berbasis Excel, 
+              TalentWhiz.ai UMKM Essentials mengganti pengelolaan SDM berbasis Excel, 
               mesin absensi konvensional, dan slip gaji kertas dengan satu aplikasi 
               SaaS yang aman, murah, dan mudah dipakai.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" onClick={handleLogin} className="bg-primary hover:bg-primary/90">
-                Mulai Gratis Sekarang
-              </Button>
-              <Button size="lg" variant="outline">
-                Lihat Demo
+              <Link href="/hr-login">
+                <Button size="lg" className="bg-[#2f4f2f] hover:bg-[#519e51] text-white w-full sm:w-auto">
+                  <Building2 className="w-5 h-5 mr-2" />
+                  Login Admin/HR
+                </Button>
+              </Link>
+              <Link href="/employee-login">
+                <Button size="lg" variant="outline" className="border-[#2f4f2f] text-[#2f4f2f] hover:bg-[#519e51] hover:text-white w-full sm:w-auto">
+                  <UserCheck className="w-5 h-5 mr-2" />
+                  Login Karyawan
+                </Button>
+              </Link>
+              <Button size="lg" variant="outline" onClick={handleReplit} className="border-[#2f4f2f] text-[#2f4f2f] hover:bg-[#519e51] hover:text-white w-full sm:w-auto">
+                Login dengan Replit
               </Button>
             </div>
           </div>
@@ -196,27 +222,42 @@ export default function Landing() {
               Siap Transformasi HR Perusahaan Anda?
             </h3>
             <p className="text-muted-foreground text-lg mb-8">
-              Bergabunglah dengan ribuan UMKM yang telah mempercayai TalentFlow.ai 
+              Bergabunglah dengan ribuan UMKM yang telah mempercayai TalentWhiz.ai 
               untuk mengelola SDM mereka secara modern dan efisien.
             </p>
-            <Button size="lg" onClick={handleLogin} className="bg-primary hover:bg-primary/90">
-              Mulai Transformasi Sekarang
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/hr-login">
+                <Button size="lg" className="bg-[#2f4f2f] hover:bg-[#519e51] text-white">
+                  <Building2 className="w-5 h-5 mr-2" />
+                  Login Admin/HR
+                </Button>
+              </Link>
+              <Link href="/employee-login">
+                <Button size="lg" variant="outline" className="border-[#2f4f2f] text-[#2f4f2f] hover:bg-[#519e51] hover:text-white">
+                  <UserCheck className="w-5 h-5 mr-2" />
+                  Login Karyawan
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 bg-background/80 py-8 px-4">
+      <footer className="border-t border-[#2f4f2f]/20 bg-white/80 py-8 px-4">
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Users className="w-5 h-5 text-primary-foreground" />
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg p-1">
+              <img 
+                src={talentWhizLogo} 
+                alt="TalentWhiz.ai Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
-            <span className="text-lg font-bold text-foreground">TalentFlow.ai</span>
+            <span className="text-lg font-bold text-[#2f4f2f]">TalentWhiz.ai</span>
           </div>
-          <p className="text-muted-foreground text-sm">
-            © 2024 TalentFlow.ai. Platform HR Cloud untuk UMKM Indonesia.
+          <p className="text-[#519e51] text-sm">
+            © 2025 TalentWhiz.ai. Platform HR Cloud untuk UMKM Indonesia.
           </p>
         </div>
       </footer>

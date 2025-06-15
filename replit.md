@@ -123,7 +123,7 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
-- **June 15, 2025**: TalentWhiz.ai branding implementation
+- **June 15, 2025**: TalentWhiz.ai branding implementation and URL accessibility fixes
   - Updated color scheme to forest green (#2f4f2f) and leaf green (#519e51)
   - Implemented sidebar gradient background with glass morphism effects
   - Added TalentWhiz.ai logo and "UMKM Essentials" tagline to sidebar
@@ -135,6 +135,12 @@ The system uses 13 main tables:
     - Added "UMKM Essentials" tagline to both login pages
     - Updated login button styling to match brand colors
     - Implemented gradient backgrounds for visual consistency
+  - Fixed URL accessibility for admin and employee login pages:
+    - Added clear navigation buttons on landing page header
+    - Implemented multiple access points for both `/hr-login` and `/employee-login` URLs
+    - Updated hero section with prominently displayed login buttons
+    - Fixed all TalentWhiz.ai branding references throughout landing page
+    - Added footer with consistent brand styling
 
 ## Changelog
 
