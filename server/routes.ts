@@ -430,6 +430,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Local authentication routes
+  app.post('/api/auth/login-hr', i18nMiddleware, async (req: any, res) => {
+    try {
+      const validatedData = hrLoginSchema.parse(req.body);
+      const auth = await dbStorage.authenticateHR(validatedData.email, validatedData.password);
+      
+      if (!auth) {
+        const language = detectLanguage(req);
+        return res.status(401).json({ 
+          message: getApiMessage(language, 'auth', 'invalid_credentials')
+        });
+      }
+
+      // Set session
+      req.session.authUser = {
+        id: auth.id,
+        email: auth.email,
+        role: auth.role,
+        companyId: auth.companyId,
+        employeeId: auth.employeeId
+      };
+
+      res.json({
+        success: true,
+        user: {
+          id: auth.id,
+          email: auth.email,
+          role: auth.role,
+          companyId: auth.companyId
+        }
+      });
+    } catch (error) {
+      console.error("HR login error:", error);
+      const language = detectLanguage(req);
+      res.status(400).json({ 
+        message: getApiMessage(language, 'auth', 'login_failed')
+      });
+    }
+  });
+
+  app.post('/api/auth/login-employee', i18nMiddleware, async (req: any, res) => {
+    try {
+      const validatedData = employeeLoginSchema.parse(req.body);
+      const auth = await dbStorage.authenticateEmployee(validatedData.employeeId, validatedData.password);
+      
+      if (!auth) {
+        const language = detectLanguage(req);
+        return res.status(401).json({ 
+          message: getApiMessage(language, 'auth', 'invalid_credentials')
+        });
+      }
+
+      // Set session
+      req.session.authUser = {
+        id: auth.id,
+        email: auth.email,
+        role: auth.role,
+        companyId: auth.companyId,
+        employeeId: auth.employeeId
+      };
+
+      res.json({
+        success: true,
+        user: {
+          id: auth.id,
+          email: auth.email,
+          role: auth.role,
+          companyId: auth.companyId,
+          employeeId: auth.employeeId
+        }
+      });
+    } catch (error) {
+      console.error("Employee login error:", error);
+      const language = detectLanguage(req);
+      res.status(400).json({ 
+        message: getApiMessage(language, 'auth', 'login_failed')
+      });
+    }
+  });
+
+  app.post('/api/auth/logout', (req: any, res) => {
+    req.session.destroy((err: any) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ success: true, message: "Logged out successfully" });
+    });
+  });
+
   // Auth routes
   /**
    * @swagger

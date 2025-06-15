@@ -248,6 +248,48 @@ export interface TranslationStrings {
     downloadSlip: string;
   };
   
+  // Login & Authentication
+  login: {
+    hr: {
+      title: string;
+      subtitle: string;
+      description: string;
+    };
+    employee: {
+      title: string;
+      subtitle: string;
+      description: string;
+    };
+    email: {
+      label: string;
+      placeholder: string;
+    };
+    employee_id: {
+      label: string;
+      placeholder: string;
+    };
+    password: {
+      label: string;
+      placeholder: string;
+    };
+    submit: string;
+    signing_in: string;
+    success: {
+      title: string;
+      description: string;
+    };
+    error: {
+      title: string;
+      description: string;
+    };
+    switch: {
+      employee_question: string;
+      employee_login: string;
+      hr_question: string;
+      hr_login: string;
+    };
+  };
+
   // Common Actions
   actions: {
     save: string;
@@ -367,6 +409,46 @@ export const translations: Record<SupportedLanguage, TranslationStrings> = {
       netSalary: 'Gaji Bersih',
       downloadSlip: 'Unduh Slip'
     },
+    login: {
+      hr: {
+        title: 'Login HRD / Admin',
+        subtitle: 'Portal Manajemen Sumber Daya Manusia',
+        description: 'Masuk dengan akun HRD atau Admin untuk mengakses sistem manajemen karyawan'
+      },
+      employee: {
+        title: 'Login Karyawan',
+        subtitle: 'Portal Self-Service Karyawan',
+        description: 'Masuk dengan ID karyawan untuk mengakses profil dan layanan personal'
+      },
+      email: {
+        label: 'Email',
+        placeholder: 'Masukkan email Anda'
+      },
+      employee_id: {
+        label: 'ID Karyawan',
+        placeholder: 'Masukkan ID karyawan Anda'
+      },
+      password: {
+        label: 'Password',
+        placeholder: 'Masukkan password Anda'
+      },
+      submit: 'Masuk',
+      signing_in: 'Sedang masuk...',
+      success: {
+        title: 'Login Berhasil',
+        description: 'Selamat datang! Anda akan diarahkan ke dashboard.'
+      },
+      error: {
+        title: 'Login Gagal',
+        description: 'Email/ID karyawan atau password tidak valid.'
+      },
+      switch: {
+        employee_question: 'Anda seorang karyawan?',
+        employee_login: 'Login sebagai Karyawan',
+        hr_question: 'Anda bagian HRD/Admin?',
+        hr_login: 'Login sebagai HRD/Admin'
+      }
+    },
     actions: {
       save: 'Simpan',
       cancel: 'Batal',
@@ -478,6 +560,46 @@ export const translations: Record<SupportedLanguage, TranslationStrings> = {
       grossSalary: 'Gross Salary',
       netSalary: 'Net Salary',
       downloadSlip: 'Download Slip'
+    },
+    login: {
+      hr: {
+        title: 'HR / Admin Login',
+        subtitle: 'Human Resources Management Portal',
+        description: 'Sign in with HR or Admin account to access employee management system'
+      },
+      employee: {
+        title: 'Employee Login',
+        subtitle: 'Employee Self-Service Portal',
+        description: 'Sign in with your employee ID to access your profile and personal services'
+      },
+      email: {
+        label: 'Email',
+        placeholder: 'Enter your email'
+      },
+      employee_id: {
+        label: 'Employee ID',
+        placeholder: 'Enter your employee ID'
+      },
+      password: {
+        label: 'Password',
+        placeholder: 'Enter your password'
+      },
+      submit: 'Sign In',
+      signing_in: 'Signing in...',
+      success: {
+        title: 'Login Successful',
+        description: 'Welcome! You will be redirected to the dashboard.'
+      },
+      error: {
+        title: 'Login Failed',
+        description: 'Invalid email/employee ID or password.'
+      },
+      switch: {
+        employee_question: 'Are you an employee?',
+        employee_login: 'Login as Employee',
+        hr_question: 'Are you HR/Admin?',
+        hr_login: 'Login as HR/Admin'
+      }
     },
     actions: {
       save: 'Save',
