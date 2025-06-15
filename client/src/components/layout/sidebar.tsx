@@ -105,25 +105,28 @@ export default function Sidebar() {
 
   return (
     <aside className={cn(
-      "w-64 bg-card shadow-sm h-screen flex flex-col",
-      isRTL ? "border-l border-border" : "border-r border-border"
+      "w-64 h-screen flex flex-col sidebar-gradient border-r border-white/20 relative",
+      isRTL ? "border-l border-white/20" : "border-r border-white/20"
     )}>
-      <div className="p-6 border-b border-border flex-shrink-0">
+      {/* Glass overlay for glassmorphism effect */}
+      <div className="absolute inset-0 bg-white/10 backdrop-blur-sm pointer-events-none"></div>
+      
+      <div className="p-6 border-b border-white/20 flex-shrink-0 relative z-10">
         <div className={cn(
           "flex items-center",
           isRTL ? "space-x-reverse space-x-3" : "space-x-3"
         )}>
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">TF</span>
+          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-md border border-white/30">
+            <span className="text-white font-bold text-sm">TW</span>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-foreground">TalentFlow</h2>
-            <p className="text-xs text-muted-foreground">HR Management</p>
+            <h2 className="text-lg font-bold text-white">TalentWhiz.ai</h2>
+            <p className="text-xs text-white/80">UMKM Essentials</p>
           </div>
         </div>
       </div>
 
-      <nav className="p-4 flex-1 overflow-y-auto">
+      <nav className="p-4 flex-1 overflow-y-auto relative z-10">
         <ul className="space-y-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -135,10 +138,10 @@ export default function Sidebar() {
                 <Link href={item.href}>
                   <div
                     className={cn(
-                      "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground group cursor-pointer",
+                      "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group cursor-pointer border border-white/10",
                       isActive
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "bg-white/20 text-white shadow-sm backdrop-blur-md border-white/30"
+                        : "text-white/80 hover:bg-white/10 hover:text-white hover:border-white/20"
                     )}
                     style={{ 
                       fontFamily: isRTL ? "'Noto Sans Arabic', 'Segoe UI', sans-serif" : "inherit",
@@ -149,7 +152,7 @@ export default function Sidebar() {
                   >
                     <Icon className={cn(
                       "h-5 w-5 transition-colors flex-shrink-0",
-                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground"
+                      isActive ? "text-white" : "text-white/70 group-hover:text-white"
                     )} />
                     <span className="flex-1 text-right" style={{ 
                       textAlign: isRTL ? "right" : "left",
@@ -164,6 +167,18 @@ export default function Sidebar() {
           })}
         </ul>
       </nav>
+
+      {/* Logout Button */}
+      <div className="p-4 border-t border-white/20 relative z-10">
+        <Button
+          onClick={handleLogout}
+          variant="ghost"
+          className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10 border border-white/10 hover:border-white/20"
+        >
+          <LogOut className="h-5 w-5 mr-3" />
+          {t('nav.logout')}
+        </Button>
+      </div>
     </aside>
   );
 }

@@ -121,10 +121,18 @@ The system uses 13 main tables:
 - Drizzle migrations for database schema management
 - TypeScript compilation for type checking
 
+## Recent Changes
+
+- **June 15, 2025**: TalentWhiz.ai branding implementation
+  - Updated color scheme to forest green (#2f4f2f) and leaf green (#519e51)
+  - Implemented sidebar gradient background with glass morphism effects
+  - Added TalentWhiz.ai logo and "UMKM Essentials" tagline
+  - Created brand utility CSS classes for consistent styling
+  - Added logout functionality with proper button placement
+
 ## Changelog
 
-Changelog:
-- June 15, 2025. Initial setup
+- June 15, 2025: Initial setup and TalentWhiz.ai branding implementation
 
 ## User Preferences
 
