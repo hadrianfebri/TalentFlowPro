@@ -27,6 +27,8 @@ import Settings from "@/pages/settings";
 import ApplicantUpload from "@/pages/applicant-upload";
 import AITesting from "@/pages/ai-testing";
 import AddApplicant from "@/pages/add-applicant";
+import HRLogin from "@/pages/hr-login";
+import EmployeeLogin from "@/pages/employee-login";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -42,7 +44,11 @@ function Router() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/hr-login" component={HRLogin} />
+          <Route path="/employee-login" component={EmployeeLogin} />
+        </>
       ) : (
         <>
           <Route path="/" component={Dashboard} />

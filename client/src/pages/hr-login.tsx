@@ -31,10 +31,20 @@ export default function HRLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: HRLoginInput) => {
-      return await apiRequest("/api/auth/login-hr", {
+      const response = await fetch("/api/auth/login-hr", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Login failed");
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       toast({

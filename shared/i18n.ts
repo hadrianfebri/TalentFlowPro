@@ -290,6 +290,48 @@ export interface TranslationStrings {
     };
   };
 
+  // Authentication
+  login: {
+    hr: {
+      title: string;
+      subtitle: string;
+      description: string;
+    };
+    employee: {
+      title: string;
+      subtitle: string;
+      description: string;
+    };
+    email: {
+      label: string;
+      placeholder: string;
+    };
+    employee_id: {
+      label: string;
+      placeholder: string;
+    };
+    password: {
+      label: string;
+      placeholder: string;
+    };
+    submit: string;
+    signing_in: string;
+    success: {
+      title: string;
+      description: string;
+    };
+    error: {
+      title: string;
+      description: string;
+    };
+    switch: {
+      employee_question: string;
+      employee_login: string;
+      hr_question: string;
+      hr_login: string;
+    };
+  };
+
   // Common Actions
   actions: {
     save: string;
@@ -634,7 +676,6 @@ export const translations: Record<SupportedLanguage, TranslationStrings> = {
       passwordMismatch: 'Passwords do not match'
     }
   },
-  // Contoh untuk bahasa lain (akan diisi lengkap dengan pattern yang sama)
   ms: {
     nav: {
       dashboard: 'Papan Pemuka',
