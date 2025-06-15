@@ -85,6 +85,9 @@ export default function HRLogin() {
             <h1 className="text-3xl font-bold text-[#2f4f2f] dark:text-white">
               TalentWhiz.ai
             </h1>
+            <p className="text-xs text-[#519e51] dark:text-gray-400 font-medium">
+              UMKM Essentials
+            </p>
             <p className="text-[#519e51] dark:text-gray-400 mt-2">
               {t("login.hr.subtitle")}
             </p>
@@ -159,7 +162,7 @@ export default function HRLogin() {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-blue-600 hover:bg-blue-700"
+                  className="w-full h-11 bg-[#2f4f2f] hover:bg-[#519e51]"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? (
