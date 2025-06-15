@@ -290,48 +290,6 @@ export interface TranslationStrings {
     };
   };
 
-  // Authentication
-  login: {
-    hr: {
-      title: string;
-      subtitle: string;
-      description: string;
-    };
-    employee: {
-      title: string;
-      subtitle: string;
-      description: string;
-    };
-    email: {
-      label: string;
-      placeholder: string;
-    };
-    employee_id: {
-      label: string;
-      placeholder: string;
-    };
-    password: {
-      label: string;
-      placeholder: string;
-    };
-    submit: string;
-    signing_in: string;
-    success: {
-      title: string;
-      description: string;
-    };
-    error: {
-      title: string;
-      description: string;
-    };
-    switch: {
-      employee_question: string;
-      employee_login: string;
-      hr_question: string;
-      hr_login: string;
-    };
-  };
-
   // Common Actions
   actions: {
     save: string;
@@ -755,6 +713,46 @@ export const translations: Record<SupportedLanguage, TranslationStrings> = {
       netSalary: 'Gaji Bersih',
       downloadSlip: 'Muat Turun Slip'
     },
+    login: {
+      hr: {
+        title: 'Log Masuk HR / Admin',
+        subtitle: 'Portal Pengurusan Sumber Manusia',
+        description: 'Log masuk dengan akaun HR atau Admin untuk mengakses sistem pengurusan pekerja'
+      },
+      employee: {
+        title: 'Log Masuk Pekerja',
+        subtitle: 'Portal Layan Diri Pekerja',
+        description: 'Log masuk dengan ID pekerja untuk mengakses profil dan perkhidmatan peribadi'
+      },
+      email: {
+        label: 'E-mel',
+        placeholder: 'Masukkan e-mel anda'
+      },
+      employee_id: {
+        label: 'ID Pekerja',
+        placeholder: 'Masukkan ID pekerja anda'
+      },
+      password: {
+        label: 'Kata Laluan',
+        placeholder: 'Masukkan kata laluan anda'
+      },
+      submit: 'Log Masuk',
+      signing_in: 'Sedang log masuk...',
+      success: {
+        title: 'Log Masuk Berjaya',
+        description: 'Selamat datang! Anda akan diarahkan ke papan pemuka.'
+      },
+      error: {
+        title: 'Log Masuk Gagal',
+        description: 'E-mel/ID pekerja atau kata laluan tidak sah.'
+      },
+      switch: {
+        employee_question: 'Adakah anda seorang pekerja?',
+        employee_login: 'Log Masuk sebagai Pekerja',
+        hr_question: 'Adakah anda HR/Admin?',
+        hr_login: 'Log Masuk sebagai HR/Admin'
+      }
+    },
     actions: {
       save: 'Simpan',
       cancel: 'Batal',
@@ -788,8 +786,168 @@ export const translations: Record<SupportedLanguage, TranslationStrings> = {
       passwordMismatch: 'Kata laluan tidak sepadan'
     }
   },
-  // Placeholder untuk bahasa lain - akan menggunakan fallback ke English
-  th: {} as TranslationStrings,
+  
+  // Thai translations with partial localization
+  th: {
+    nav: {
+      dashboard: 'แดชบอร์ด',
+      employees: 'พนักงาน',
+      attendance: 'การเข้างาน',
+      payroll: 'เงินเดือน',
+      leaves: 'การลา',
+      documents: 'เอกสาร',
+      reimbursements: 'การเบิกจ่าย',
+      performance: 'ประสิทธิภาพ',
+      jobs: 'งาน',
+      applications: 'ใบสมัคร',
+      settings: 'การตั้งค่า',
+      logout: 'ออกจากระบบ'
+    },
+    dashboard: {
+      title: 'HR Dashboard',
+      welcome: 'Welcome Back',
+      totalEmployees: 'Total Employees',
+      activeEmployees: 'Active Employees',
+      pendingLeaves: 'Pending Leaves',
+      upcomingBirthdays: 'Upcoming Birthdays',
+      recentActivities: 'Recent Activities',
+      quickActions: 'Quick Actions'
+    },
+    employees: {
+      title: 'Employee Management',
+      addEmployee: 'Add Employee',
+      employeeList: 'Employee List',
+      searchPlaceholder: 'Search employees...',
+      name: 'Name',
+      position: 'Position',
+      department: 'Department',
+      email: 'Email',
+      phone: 'Phone',
+      status: 'Status',
+      actions: 'Actions'
+    },
+    attendance: {
+      title: 'Attendance Tracking',
+      clockIn: 'Clock In',
+      clockOut: 'Clock Out',
+      viewRecords: 'View Records',
+      todayAttendance: 'Today\'s Attendance',
+      monthlyReport: 'Monthly Report'
+    },
+    leaves: {
+      title: 'Leave Management',
+      applyLeave: 'Apply Leave',
+      leaveBalance: 'Leave Balance',
+      pendingRequests: 'Pending Requests',
+      leaveHistory: 'Leave History',
+      leaveType: 'Leave Type',
+      startDate: 'Start Date',
+      endDate: 'End Date',
+      reason: 'Reason'
+    },
+    documents: {
+      title: 'Document Management',
+      uploadDocument: 'Upload Document',
+      myDocuments: 'My Documents',
+      sharedDocuments: 'Shared Documents',
+      documentName: 'Document Name',
+      uploadDate: 'Upload Date',
+      fileSize: 'File Size'
+    },
+    performance: {
+      title: 'Performance Management',
+      myPerformance: 'My Performance',
+      teamPerformance: 'Team Performance',
+      goals: 'Goals',
+      reviews: 'Reviews',
+      feedback: 'Feedback'
+    },
+    payroll: {
+      title: 'Payroll Management',
+      generatePayroll: 'Generate Payroll',
+      period: 'Period',
+      basicSalary: 'Basic Salary',
+      allowances: 'Allowances',
+      deductions: 'Deductions',
+      grossSalary: 'Gross Salary',
+      netSalary: 'Net Salary',
+      downloadSlip: 'Download Slip'
+    },
+    login: {
+      hr: {
+        title: 'HR / Admin Login',
+        subtitle: 'Human Resource Management Portal',
+        description: 'Login with your HR or Admin account to access employee management system'
+      },
+      employee: {
+        title: 'Employee Login',
+        subtitle: 'Employee Self-Service Portal',
+        description: 'Login with your employee ID to access your profile and services'
+      },
+      email: {
+        label: 'Email',
+        placeholder: 'Enter your email'
+      },
+      employee_id: {
+        label: 'Employee ID',
+        placeholder: 'Enter your employee ID'
+      },
+      password: {
+        label: 'Password',
+        placeholder: 'Enter your password'
+      },
+      submit: 'Login',
+      signing_in: 'Signing in...',
+      success: {
+        title: 'Login Successful',
+        description: 'Welcome! You will be redirected to the dashboard.'
+      },
+      error: {
+        title: 'Login Failed',
+        description: 'Invalid email/employee ID or password.'
+      },
+      switch: {
+        employee_question: 'Are you an employee?',
+        employee_login: 'Login as Employee',
+        hr_question: 'Are you HR/Admin?',
+        hr_login: 'Login as HR/Admin'
+      }
+    },
+    actions: {
+      save: 'Save',
+      cancel: 'Cancel',
+      edit: 'Edit',
+      delete: 'Delete',
+      view: 'View',
+      download: 'Download',
+      upload: 'Upload',
+      submit: 'Submit',
+      approve: 'Approve',
+      reject: 'Reject',
+      search: 'Search',
+      filter: 'Filter',
+      export: 'Export'
+    },
+    messages: {
+      success: 'Success',
+      error: 'An error occurred',
+      loading: 'Loading...',
+      noData: 'No data available',
+      confirmDelete: 'Are you sure you want to delete?',
+      dataUpdated: 'Data updated successfully',
+      dataCreated: 'Data created successfully',
+      dataDeleted: 'Data deleted successfully'
+    },
+    forms: {
+      required: 'This field is required',
+      invalidEmail: 'Invalid email address',
+      invalidPhone: 'Invalid phone number',
+      passwordTooShort: 'Password is too short',
+      passwordMismatch: 'Passwords do not match'
+    }
+  } as TranslationStrings,
+
+  // Other languages use English as fallback
   vi: {} as TranslationStrings,
   ph: {} as TranslationStrings,
   zh: {} as TranslationStrings,
