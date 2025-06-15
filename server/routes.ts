@@ -18,6 +18,8 @@ import {
   insertJobApplicationSchema,
   insertEmployeeSalaryComponentSchema,
   insertSalaryComponentSchema,
+  hrLoginSchema,
+  employeeLoginSchema,
   employees,
   attendance,
   payroll,

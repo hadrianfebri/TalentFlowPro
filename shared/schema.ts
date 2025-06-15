@@ -383,6 +383,39 @@ export const aiInsights = pgTable("ai_insights", {
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
+// Local authentication schema
+export const localAuth = pgTable("local_auth", {
+  id: serial("id").primaryKey(),
+  email: varchar("email").unique().notNull(),
+  password: varchar("password").notNull(), // hashed password
+  role: varchar("role", { enum: ["admin", "hr", "employee"] }).notNull(),
+  employeeId: varchar("employee_id").unique(),
+  companyId: varchar("company_id").notNull(),
+  isActive: boolean("is_active").default(true),
+  lastLogin: timestamp("last_login"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schema for login forms
+export const loginSchema = createInsertSchema(localAuth).pick({
+  email: true,
+  password: true,
+});
+
+export const hrLoginSchema = loginSchema.extend({
+  role: z.literal("hr").or(z.literal("admin")),
+});
+
+export const employeeLoginSchema = loginSchema.extend({
+  employeeId: z.string().min(1, "Employee ID is required"),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
+export type HRLoginInput = z.infer<typeof hrLoginSchema>;
+export type EmployeeLoginInput = z.infer<typeof employeeLoginSchema>;
+export type LocalAuth = typeof localAuth.$inferSelect;
+
 export const insertCompanySchema = createInsertSchema(companies);
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Company = typeof companies.$inferSelect;

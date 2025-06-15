@@ -16,6 +16,7 @@ import {
   jobApplications,
   rewardWallet,
   aiInsights,
+  localAuth,
   type User,
   type UpsertUser,
   type Company,
@@ -43,6 +44,10 @@ import {
   type InsertSalaryComponent,
   type EmployeeSalaryComponent,
   type InsertEmployeeSalaryComponent,
+  type LocalAuth,
+  type LoginInput,
+  type HRLoginInput,
+  type EmployeeLoginInput,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql } from "drizzle-orm";
@@ -52,6 +57,12 @@ export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  
+  // Local authentication operations
+  authenticateHR(email: string, password: string): Promise<LocalAuth | null>;
+  authenticateEmployee(employeeId: string, password: string): Promise<LocalAuth | null>;
+  createAuthUser(data: { email: string; password: string; role: "admin" | "hr" | "employee"; employeeId?: string; companyId: string }): Promise<LocalAuth>;
+  updateLastLogin(id: number): Promise<void>;
   
   // Dashboard operations
   getDashboardStats(companyId: string): Promise<any>;
@@ -157,6 +168,70 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  // Local authentication operations
+  async authenticateHR(email: string, password: string): Promise<LocalAuth | null> {
+    const bcrypt = await import('bcryptjs');
+    const [auth] = await db
+      .select()
+      .from(localAuth)
+      .where(and(
+        eq(localAuth.email, email),
+        eq(localAuth.isActive, true),
+        sql`${localAuth.role} IN ('hr', 'admin')`
+      ));
+    
+    if (!auth || !await bcrypt.compare(password, auth.password)) {
+      return null;
+    }
+    
+    await this.updateLastLogin(auth.id);
+    return auth;
+  }
+
+  async authenticateEmployee(employeeId: string, password: string): Promise<LocalAuth | null> {
+    const bcrypt = await import('bcryptjs');
+    const [auth] = await db
+      .select()
+      .from(localAuth)
+      .where(and(
+        eq(localAuth.employeeId, employeeId),
+        eq(localAuth.isActive, true),
+        eq(localAuth.role, 'employee')
+      ));
+    
+    if (!auth || !await bcrypt.compare(password, auth.password)) {
+      return null;
+    }
+    
+    await this.updateLastLogin(auth.id);
+    return auth;
+  }
+
+  async createAuthUser(data: { email: string; password: string; role: "admin" | "hr" | "employee"; employeeId?: string; companyId: string }): Promise<LocalAuth> {
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    
+    const [auth] = await db
+      .insert(localAuth)
+      .values({
+        email: data.email,
+        password: hashedPassword,
+        role: data.role,
+        employeeId: data.employeeId,
+        companyId: data.companyId,
+      })
+      .returning();
+    
+    return auth;
+  }
+
+  async updateLastLogin(id: number): Promise<void> {
+    await db
+      .update(localAuth)
+      .set({ lastLogin: new Date() })
+      .where(eq(localAuth.id, id));
   }
 
   // Dashboard operations
