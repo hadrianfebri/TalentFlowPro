@@ -1,0 +1,70 @@
+**Peta Format Lengkap — DESIGN GUIDELINE TalentWhiz.ai**
+
+### 1 Logo & Branding
+
+**1.1 Penempatan** Logo “TalentWhiz.ai” diletakkan di pojok kiri-atas sidebar vertikal (mock-up UI).
+**1.2 Tipografi Utama** Font Inter (weight 400/600); fallback system-sans&#x20;
+**1.3 Skema Warna**
+    • #2f4f2f (primary forest)&#x20;
+    • #519e51 (secondary leaf)&#x20;
+    • Hitam #000 & Putih #FFF (kontras teks)
+**1.4 Aksen & Visual**
+    • Sidebar memakai pola daun abstrak (gradient green wave) + overlay glass.
+    • Border tipis #2f4f2f (1 px) pada card & ikon.
+    • Badge bulat “Credits” di pojok kanan-atas.
+
+---
+
+### 2 UI Layout & Style
+
+**2.1 Struktur Halaman**
+    • **Left Sidebar (240 px)** background gradient hijau, berisi logo + panel *Connected ATS*.
+    • **Top Navbar** link *Home / Hire* di tengah, credit badge di kanan.
+    • **Content Wrapper**
+      — Greeting headline: *HELLO, \[Recruiter]* (display 64 px, warna #000).
+      — Search-bar 480 px + toggle “Candidate”.
+      — Tools Grid (3 cards): *Explore Talent*, *Assessment Center*, *Archived Profiles*.
+    • **Right Column (320 px)**
+      — *Talent Market Trends* card (date, snippet, social icons).
+      — Mini Calendar (monthly, arrow nav).
+      — Cross-sell Banner *SkillWhiz.AI* (dashed border #2f4f2f).
+    • **Recent Candidates** 3-up avatar row + status pill (Hired/Pending).
+
+**2.2 Card & Container Style**
+    • rounded-xl, p-6, gap-6.
+    • Glass morphism → *backdrop-blur-md bg-white/60 border border-white/20 shadow-lg*.
+
+**2.3 Mobile Rules**
+    • Sidebar menjadi ikon hamburger.
+    • Right column turun di bawah “Recent Candidates”.
+
+---
+
+### 3 Komponen & Efek
+
+**3.1 Framework** Tailwind CSS v3.
+**3.2 Utility Classes**
+
+| Class          | Tailwind Apply                                                                     | Kegunaan            |
+| -------------- | ---------------------------------------------------------------------------------- | ------------------- |
+| `.text-forest` | `@apply text-[#2f4f2f];`                                                           | Aksen teks & border |
+| `.btn-primary` | `@apply bg-[#2f4f2f] text-white rounded-lg px-5 py-2 shadow;`                      | Tombol utama        |
+| `.card-glass`  | `@apply rounded-xl bg-white/60 backdrop-blur-md border border-white/20 shadow-lg;` | Container kaca      |
+
+**3.3 Iconografi** Lucide-react (dynamic import) + skeleton fallback.
+**3.4 Interaksi**
+    • Hover card: `translate-y-[-2px]` + `shadow-xl`.
+    • Status pill: `rounded-full px-3 text-xs font-medium border border-[#2f4f2f]`.
+**3.5 Responsif** Breakpoint lg ≥ 1024 px; grid berubah ke flex-col.
+
+---
+
+### Ringkasan Struktur Dokumen
+
+| # | Bagian            | Rincian Kunci                                                                              | Implementasi           |
+| - | ----------------- | ------------------------------------------------------------------------------------------ | ---------------------- |
+| 1 | Logo & Branding   | Logo di sidebar; font Inter; palette #2f4f2f & #519e51; gradient leaf bg                   | Hex codes, font import |
+| 2 | UI Layout & Style | Sidebar + Navbar, Search, Tools grid, Talent Trends, Calendar, Banner, Recent Candidates   | Flex / grid Tailwind   |
+| 3 | Komponen & Efek   | Tailwind classes, glass morphism, forest accents, lucide-react icons, responsive behaviour | Utility snippets       |
+
+> **Catatan** Detail warna & font diambil langsung dari dokumen *TalentWhiz-Logo.pdf* . Silakan sesuaikan ilustrasi sidebar atau ikon jika aset grafis resmi telah tersedia.

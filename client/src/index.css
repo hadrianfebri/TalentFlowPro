@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
@@ -9,26 +10,29 @@
 @tailwind utilities;
 
 :root {
+  /* TalentWhiz.ai Brand Colors */
+  --forest-primary: hsl(120, 25%, 24%); /* #2f4f2f */
+  --leaf-secondary: hsl(120, 52%, 46%); /* #519e51 */
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(20, 14.3%, 4.1%);
-  --muted: hsl(60, 4.8%, 95.9%);
-  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --foreground: hsl(0, 0%, 0%);
+  --muted: hsl(0, 0%, 96%);
+  --muted-foreground: hsl(0, 0%, 45%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --popover-foreground: hsl(0, 0%, 0%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(20, 14.3%, 4.1%);
-  --border: hsl(20, 5.9%, 90%);
-  --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(213, 79%, 60%);
-  --primary-foreground: hsl(211, 100%, 99%);
-  --secondary: hsl(152, 62%, 40%);
-  --secondary-foreground: hsl(60, 9.1%, 97.8%);
-  --accent: hsl(60, 4.8%, 95.9%);
-  --accent-foreground: hsl(24, 9.8%, 10%);
+  --card-foreground: hsl(0, 0%, 0%);
+  --border: hsl(120, 25%, 24%);
+  --input: hsl(0, 0%, 90%);
+  --primary: hsl(120, 25%, 24%); /* #2f4f2f */
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(120, 52%, 46%); /* #519e51 */
+  --secondary-foreground: hsl(0, 0%, 0%);
+  --accent: hsl(120, 52%, 46%);
+  --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(20, 14.3%, 4.1%);
-  --radius: 0.5rem;
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(120, 25%, 24%);
+  --radius: 0.75rem;
 }
 
 .dark {
@@ -65,7 +69,38 @@
   }
 }
 
-/* Custom styles for TalentFlow.ai */
+/* TalentWhiz.ai Brand Utility Classes */
+@layer components {
+  .text-forest {
+    @apply text-[#2f4f2f];
+  }
+  
+  .btn-primary {
+    @apply bg-[#2f4f2f] text-white rounded-lg px-5 py-2 shadow hover:bg-[#1e3a1e] transition-colors;
+  }
+  
+  .card-glass {
+    @apply rounded-xl bg-white/60 backdrop-blur-md border border-white/20 shadow-lg;
+  }
+  
+  .sidebar-gradient {
+    background: linear-gradient(135deg, #2f4f2f 0%, #519e51 50%, #2f4f2f 100%);
+    position: relative;
+  }
+  
+  .sidebar-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+}
+
+/* Custom styles for TalentWhiz.ai */
 .sidebar-nav {
   scrollbar-width: thin;
   scrollbar-color: hsl(20, 5.9%, 90%) transparent;

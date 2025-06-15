@@ -14,12 +14,21 @@ import {
   Gift,
   LayoutDashboard,
   Settings,
-  UserCheck
+  UserCheck,
+  LogOut
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Sidebar() {
   const [location] = useLocation();
   const { t, isRTL } = useLanguage();
+
+  const handleLogout = () => {
+    // Clear any local storage or session data
+    localStorage.removeItem('user');
+    // Redirect to HR login page
+    window.location.href = '/hr-login';
+  };
 
   const navigationItems = [
     {
