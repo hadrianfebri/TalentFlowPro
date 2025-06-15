@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { hrLoginSchema, type HRLoginInput } from "@shared/schema";
 import { useLanguage } from "@/contexts/LanguageContext";
+import talentWhizLogo from "@assets/TALENTWHIZ_COLOR_1749955055542.png";
 
 export default function HRLogin() {
   const [showPassword, setShowPassword] = useState(false);
@@ -69,18 +70,22 @@ export default function HRLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Logo and Header */}
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-            <Building2 className="h-8 w-8 text-white" />
+          <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg p-2">
+            <img 
+              src={talentWhizLogo} 
+              alt="TalentWhiz.ai Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              TalentFlow HR
+            <h1 className="text-3xl font-bold text-[#2f4f2f] dark:text-white">
+              TalentWhiz.ai
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-[#519e51] dark:text-gray-400 mt-2">
               {t("login.hr.subtitle")}
             </p>
           </div>

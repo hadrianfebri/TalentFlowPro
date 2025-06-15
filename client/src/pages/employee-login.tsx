@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { employeeLoginSchema, type EmployeeLoginInput } from "@shared/schema";
 import { useLanguage } from "@/contexts/LanguageContext";
+import talentWhizLogo from "@assets/TALENTWHIZ_COLOR_1749955055542.png";
 
 export default function EmployeeLogin() {
   const [showPassword, setShowPassword] = useState(false);
@@ -72,14 +73,18 @@ export default function EmployeeLogin() {
       <div className="w-full max-w-md space-y-6">
         {/* Logo and Header */}
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-green-600 rounded-full flex items-center justify-center">
-            <UserCheck className="h-8 w-8 text-white" />
+          <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg p-2">
+            <img 
+              src={talentWhizLogo} 
+              alt="TalentWhiz.ai Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              TalentFlow Employee
+            <h1 className="text-3xl font-bold text-[#2f4f2f] dark:text-white">
+              TalentWhiz.ai
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-[#519e51] dark:text-gray-400 mt-2">
               {t("login.employee.subtitle")}
             </p>
           </div>

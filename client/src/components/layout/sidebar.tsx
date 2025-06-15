@@ -18,6 +18,7 @@ import {
   LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import talentWhizLogo from "@assets/TALENTWHIZ_COLOR_1749955055542.png";
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -116,8 +117,12 @@ export default function Sidebar() {
           "flex items-center",
           isRTL ? "space-x-reverse space-x-3" : "space-x-3"
         )}>
-          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-md border border-white/30">
-            <span className="text-white font-bold text-sm">TW</span>
+          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-md border border-white/30 p-1">
+            <img 
+              src={talentWhizLogo} 
+              alt="TalentWhiz.ai Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <h2 className="text-lg font-bold text-white">TalentWhiz.ai</h2>
