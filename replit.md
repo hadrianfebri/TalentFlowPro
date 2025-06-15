@@ -141,6 +141,12 @@ The system uses 13 main tables:
     - Updated hero section with prominently displayed login buttons
     - Fixed all TalentWhiz.ai branding references throughout landing page
     - Added footer with consistent brand styling
+  - Enhanced project documentation:
+    - Added comprehensive local installation guide to README.md
+    - Included step-by-step setup instructions for PostgreSQL database
+    - Added environment variables configuration with examples
+    - Documented troubleshooting steps for common development issues
+    - Provided development tips and best practices for local development
 
 ## Changelog
 

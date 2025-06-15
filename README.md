@@ -1,6 +1,6 @@
-# TalentFlow.ai UMKM Essentials
+# TalentWhiz.ai UMKM Essentials
 
-Platform HR cloud all-in-one yang dirancang khusus untuk UMKM Indonesia dengan arsitektur microservices.
+Platform HR cloud all-in-one yang dirancang khusus untuk UMKM Indonesia dengan arsitektur microservices dan AI-powered insights.
 
 ## Arsitektur Sistem
 
@@ -21,6 +21,159 @@ Platform HR cloud all-in-one yang dirancang khusus untuk UMKM Indonesia dengan a
 - **PostgreSQL** dengan 13 tabel untuk fitur HR lengkap
 - **ORM**: Drizzle dengan migrasi otomatis
 - **Session Storage**: PostgreSQL session store
+
+## Instalasi Lokal
+
+### Persyaratan Sistem
+- Node.js 18+ atau 20+
+- PostgreSQL 13+
+- npm atau yarn
+- Git
+
+### Langkah Instalasi
+
+#### 1. Clone Repository
+```bash
+git clone <repository-url>
+cd talentwhiz-ai
+```
+
+#### 2. Install Dependencies
+```bash
+npm install
+```
+
+#### 3. Setup Database
+Buat database PostgreSQL baru:
+```sql
+CREATE DATABASE talentwhiz_db;
+CREATE USER talentwhiz_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE talentwhiz_db TO talentwhiz_user;
+```
+
+#### 4. Environment Variables
+Buat file `.env` di root directory:
+```env
+# Database Configuration
+DATABASE_URL="postgresql://talentwhiz_user:your_password@localhost:5432/talentwhiz_db"
+PGHOST=localhost
+PGPORT=5432
+PGUSER=talentwhiz_user
+PGPASSWORD=your_password
+PGDATABASE=talentwhiz_db
+
+# Session Configuration
+SESSION_SECRET="your-super-secret-session-key-min-32-chars"
+
+# Replit Auth (Opsional untuk development lokal)
+REPL_ID="your-repl-id"
+ISSUER_URL="https://replit.com/oidc"
+REPLIT_DOMAINS="localhost:5000"
+
+# AI Integration (Opsional)
+DEEPSEEK_API_KEY="your-deepseek-api-key"
+
+# Application
+NODE_ENV=development
+PORT=5000
+```
+
+#### 5. Database Migration
+Jalankan migrasi database:
+```bash
+# Push schema ke database
+npm run db:push
+
+# Atau jalankan migrasi
+npm run db:migrate
+```
+
+#### 6. Seed Data (Opsional)
+Untuk data development:
+```bash
+npm run db:seed
+```
+
+#### 7. Start Development Server
+```bash
+# Start backend dan frontend bersamaan
+npm run dev
+
+# Atau jalankan terpisah
+npm run dev:server  # Backend only (port 5000)
+npm run dev:client  # Frontend only (port 3000)
+```
+
+### URL Akses Lokal
+
+- **Frontend**: http://localhost:5000
+- **Backend API**: http://localhost:5000/api
+- **API Documentation**: http://localhost:5000/api/docs
+- **HR Login**: http://localhost:5000/hr-login
+- **Employee Login**: http://localhost:5000/employee-login
+
+### Scripts Tambahan
+
+```bash
+# Build untuk production
+npm run build
+
+# Start production server
+npm run start
+
+# TypeScript check
+npm run type-check
+
+# Database operations
+npm run db:studio     # Buka Drizzle Studio
+npm run db:generate   # Generate migrasi baru
+npm run db:drop       # Drop database
+
+# Testing
+npm run test
+npm run test:watch
+```
+
+### Troubleshooting
+
+#### Database Connection Error
+```bash
+# Pastikan PostgreSQL running
+sudo systemctl start postgresql
+
+# Check connection
+psql -h localhost -U talentwhiz_user -d talentwhiz_db
+```
+
+#### Port Already in Use
+```bash
+# Kill process di port 5000
+sudo lsof -ti:5000 | xargs kill -9
+
+# Atau ganti port di .env
+PORT=3001
+```
+
+#### Missing Dependencies
+```bash
+# Clear cache dan reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### Development Tips
+
+1. **Hot Reload**: Frontend dan backend mendukung hot reload
+2. **TypeScript**: Semua error TypeScript harus resolved sebelum commit
+3. **Database**: Gunakan Drizzle Studio untuk inspect database
+4. **API Testing**: Gunakan Swagger UI di `/api/docs`
+5. **Logging**: Check console untuk debug informasi
+
+### Authentication Lokal
+
+Untuk development lokal tanpa Replit Auth:
+1. Gunakan HR/Employee login dengan kredensial default
+2. Atau setup Replit Auth dengan REPL_ID dan domain localhost
 
 ## Fitur Utama
 
