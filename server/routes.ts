@@ -3706,7 +3706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/attendance", async (req: any, res) => {
     try {
       const { date } = req.query;
-      const authUser = (req as any).authUser;
+      const authUser = req.session?.authUser;
       
       if (!authUser) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -3734,10 +3734,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/attendance/checkin", requireLocalAuth, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/attendance/checkin", async (req: any, res) => {
     try {
       const { location } = req.body;
-      const authUser = (req as any).authUser;
+      const authUser = req.session?.authUser;
       
       if (!authUser || authUser.role !== 'employee') {
         return res.status(401).json({ error: "Only employees can check in" });
@@ -3773,11 +3773,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/attendance/:id/checkout", requireLocalAuth, async (req: AuthenticatedRequest, res) => {
+  app.put("/api/attendance/:id/checkout", async (req: any, res) => {
     try {
       const { id } = req.params;
       const { checkOut, checkOutLocation } = req.body;
-      const authUser = (req as any).authUser;
+      const authUser = req.session?.authUser;
       
       if (!authUser || authUser.role !== 'employee') {
         return res.status(401).json({ error: "Only employees can check out" });
