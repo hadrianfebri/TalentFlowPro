@@ -123,6 +123,15 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
+- **June 16, 2025**: Fixed translation system and authentication infrastructure
+  - Resolved translation keys displaying instead of actual text on login pages
+  - Updated LanguageContext.tsx to use complete translations from shared/i18n.ts
+  - Created missing local_auth table for HR and employee authentication
+  - Fixed schema validation errors in login system
+  - Successfully implemented working authentication for both HR/Admin and Employee logins
+  - Updated password hashing system with bcryptjs for security
+  - Added comprehensive debugging and logging for authentication processes
+
 - **June 15, 2025**: TalentWhiz.ai branding implementation and URL accessibility fixes
   - Updated color scheme to forest green (#2f4f2f) and leaf green (#519e51)
   - Implemented sidebar gradient background with glass morphism effects

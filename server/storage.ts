@@ -45,7 +45,6 @@ import {
   type EmployeeSalaryComponent,
   type InsertEmployeeSalaryComponent,
   type LocalAuth,
-  type LoginInput,
   type HRLoginInput,
   type EmployeeLoginInput,
 } from "@shared/schema";
