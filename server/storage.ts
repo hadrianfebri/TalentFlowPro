@@ -428,6 +428,14 @@ export class DatabaseStorage implements IStorage {
     return employee;
   }
 
+  async getEmployeeByEmployeeId(employeeId: string): Promise<Employee | undefined> {
+    const [employee] = await db
+      .select()
+      .from(employees)
+      .where(eq(employees.employeeId, employeeId));
+    return employee;
+  }
+
   async createEmployee(employeeData: InsertEmployee): Promise<Employee> {
     const [employee] = await db
       .insert(employees)
@@ -495,6 +503,54 @@ export class DatabaseStorage implements IStorage {
       .values(data)
       .returning();
     return attendanceRecord;
+  }
+
+  async getEmployeeAttendance(employeeId: string, date?: string): Promise<Attendance[]> {
+    let conditions = [eq(employees.employeeId, employeeId)];
+    
+    if (date) {
+      conditions.push(eq(attendance.date, date));
+    }
+
+    return db
+      .select({
+        id: attendance.id,
+        employeeId: attendance.employeeId,
+        date: attendance.date,
+        checkIn: attendance.checkIn,
+        checkOut: attendance.checkOut,
+        checkInLocation: attendance.checkInLocation,
+        checkOutLocation: attendance.checkOutLocation,
+        checkInPhoto: attendance.checkInPhoto,
+        checkOutPhoto: attendance.checkOutPhoto,
+        workingHours: attendance.workingHours,
+        overtimeHours: attendance.overtimeHours,
+        status: attendance.status,
+        notes: attendance.notes,
+        createdAt: attendance.createdAt,
+        employee: {
+          firstName: employees.firstName,
+          lastName: employees.lastName,
+          employeeId: employees.employeeId,
+        }
+      })
+      .from(attendance)
+      .innerJoin(employees, eq(attendance.employeeId, employees.id))
+      .where(and(...conditions))
+      .orderBy(desc(attendance.date));
+  }
+
+  async getTodayAttendance(employeeId: string): Promise<Attendance | undefined> {
+    const today = new Date().toISOString().split('T')[0];
+    const [attendanceRecord] = await db
+      .select()
+      .from(attendance)
+      .innerJoin(employees, eq(attendance.employeeId, employees.id))
+      .where(and(
+        eq(employees.employeeId, employeeId),
+        eq(attendance.date, today)
+      ));
+    return attendanceRecord?.attendance;
   }
 
   async checkOut(id: number, data: { checkOut: Date; checkOutLocation?: any; checkOutPhoto?: string }): Promise<Attendance> {

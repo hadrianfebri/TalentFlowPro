@@ -981,23 +981,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/attendance', isAuthenticated, async (req: any, res) => {
+  app.get('/api/attendance', (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
-        return res.status(400).json({ message: "User not associated with company" });
+      console.log("Session in attendance endpoint:", req.session);
+      console.log("Auth user in attendance:", req.session?.authUser);
+      
+      if (!req.session?.authUser) {
+        return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const { date, employeeId } = req.query;
-      const attendance = await dbStorage.getAttendance(
-        user.companyId,
-        date as string,
-        employeeId ? parseInt(employeeId as string) : undefined
-      );
-      res.json(attendance);
+      const authUser = req.session.authUser;
+      
+      // For employee users, get their attendance data
+      if (authUser.role === 'employee') {
+        const { date } = req.query;
+        const attendanceDate = date ? new Date(date as string) : new Date();
+        
+        // Return employee's own attendance for the date
+        dbStorage.getEmployeeAttendance(authUser.employeeId, attendanceDate.toISOString().split('T')[0])
+          .then(attendance => {
+            res.json(attendance);
+          })
+          .catch(error => {
+            console.error("Error fetching employee attendance:", error);
+            res.status(500).json({ message: "Failed to fetch attendance" });
+          });
+      } else {
+        // For admin/HR users, get all attendance data
+        const { date, employeeId } = req.query;
+        dbStorage.getAttendance(
+          authUser.companyId,
+          date as string,
+          employeeId ? parseInt(employeeId as string) : undefined
+        ).then(attendance => {
+          res.json(attendance);
+        }).catch(error => {
+          console.error("Error fetching attendance:", error);
+          res.status(500).json({ message: "Failed to fetch attendance" });
+        });
+      }
     } catch (error) {
-      console.error("Error fetching attendance:", error);
+      console.error("Error in attendance endpoint:", error);
       res.status(500).json({ message: "Failed to fetch attendance" });
     }
   });
@@ -1043,14 +1067,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.post('/api/attendance/checkin', isAuthenticated, async (req: any, res) => {
+  app.post('/api/attendance/checkin', (req: any, res) => {
     try {
-      const validatedData = insertAttendanceSchema.parse(req.body);
-      const attendance = await dbStorage.checkIn(validatedData);
-      res.status(201).json(attendance);
+      if (!req.session?.authUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const authUser = req.session.authUser;
+      if (authUser.role !== 'employee') {
+        return res.status(403).json({ message: "Only employees can check in" });
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      const checkInTime = new Date();
+
+      // Get employee ID from database using employeeId string
+      dbStorage.getEmployeeByEmployeeId(authUser.employeeId)
+        .then(employee => {
+          if (!employee) {
+            return res.status(404).json({ message: "Employee not found" });
+          }
+
+          const attendanceData = {
+            employeeId: employee.id,
+            date: today,
+            checkIn: checkInTime,
+            checkInLocation: req.body.location || null,
+            status: 'present' as const,
+            createdAt: new Date(),
+          };
+
+          return dbStorage.checkIn(attendanceData);
+        })
+        .then(attendance => {
+          res.status(201).json(attendance);
+        })
+        .catch(error => {
+          console.error("Error during check-in:", error);
+          res.status(500).json({ message: "Failed to check in" });
+        });
     } catch (error) {
-      console.error("Error recording check-in:", error);
-      res.status(500).json({ message: "Failed to record check-in" });
+      console.error("Error during check-in:", error);
+      res.status(500).json({ message: "Failed to check in" });
     }
   });
 
