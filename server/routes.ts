@@ -459,7 +459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to save session" });
         }
         
-        console.log("Session saved successfully for user:", auth.email);
+
         res.json({
           success: true,
           user: {
@@ -507,7 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to save session" });
         }
         
-        console.log("Session saved successfully for employee:", auth.employeeId);
+
         res.json({
           success: true,
           user: {
@@ -578,16 +578,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user session for local auth
   app.get('/api/auth/user', (req: any, res) => {
     try {
-      console.log("Session ID:", req.sessionID);
-      console.log("Session data:", req.session);
-      console.log("Auth user:", req.session?.authUser);
+
       
       if (!req.session?.authUser) {
         console.log("No auth user found in session");
         return res.status(401).json({ message: "Not authenticated" });
       }
       
-      console.log("Auth user found, returning:", req.session.authUser);
+
       res.json(req.session.authUser);
     } catch (error) {
       console.error("Error fetching user session:", error);
@@ -983,9 +981,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get('/api/attendance', (req: any, res) => {
     try {
-      console.log("Session in attendance endpoint:", req.session);
-      console.log("Auth user in attendance:", req.session?.authUser);
-      
       if (!req.session?.authUser) {
         return res.status(401).json({ message: "Not authenticated" });
       }
