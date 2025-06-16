@@ -578,10 +578,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user session for local auth
   app.get('/api/auth/user', (req: any, res) => {
     try {
-      if (!req.session.authUser) {
+      console.log("Session ID:", req.sessionID);
+      console.log("Session data:", req.session);
+      console.log("Auth user:", req.session?.authUser);
+      
+      if (!req.session?.authUser) {
+        console.log("No auth user found in session");
         return res.status(401).json({ message: "Not authenticated" });
       }
       
+      console.log("Auth user found, returning:", req.session.authUser);
       res.json(req.session.authUser);
     } catch (error) {
       console.error("Error fetching user session:", error);
