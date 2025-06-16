@@ -40,6 +40,8 @@ export default function EmployeeAttendance() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentLocation, setCurrentLocation] = useState<string | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   // Get current location
   const getCurrentLocation = () => {
@@ -208,6 +210,13 @@ export default function EmployeeAttendance() {
   const canCheckIn = !todayRecord?.checkIn;
   const canCheckOut = todayRecord?.checkIn && !todayRecord?.checkOut;
 
+  // Pagination logic
+  const totalRecords = monthlyAttendance?.length || 0;
+  const totalPages = Math.ceil(totalRecords / recordsPerPage);
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const endIndex = startIndex + recordsPerPage;
+  const paginatedRecords = monthlyAttendance?.slice(startIndex, endIndex) || [];
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -353,8 +362,9 @@ export default function EmployeeAttendance() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest-primary"></div>
             </div>
           ) : (
-            <div className="space-y-2">
-              {monthlyAttendance.map((dayData: any) => {
+            <>
+              <div className="space-y-2">
+                {paginatedRecords.map((dayData: any) => {
                 const record = dayData.records?.[0];
                 const dayDate = new Date(dayData.date);
                 const isToday = format(dayDate, "yyyy-MM-dd") === today;
@@ -404,7 +414,74 @@ export default function EmployeeAttendance() {
                   </div>
                 );
               })}
-            </div>
+              </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                  <div className="text-sm text-gray-600">
+                    Menampilkan {startIndex + 1}-{Math.min(endIndex, totalRecords)} dari {totalRecords} rekaman
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Sebelumnya
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page => {
+                          const distance = Math.abs(page - currentPage);
+                          return distance <= 1 || page === 1 || page === totalPages;
+                        })
+                        .map((page, index, array) => {
+                          if (index > 0 && array[index - 1] !== page - 1) {
+                            return (
+                              <div key={`ellipsis-${page}`} className="flex items-center gap-1">
+                                <span className="text-gray-400">...</span>
+                                <Button
+                                  variant={currentPage === page ? "default" : "outline"}
+                                  size="sm"
+                                  className="w-8 h-8 p-0"
+                                  onClick={() => setCurrentPage(page)}
+                                >
+                                  {page}
+                                </Button>
+                              </div>
+                            );
+                          }
+                          return (
+                            <Button
+                              key={page}
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              className="w-8 h-8 p-0"
+                              onClick={() => setCurrentPage(page)}
+                            >
+                              {page}
+                            </Button>
+                          );
+                        })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Selanjutnya
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
