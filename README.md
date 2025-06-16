@@ -81,17 +81,19 @@ PORT=5000
 #### 5. Database Migration
 Jalankan migrasi database:
 ```bash
-# Push schema ke database
+# Push schema ke database (recommended untuk development)
 npm run db:push
 
-# Atau jalankan migrasi
-npm run db:migrate
+# Atau generate dan jalankan migrasi
+npx drizzle-kit generate
+npx tsx scripts/migrate.ts
 ```
 
 #### 6. Seed Data (Opsional)
 Untuk data development:
 ```bash
-npm run db:seed
+# Jalankan script seeding
+npx tsx scripts/seed.ts
 ```
 
 #### 7. Start Development Server
