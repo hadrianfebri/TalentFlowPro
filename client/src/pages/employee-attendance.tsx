@@ -17,6 +17,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 
 interface AttendanceRecord {
   id: number;
@@ -207,13 +209,18 @@ export default function EmployeeAttendance() {
   const canCheckOut = todayRecord?.checkIn && !todayRecord?.checkOut;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Absensi Saya</h1>
-          <p className="text-gray-600">Kelola absensi dan lihat rekap kehadiran Anda</p>
-        </div>
-      </div>
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header pageTitle="Absensi Karyawan" />
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto p-6 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Absensi Saya</h1>
+                <p className="text-gray-600">Kelola absensi dan lihat rekap kehadiran Anda</p>
+              </div>
+            </div>
 
       {/* Today's Attendance Card */}
       <Card className="border-2 border-forest-primary">
@@ -401,6 +408,9 @@ export default function EmployeeAttendance() {
           )}
         </CardContent>
       </Card>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
