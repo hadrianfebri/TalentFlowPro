@@ -115,7 +115,7 @@ export default function Leaves() {
 
   // Get current employee data for logged-in user based on employee ID string
   const { data: currentEmployee } = useQuery<Employee>({
-    queryKey: ["/api/employees/by-employee-id", (user as any)?.employeeId],
+    queryKey: ["/api/employees", (user as any)?.employeeId],
     enabled: isAuthenticated && !!(user as any)?.employeeId && (user as any)?.role === "employee",
   });
 

@@ -813,25 +813,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/employees/by-employee-id/:employeeId', isAuthenticated, async (req: any, res) => {
-    try {
-      const { employeeId } = req.params;
-      const employee = await dbStorage.getEmployeeByEmployeeId(employeeId);
-      
-      if (!employee) {
-        return res.status(404).json({ message: "Employee not found" });
-      }
-      
-      res.json(employee);
-    } catch (error) {
-      console.error("Error fetching employee by employee ID:", error);
-      res.status(500).json({ message: "Failed to fetch employee" });
-    }
-  });
-
   app.get('/api/employees/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      
+      // Check if this is actually an employee ID string (like "EMP003")
+      if (id.startsWith('EMP') || isNaN(parseInt(id))) {
+        const employee = await dbStorage.getEmployeeByEmployeeId(id);
+        
+        if (!employee) {
+          return res.status(404).json({ message: "Employee not found" });
+        }
+        
+        return res.json(employee);
+      }
+      
+      // Handle numeric ID
       const employee = await dbStorage.getEmployee(parseInt(id));
       
       if (!employee) {
@@ -1678,13 +1675,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get('/api/leaves', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
-        return res.status(400).json({ message: "User not associated with company" });
+      let companyId: string;
+      
+      // Handle both Replit auth and local auth
+      if (req.session?.authUser) {
+        // Local auth (employee/HR login)
+        companyId = req.session.authUser.companyId;
+      } else if (req.user?.claims?.sub) {
+        // Replit auth
+        const userId = req.user.claims.sub;
+        const user = await dbStorage.getUser(userId);
+        if (!user?.companyId) {
+          return res.status(400).json({ message: "User not associated with company" });
+        }
+        companyId = user.companyId;
+      } else {
+        return res.status(401).json({ message: "Authentication required" });
       }
 
-      const leaves = await dbStorage.getLeaveRequests(user.companyId);
+      const leaves = await dbStorage.getLeaveRequests(companyId);
       res.json(leaves);
     } catch (error) {
       console.error("Error fetching leave requests:", error);
