@@ -284,41 +284,101 @@ export default function EmployeeAttendance() {
                 </div>
               )}
 
+              {/* Location Button */}
+              {!currentLocation && (
+                <div className="mb-4">
+                  <Button
+                    onClick={getCurrentLocation}
+                    disabled={isGettingLocation}
+                    variant="outline"
+                    className="w-full border-forest-primary text-forest-primary hover:bg-forest-primary hover:text-white"
+                  >
+                    {isGettingLocation ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-forest-primary mr-2"></div>
+                        Mendapatkan Lokasi...
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Dapatkan Lokasi Saya
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* Current Location Display */}
+              {currentLocation && (
+                <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 text-sm text-green-700">
+                    <MapPin className="h-4 w-4" />
+                    <span>Lokasi saat ini: {currentLocation}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Check In/Out Buttons */}
               <div className="flex gap-3">
                 {canCheckIn && (
                   <Button
                     onClick={handleCheckIn}
-                    disabled={checkInMutation.isPending || isGettingLocation}
-                    className="flex-1 bg-forest-primary hover:bg-forest-primary/90"
+                    disabled={checkInMutation.isPending || !currentLocation}
+                    className="flex-1 bg-forest-primary hover:bg-forest-primary/90 py-3 text-lg font-semibold"
+                    size="lg"
                   >
                     {checkInMutation.isPending ? (
-                      <Timer className="h-4 w-4 mr-2 animate-spin" />
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Sedang Check In...
+                      </>
                     ) : (
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <>
+                        <CheckCircle className="h-5 w-5 mr-2" />
+                        Check In Sekarang
+                      </>
                     )}
-                    {isGettingLocation ? "Mendapatkan Lokasi..." : "Check-in"}
                   </Button>
                 )}
                 
                 {canCheckOut && (
                   <Button
                     onClick={handleCheckOut}
-                    disabled={checkOutMutation.isPending}
+                    disabled={checkOutMutation.isPending || !currentLocation}
                     variant="outline"
-                    className="flex-1 border-forest-primary text-forest-primary hover:bg-forest-primary hover:text-white"
+                    className="flex-1 border-2 border-forest-primary text-forest-primary hover:bg-forest-primary hover:text-white py-3 text-lg font-semibold"
+                    size="lg"
                   >
                     {checkOutMutation.isPending ? (
-                      <Timer className="h-4 w-4 mr-2 animate-spin" />
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-forest-primary mr-2"></div>
+                        Sedang Check Out...
+                      </>
                     ) : (
-                      <XCircle className="h-4 w-4 mr-2" />
+                      <>
+                        <XCircle className="h-5 w-5 mr-2" />
+                        Check Out Sekarang
+                      </>
                     )}
-                    Check-out
                   </Button>
                 )}
                 
-                {!canCheckIn && !canCheckOut && (
-                  <div className="flex-1 text-center py-2 text-gray-600">
-                    Absensi hari ini sudah selesai
+                {!canCheckIn && !canCheckOut && todayRecord?.checkOut && (
+                  <div className="flex-1 text-center py-4 bg-gray-50 rounded-lg">
+                    <div className="text-gray-600 font-medium">
+                      Absensi hari ini sudah selesai
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      Total jam kerja: {todayRecord.workingHours || calculateWorkingHours(todayRecord.checkIn, todayRecord.checkOut)}
+                    </div>
+                  </div>
+                )}
+
+                {!todayRecord?.checkIn && !canCheckIn && (
+                  <div className="flex-1 text-center py-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="text-yellow-700 font-medium">
+                      Silakan aktifkan lokasi untuk melakukan absensi
+                    </div>
                   </div>
                 )}
               </div>
