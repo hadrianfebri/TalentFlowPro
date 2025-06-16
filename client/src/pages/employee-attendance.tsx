@@ -169,7 +169,7 @@ export default function EmployeeAttendance() {
   };
 
   const handleCheckOut = () => {
-    if (!todayAttendance || todayAttendance.length === 0) return;
+    if (!todayAttendance || !Array.isArray(todayAttendance) || todayAttendance.length === 0) return;
     const attendance = todayAttendance[0];
     checkOutMutation.mutate(attendance.id);
   };
