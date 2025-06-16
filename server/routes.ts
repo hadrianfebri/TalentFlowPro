@@ -3706,9 +3706,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/attendance", async (req: any, res) => {
     try {
       const { date } = req.query;
+      console.log("Session in attendance endpoint:", req.session);
+      console.log("Auth user in attendance:", req.session?.authUser);
       const authUser = req.session?.authUser;
       
       if (!authUser) {
+        console.log("No auth user found in attendance endpoint");
         return res.status(401).json({ error: "Unauthorized" });
       }
 
