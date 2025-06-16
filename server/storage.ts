@@ -172,22 +172,40 @@ export class DatabaseStorage implements IStorage {
 
   // Local authentication operations
   async authenticateHR(email: string, password: string): Promise<LocalAuth | null> {
-    const bcrypt = await import('bcryptjs');
-    const [auth] = await db
-      .select()
-      .from(localAuth)
-      .where(and(
-        eq(localAuth.email, email),
-        eq(localAuth.isActive, true),
-        sql`${localAuth.role} IN ('hr', 'admin')`
-      ));
-    
-    if (!auth || !await bcrypt.compare(password, auth.password)) {
+    try {
+      console.log('HR authentication attempt for:', email);
+      const bcrypt = await import('bcryptjs');
+      const [auth] = await db
+        .select()
+        .from(localAuth)
+        .where(and(
+          eq(localAuth.email, email),
+          eq(localAuth.isActive, true),
+          sql`${localAuth.role} IN ('hr', 'admin')`
+        ));
+      
+      console.log('Found auth record:', auth ? 'yes' : 'no');
+      
+      if (!auth) {
+        console.log('No auth record found for email:', email);
+        return null;
+      }
+      
+      const passwordMatch = await bcrypt.compare(password, auth.password);
+      console.log('Password match:', passwordMatch);
+      
+      if (!passwordMatch) {
+        console.log('Password mismatch for email:', email);
+        return null;
+      }
+      
+      await this.updateLastLogin(auth.id);
+      console.log('HR authentication successful for:', email);
+      return auth;
+    } catch (error) {
+      console.error('HR authentication error:', error);
       return null;
     }
-    
-    await this.updateLastLogin(auth.id);
-    return auth;
   }
 
   async authenticateEmployee(employeeId: string, password: string): Promise<LocalAuth | null> {

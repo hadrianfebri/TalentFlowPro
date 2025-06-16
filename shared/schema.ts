@@ -398,20 +398,16 @@ export const localAuth = pgTable("local_auth", {
 });
 
 // Schema for login forms
-export const loginSchema = createInsertSchema(localAuth).pick({
-  email: true,
-  password: true,
+export const hrLoginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required"),
 });
 
-export const hrLoginSchema = loginSchema.extend({
-  role: z.literal("hr").or(z.literal("admin")),
-});
-
-export const employeeLoginSchema = loginSchema.extend({
+export const employeeLoginSchema = z.object({
   employeeId: z.string().min(1, "Employee ID is required"),
+  password: z.string().min(1, "Password is required"),
 });
 
-export type LoginInput = z.infer<typeof loginSchema>;
 export type HRLoginInput = z.infer<typeof hrLoginSchema>;
 export type EmployeeLoginInput = z.infer<typeof employeeLoginSchema>;
 export type LocalAuth = typeof localAuth.$inferSelect;
