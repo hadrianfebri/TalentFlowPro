@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { SupportedLanguage, SUPPORTED_LANGUAGES } from '@shared/i18n';
+import { SupportedLanguage, SUPPORTED_LANGUAGES, translations } from '@shared/i18n';
 
 interface LanguageContextType {
   currentLanguage: SupportedLanguage;
@@ -89,14 +89,14 @@ const RTL_LANGUAGES: SupportedLanguage[] = ['ar'];
 function localGetTranslation(language: SupportedLanguage, key: string): string {
   try {
     const keys = key.split('.');
-    let value: any = localTranslations[language];
+    let value: any = translations[language];
     
     for (const k of keys) {
       if (value && typeof value === 'object' && value.hasOwnProperty(k)) {
         value = value[k];
       } else {
         // Fallback to English
-        let fallbackValue: any = localTranslations['en'];
+        let fallbackValue: any = translations['en'];
         for (const fallbackKey of keys) {
           if (fallbackValue && typeof fallbackValue === 'object' && fallbackValue.hasOwnProperty(fallbackKey)) {
             fallbackValue = fallbackValue[fallbackKey];
