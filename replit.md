@@ -123,6 +123,18 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
+- **June 16, 2025**: Completed employee attendance system with check-in/check-out buttons
+  - Fixed circular JSON structure error in attendance check-in endpoint that was causing app crashes
+  - Cleaned up excessive debug logging statements causing performance issues
+  - Confirmed check-in and check-out buttons are fully implemented in employee attendance page:
+    - Green "Check In Sekarang" button for daily check-in with GPS location
+    - Outlined "Check Out Sekarang" button for end-of-day check-out
+    - Automatic location detection using browser geolocation API
+    - Loading states and proper error handling for both actions
+    - Real-time attendance tracking with working hours calculation
+  - Fixed server-side attendance endpoints to return clean JSON responses
+  - Application now runs without errors on port 5000
+
 - **June 16, 2025**: Fixed employee attendance system and role-based navigation
   - Resolved "Akses Terbatas" issue where employees couldn't access attendance page
   - Implemented role-based sidebar navigation showing different menu items for employees vs admin/HR
