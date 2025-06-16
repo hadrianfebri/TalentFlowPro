@@ -90,7 +90,7 @@ interface Employee {
 }
 
 export default function Leaves() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -109,7 +109,13 @@ export default function Leaves() {
 
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && (user as any)?.role !== "employee",
+  });
+
+  // Get current employee data for logged-in user
+  const { data: currentEmployee } = useQuery<Employee>({
+    queryKey: ["/api/employees", (user as any)?.employeeId],
+    enabled: isAuthenticated && !!(user as any)?.employeeId,
   });
 
   const createLeaveMutation = useMutation({
@@ -371,18 +377,32 @@ export default function Leaves() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="employeeId">Karyawan</Label>
-                          <Select name="employeeId" required>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih karyawan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {employees?.map((emp) => (
-                                <SelectItem key={emp.id} value={emp.id.toString()}>
-                                  {emp.firstName} {emp.lastName} ({emp.employeeId})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {(user as any)?.role === "employee" ? (
+                            <div className="flex items-center h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
+                              {currentEmployee ? 
+                                `${currentEmployee.firstName} ${currentEmployee.lastName} (${currentEmployee.employeeId})` : 
+                                "Loading..."
+                              }
+                              <input 
+                                type="hidden" 
+                                name="employeeId" 
+                                value={currentEmployee?.id?.toString() || ""} 
+                              />
+                            </div>
+                          ) : (
+                            <Select name="employeeId" required>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih karyawan" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {employees?.map((emp) => (
+                                  <SelectItem key={emp.id} value={emp.id.toString()}>
+                                    {emp.firstName} {emp.lastName} ({emp.employeeId})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
                         </div>
                         
                         <div>
