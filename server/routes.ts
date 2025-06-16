@@ -1067,7 +1067,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.post('/api/attendance/checkin', (req: any, res) => {
+  app.post('/api/attendance/checkin', async (req: any, res) => {
     try {
       if (!req.session?.authUser) {
         return res.status(401).json({ message: "Not authenticated" });
@@ -1082,33 +1082,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const checkInTime = new Date();
 
       // Get employee ID from database using employeeId string
-      dbStorage.getEmployeeByEmployeeId(authUser.employeeId)
-        .then(employee => {
-          if (!employee) {
-            return res.status(404).json({ message: "Employee not found" });
-          }
+      const employee = await dbStorage.getEmployeeByEmployeeId(authUser.employeeId);
+      if (!employee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
 
-          const attendanceData = {
-            employeeId: employee.id,
-            date: today,
-            checkIn: checkInTime,
-            checkInLocation: req.body.location || null,
-            status: 'present' as const,
-            createdAt: new Date(),
-          };
+      const attendanceData = {
+        employeeId: employee.id,
+        date: today,
+        checkIn: checkInTime,
+        checkInLocation: req.body.location || null,
+        status: 'present' as const,
+        createdAt: new Date(),
+      };
 
-          return dbStorage.checkIn(attendanceData);
-        })
-        .then(attendance => {
-          res.status(201).json(attendance);
-        })
-        .catch(error => {
-          console.error("Error during check-in:", error);
-          res.status(500).json({ message: "Failed to check in" });
-        });
+      const attendance = await dbStorage.checkIn(attendanceData);
+      
+      // Return clean JSON response without circular references
+      return res.status(201).json({
+        id: attendance.id,
+        employeeId: attendance.employeeId,
+        date: attendance.date,
+        checkIn: attendance.checkIn,
+        checkInLocation: attendance.checkInLocation,
+        status: attendance.status,
+        message: "Check-in successful"
+      });
     } catch (error) {
       console.error("Error during check-in:", error);
-      res.status(500).json({ message: "Failed to check in" });
+      return res.status(500).json({ message: "Failed to check in" });
     }
   });
 
@@ -1166,10 +1168,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         checkOutLocation,
         checkOutPhoto,
       });
-      res.json(attendance);
+      
+      // Return clean JSON response without circular references
+      return res.json({
+        id: attendance.id,
+        employeeId: attendance.employeeId,
+        date: attendance.date,
+        checkIn: attendance.checkIn,
+        checkOut: attendance.checkOut,
+        checkInLocation: attendance.checkInLocation,
+        checkOutLocation: attendance.checkOutLocation,
+        status: attendance.status,
+        message: "Check-out successful"
+      });
     } catch (error) {
       console.error("Error recording check-out:", error);
-      res.status(500).json({ message: "Failed to record check-out" });
+      return res.status(500).json({ message: "Failed to record check-out" });
     }
   });
 
