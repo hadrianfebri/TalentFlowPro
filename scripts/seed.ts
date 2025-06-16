@@ -66,7 +66,6 @@ async function seedDatabase() {
         email: "admin@contohUMKM.com",
         firstName: "Admin",
         lastName: "System",
-        role: "admin",
         companyId: company.id
       },
       {
@@ -74,7 +73,6 @@ async function seedDatabase() {
         email: "hr@contohUMKM.com",
         firstName: "HR",
         lastName: "Manager",
-        role: "hr",
         companyId: company.id
       }
     ];

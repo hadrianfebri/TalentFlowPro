@@ -78,22 +78,28 @@ NODE_ENV=development
 PORT=5000
 ```
 
-#### 5. Database Migration
-Jalankan migrasi database:
+#### 5. Database Setup
+Setup database schema dan data:
 ```bash
 # Push schema ke database (recommended untuk development)
 npm run db:push
 
-# Atau generate dan jalankan migrasi
+# Untuk production, generate dan jalankan migrasi:
 npx drizzle-kit generate
-npx tsx scripts/migrate.ts
+npx drizzle-kit migrate
 ```
 
 #### 6. Seed Data (Opsional)
-Untuk data development:
+Untuk data development dan testing:
 ```bash
-# Jalankan script seeding
+# Bersihkan database terlebih dahulu (jika perlu)
+npx tsx scripts/clean.ts
+
+# Jalankan seeding data contoh
 npx tsx scripts/seed.ts
+
+# Atau gabungkan keduanya
+npx tsx scripts/clean.ts && npx tsx scripts/seed.ts
 ```
 
 #### 7. Start Development Server
