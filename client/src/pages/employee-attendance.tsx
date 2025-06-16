@@ -104,23 +104,32 @@ export default function EmployeeAttendance() {
   // Check-in mutation
   const checkInMutation = useMutation({
     mutationFn: async () => {
+      const formData = new FormData();
+      formData.append('location', currentLocation || 'Unknown location');
+      
+      if (attendancePhoto) {
+        formData.append('photo', attendancePhoto);
+      }
+
       const response = await fetch("/api/attendance/checkin", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ location: currentLocation })
+        body: formData
       });
+      
       if (!response.ok) {
-        throw new Error("Check-in failed");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Check-in failed");
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Check-in Berhasil",
-        description: "Anda telah berhasil melakukan check-in",
+        description: "Anda telah berhasil melakukan check-in dengan foto verifikasi",
       });
+      // Clear photo after successful check-in
+      setAttendancePhoto(null);
+      setPhotoPreview(null);
       queryClient.invalidateQueries({ queryKey: ["/api/attendance"] });
     },
     onError: (error: any) => {

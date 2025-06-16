@@ -3754,7 +3754,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check-in endpoint with photo support
+  app.post("/api/attendance/checkin", upload.single('photo'), async (req: any, res) => {
+    try {
+      if (!req.session?.authUser) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
 
+      const authUser = req.session.authUser;
+      
+      if (authUser.role !== 'employee') {
+        return res.status(403).json({ error: "Only employees can check in" });
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      const checkInTime = new Date();
+
+      // Get employee ID from database using employeeId string
+      const employee = await dbStorage.getEmployeeByEmployeeId(authUser.employeeId);
+      
+      if (!employee) {
+        return res.status(404).json({ error: "Employee not found" });
+      }
+
+      // Check if already checked in today
+      const existingAttendance = await dbStorage.getEmployeeAttendanceByDate(authUser.employeeId, today);
+      if (existingAttendance && existingAttendance.checkIn) {
+        return res.status(400).json({ error: "Already checked in today" });
+      }
+
+      // Handle photo upload
+      let photoPath = null;
+      if (req.file) {
+        photoPath = req.file.filename;
+      }
+
+      const attendanceData = {
+        employeeId: employee.id,
+        date: today,
+        checkIn: checkInTime,
+        checkInLocation: req.body.location || 'Unknown location',
+        checkInPhoto: photoPath,
+        status: 'present' as const,
+        createdAt: new Date(),
+      };
+
+      const attendance = await dbStorage.checkIn(attendanceData);
+      
+      return res.status(201).json({
+        id: attendance.id,
+        employeeId: attendance.employeeId,
+        date: attendance.date,
+        checkIn: attendance.checkIn,
+        checkInLocation: attendance.checkInLocation,
+        checkInPhoto: attendance.checkInPhoto,
+        status: attendance.status,
+        message: "Check-in berhasil dengan foto verifikasi"
+      });
+    } catch (error) {
+      console.error("Error during check-in:", error);
+      return res.status(500).json({ error: "Failed to check in" });
+    }
+  });
 
   app.put("/api/attendance/:id/checkout", async (req: any, res) => {
     try {
