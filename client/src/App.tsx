@@ -29,6 +29,7 @@ import AITesting from "@/pages/ai-testing";
 import AddApplicant from "@/pages/add-applicant";
 import HRLogin from "@/pages/hr-login";
 import EmployeeLogin from "@/pages/employee-login";
+import EmployeeAttendance from "@/pages/employee-attendance";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -54,6 +55,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/employees" component={Employees} />
           <Route path="/attendance" component={Attendance} />
+          <Route path="/employee-attendance" component={EmployeeAttendance} />
           <Route path="/payroll" component={Payroll} />
           <Route path="/leaves" component={Leaves} />
           <Route path="/documents" component={Documents} />

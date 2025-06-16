@@ -85,7 +85,8 @@ export default function EmployeeAttendance() {
       });
       
       const attendancePromises = days.map(day => 
-        apiRequest(`/api/attendance?date=${format(day, "yyyy-MM-dd")}`)
+        fetch(`/api/attendance?date=${format(day, "yyyy-MM-dd")}`)
+          .then(res => res.json())
           .then(data => ({ date: format(day, "yyyy-MM-dd"), records: data }))
           .catch(() => ({ date: format(day, "yyyy-MM-dd"), records: [] }))
       );
@@ -97,10 +98,17 @@ export default function EmployeeAttendance() {
   // Check-in mutation
   const checkInMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("/api/attendance/checkin", {
+      const response = await fetch("/api/attendance/checkin", {
         method: "POST",
-        body: { location: currentLocation }
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ location: currentLocation })
       });
+      if (!response.ok) {
+        throw new Error("Check-in failed");
+      }
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -121,13 +129,20 @@ export default function EmployeeAttendance() {
   // Check-out mutation  
   const checkOutMutation = useMutation({
     mutationFn: async (attendanceId: number) => {
-      return apiRequest(`/api/attendance/${attendanceId}/checkout`, {
+      const response = await fetch(`/api/attendance/${attendanceId}/checkout`, {
         method: "PUT",
-        body: { 
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
           checkOut: new Date().toISOString(),
           checkOutLocation: currentLocation 
-        }
+        })
       });
+      if (!response.ok) {
+        throw new Error("Check-out failed");
+      }
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -187,7 +202,7 @@ export default function EmployeeAttendance() {
     return `${hours}j ${minutes}m`;
   };
 
-  const todayRecord = todayAttendance?.[0];
+  const todayRecord = Array.isArray(todayAttendance) ? todayAttendance[0] : null;
   const canCheckIn = !todayRecord?.checkIn;
   const canCheckOut = todayRecord?.checkIn && !todayRecord?.checkOut;
 
