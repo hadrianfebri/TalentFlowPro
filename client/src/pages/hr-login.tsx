@@ -53,8 +53,8 @@ export default function HRLogin() {
         description: t("login.success.description"),
       });
       
-      // Redirect to dashboard
-      setLocation("/");
+      // Redirect to HR dashboard
+      setLocation("/dashboard");
     },
     onError: (error: any) => {
       toast({

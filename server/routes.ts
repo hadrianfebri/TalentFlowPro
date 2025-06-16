@@ -50,31 +50,16 @@ const multerStorage = multer.diskStorage({
 
 const upload = multer({ 
   storage: multerStorage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = [
-      'image/jpeg',
-      'image/jpg', 
-      'image/png',
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ];
-    
-    const allowedExtensions = /\.(jpeg|jpg|png|pdf|doc|docx|csv|xls|xlsx)$/i;
-    
-    const hasValidExtension = allowedExtensions.test(file.originalname);
-    const hasValidMimeType = allowedMimeTypes.includes(file.mimetype);
-    
-    if (hasValidExtension && hasValidMimeType) {
-      return cb(null, true);
+    // Accept images only for attendance photos
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
     } else {
-      console.log(`File rejected: ${file.originalname}, MIME: ${file.mimetype}`);
-      cb(new Error(`File type tidak didukung. Hanya boleh upload: PDF, Word (.doc/.docx), gambar (.jpg/.png), dan CSV`));
+      cb(new Error('Only image files are allowed for attendance photos!'));
     }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
 
