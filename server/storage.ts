@@ -78,6 +78,11 @@ export interface IStorage {
   
   // Attendance operations
   getAttendance(companyId: string, date?: string, employeeId?: number): Promise<Attendance[]>;
+  getAttendanceByDate(date: string): Promise<Attendance[]>;
+  getEmployeeAttendanceByDate(employeeId: string, date: string): Promise<Attendance | null>;
+  getAttendanceById(id: number): Promise<Attendance | null>;
+  createAttendance(data: any): Promise<Attendance>;
+  updateAttendance(id: number, data: any): Promise<Attendance>;
   checkIn(data: InsertAttendance): Promise<Attendance>;
   checkOut(id: number, data: { checkOut: Date; checkOutLocation?: any; checkOutPhoto?: string }): Promise<Attendance>;
   
@@ -495,6 +500,59 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(employees, eq(attendance.employeeId, employees.id))
       .where(and(...conditions))
       .orderBy(desc(attendance.createdAt));
+  }
+
+  async getAttendanceByDate(date: string): Promise<Attendance[]> {
+    return db
+      .select()
+      .from(attendance)
+      .where(eq(attendance.date, date))
+      .orderBy(desc(attendance.createdAt));
+  }
+
+  async getEmployeeAttendanceByDate(employeeId: string, date: string): Promise<Attendance | null> {
+    const [attendanceRecord] = await db
+      .select()
+      .from(attendance)
+      .innerJoin(employees, eq(attendance.employeeId, employees.id))
+      .where(and(eq(employees.employeeId, employeeId), eq(attendance.date, date)));
+    return attendanceRecord?.attendance || null;
+  }
+
+  async getAttendanceById(id: number): Promise<Attendance | null> {
+    const [attendanceRecord] = await db
+      .select()
+      .from(attendance)
+      .where(eq(attendance.id, id));
+    return attendanceRecord || null;
+  }
+
+  async createAttendance(data: any): Promise<Attendance> {
+    // Get employee by employeeId first
+    const employee = await this.getEmployeeByEmployeeId(data.employeeId);
+    if (!employee) {
+      throw new Error('Employee not found');
+    }
+
+    const attendanceData = {
+      ...data,
+      employeeId: employee.id, // Use the actual employee ID from database
+    };
+
+    const [attendanceRecord] = await db
+      .insert(attendance)
+      .values(attendanceData)
+      .returning();
+    return attendanceRecord;
+  }
+
+  async updateAttendance(id: number, data: any): Promise<Attendance> {
+    const [updatedRecord] = await db
+      .update(attendance)
+      .set(data)
+      .where(eq(attendance.id, id))
+      .returning();
+    return updatedRecord;
   }
 
   async checkIn(data: InsertAttendance): Promise<Attendance> {

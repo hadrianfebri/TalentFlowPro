@@ -3702,6 +3702,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Employee Attendance Endpoints
+  app.get("/api/attendance", requireLocalAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { date } = req.query;
+      const authUser = req.authUser;
+      
+      if (!authUser) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      let targetDate: string;
+      if (date) {
+        targetDate = date as string;
+      } else {
+        targetDate = new Date().toISOString().split('T')[0];
+      }
+
+      if (authUser.role === 'employee') {
+        // Employee can only see their own attendance
+        const attendance = await dbStorage.getEmployeeAttendanceByDate(authUser.employeeId, targetDate);
+        res.json(attendance ? [attendance] : []);
+      } else {
+        // HR/Admin can see all attendance for the date
+        const attendance = await dbStorage.getAttendanceByDate(targetDate);
+        res.json(attendance);
+      }
+    } catch (error) {
+      console.error("Error fetching attendance:", error);
+      res.status(500).json({ error: "Failed to fetch attendance" });
+    }
+  });
+
+  app.post("/api/attendance/checkin", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { location } = req.body;
+      const authUser = req.authUser;
+      
+      if (!authUser || authUser.role !== 'employee') {
+        return res.status(401).json({ error: "Only employees can check in" });
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Check if already checked in today
+      const existingAttendance = await dbStorage.getEmployeeAttendanceByDate(authUser.employeeId, today);
+      if (existingAttendance && existingAttendance.checkIn) {
+        return res.status(400).json({ error: "Already checked in today" });
+      }
+
+      const checkInTime = new Date();
+      const workStart = new Date();
+      workStart.setHours(9, 0, 0, 0); // 9:00 AM
+
+      const status = checkInTime > workStart ? 'late' : 'present';
+
+      const attendanceData = {
+        employeeId: authUser.employeeId,
+        date: today,
+        checkIn: checkInTime.toISOString(),
+        checkInLocation: location || 'Unknown',
+        status: status
+      };
+
+      const attendance = await dbStorage.createAttendance(attendanceData);
+      res.json(attendance);
+    } catch (error) {
+      console.error("Error during check-in:", error);
+      res.status(500).json({ error: "Failed to check in" });
+    }
+  });
+
+  app.put("/api/attendance/:id/checkout", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { checkOut, checkOutLocation } = req.body;
+      const authUser = req.authUser;
+      
+      if (!authUser || authUser.role !== 'employee') {
+        return res.status(401).json({ error: "Only employees can check out" });
+      }
+
+      const attendance = await dbStorage.getAttendanceById(parseInt(id));
+      if (!attendance) {
+        return res.status(404).json({ error: "Attendance record not found" });
+      }
+
+      // Get employee to validate ownership
+      const employee = await dbStorage.getEmployeeByEmployeeId(authUser.employeeId);
+      if (!employee || attendance.employeeId !== employee.id) {
+        return res.status(403).json({ error: "Can only check out your own attendance" });
+      }
+
+      if (attendance.checkOut) {
+        return res.status(400).json({ error: "Already checked out" });
+      }
+
+      const checkOutTime = new Date(checkOut);
+      const checkInTime = new Date(attendance.checkIn!);
+      
+      // Calculate working hours
+      const workingMs = checkOutTime.getTime() - checkInTime.getTime();
+      const workingHours = (workingMs / (1000 * 60 * 60)).toFixed(2);
+
+      const updateData = {
+        checkOut: checkOut,
+        checkOutLocation: checkOutLocation || 'Unknown',
+        workingHours: workingHours
+      };
+
+      const updatedAttendance = await dbStorage.updateAttendance(parseInt(id), updateData);
+      res.json(updatedAttendance);
+    } catch (error) {
+      console.error("Error during check-out:", error);
+      res.status(500).json({ error: "Failed to check out" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
