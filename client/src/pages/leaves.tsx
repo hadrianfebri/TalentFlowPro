@@ -23,6 +23,7 @@ import {
 import { 
   Dialog, 
   DialogContent, 
+  DialogDescription,
   DialogHeader, 
   DialogTitle, 
   DialogTrigger 
@@ -112,10 +113,10 @@ export default function Leaves() {
     enabled: isAuthenticated && (user as any)?.role !== "employee",
   });
 
-  // Get current employee data for logged-in user
+  // Get current employee data for logged-in user based on employee ID string
   const { data: currentEmployee } = useQuery<Employee>({
-    queryKey: ["/api/employees", (user as any)?.employeeId],
-    enabled: isAuthenticated && !!(user as any)?.employeeId,
+    queryKey: ["/api/employees/by-employee-id", (user as any)?.employeeId],
+    enabled: isAuthenticated && !!(user as any)?.employeeId && (user as any)?.role === "employee",
   });
 
   const createLeaveMutation = useMutation({
@@ -372,6 +373,9 @@ export default function Leaves() {
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>Pengajuan Cuti Baru</DialogTitle>
+                      <DialogDescription>
+                        Isi formulir di bawah ini untuk mengajukan permohonan cuti
+                      </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">

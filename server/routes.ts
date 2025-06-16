@@ -813,6 +813,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/employees/by-employee-id/:employeeId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { employeeId } = req.params;
+      const employee = await dbStorage.getEmployeeByEmployeeId(employeeId);
+      
+      if (!employee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+      
+      res.json(employee);
+    } catch (error) {
+      console.error("Error fetching employee by employee ID:", error);
+      res.status(500).json({ message: "Failed to fetch employee" });
+    }
+  });
+
   app.get('/api/employees/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
