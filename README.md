@@ -133,9 +133,15 @@ npm run start
 npm run type-check
 
 # Database operations
-npm run db:studio     # Buka Drizzle Studio
-npm run db:generate   # Generate migrasi baru
-npm run db:drop       # Drop database
+npm run db:push       # Push schema ke database
+npx drizzle-kit studio     # Buka Drizzle Studio
+npx drizzle-kit generate   # Generate migrasi baru
+npx drizzle-kit migrate    # Jalankan migrasi
+
+# Database seeding dan cleaning
+npx tsx scripts/clean.ts   # Bersihkan semua data
+npx tsx scripts/seed.ts    # Isi data contoh
+npx tsx scripts/migrate.ts # Jalankan migrasi manual
 
 # Testing
 npm run test

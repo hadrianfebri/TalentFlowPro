@@ -147,6 +147,12 @@ The system uses 13 main tables:
     - Added environment variables configuration with examples
     - Documented troubleshooting steps for common development issues
     - Provided development tips and best practices for local development
+  - Database migration and seeding scripts for local development:
+    - Created `scripts/seed.ts` for populating development data
+    - Created `scripts/clean.ts` for database cleanup
+    - Created `scripts/migrate.ts` for manual migration execution
+    - Added comprehensive database operations documentation
+    - Implemented proper foreign key constraint handling in cleanup script
 
 ## Changelog
 
