@@ -1065,12 +1065,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/attendance/checkin', async (req: any, res) => {
     try {
       if (!req.session?.authUser) {
-        return res.status(401).json({ message: "Not authenticated" });
+        return res.status(401).json({ error: "Not authenticated" });
       }
 
       const authUser = req.session.authUser;
+      
       if (authUser.role !== 'employee') {
-        return res.status(403).json({ message: "Only employees can check in" });
+        return res.status(403).json({ error: "Only employees can check in" });
       }
 
       const today = new Date().toISOString().split('T')[0];
@@ -1078,22 +1079,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get employee ID from database using employeeId string
       const employee = await dbStorage.getEmployeeByEmployeeId(authUser.employeeId);
+      console.log("Employee found:", employee);
+      
       if (!employee) {
-        return res.status(404).json({ message: "Employee not found" });
+        return res.status(404).json({ error: "Employee not found" });
+      }
+
+      // Check if already checked in today
+      const existingAttendance = await dbStorage.getEmployeeAttendanceByDate(authUser.employeeId, today);
+      if (existingAttendance && existingAttendance.checkIn) {
+        return res.status(400).json({ error: "Already checked in today" });
       }
 
       const attendanceData = {
         employeeId: employee.id,
         date: today,
         checkIn: checkInTime,
-        checkInLocation: req.body.location || null,
+        checkInLocation: req.body.location || 'Unknown location',
         status: 'present' as const,
         createdAt: new Date(),
       };
 
+      console.log("Creating attendance with data:", attendanceData);
       const attendance = await dbStorage.checkIn(attendanceData);
+      console.log("Attendance created:", attendance);
       
-      // Return clean JSON response without circular references
+      // Return clean JSON response
       return res.status(201).json({
         id: attendance.id,
         employeeId: attendance.employeeId,
@@ -1101,11 +1112,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         checkIn: attendance.checkIn,
         checkInLocation: attendance.checkInLocation,
         status: attendance.status,
-        message: "Check-in successful"
+        message: "Check-in berhasil"
       });
     } catch (error) {
       console.error("Error during check-in:", error);
-      return res.status(500).json({ message: "Failed to check in" });
+      return res.status(500).json({ error: "Failed to check in" });
     }
   });
 
@@ -3743,44 +3754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/attendance/checkin", async (req: any, res) => {
-    try {
-      const { location } = req.body;
-      const authUser = req.session?.authUser;
-      
-      if (!authUser || authUser.role !== 'employee') {
-        return res.status(401).json({ error: "Only employees can check in" });
-      }
 
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Check if already checked in today
-      const existingAttendance = await dbStorage.getEmployeeAttendanceByDate(authUser.employeeId, today);
-      if (existingAttendance && existingAttendance.checkIn) {
-        return res.status(400).json({ error: "Already checked in today" });
-      }
-
-      const checkInTime = new Date();
-      const workStart = new Date();
-      workStart.setHours(9, 0, 0, 0); // 9:00 AM
-
-      const status = checkInTime > workStart ? 'late' : 'present';
-
-      const attendanceData = {
-        employeeId: authUser.employeeId,
-        date: today,
-        checkIn: checkInTime.toISOString(),
-        checkInLocation: location || 'Unknown',
-        status: status
-      };
-
-      const attendance = await dbStorage.createAttendance(attendanceData);
-      res.json(attendance);
-    } catch (error) {
-      console.error("Error during check-in:", error);
-      res.status(500).json({ error: "Failed to check in" });
-    }
-  });
 
   app.put("/api/attendance/:id/checkout", async (req: any, res) => {
     try {
