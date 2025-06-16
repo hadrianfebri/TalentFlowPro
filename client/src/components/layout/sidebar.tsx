@@ -26,14 +26,28 @@ export default function Sidebar() {
   const { t, isRTL } = useLanguage();
   const { user } = useAuth();
 
-  const handleLogout = () => {
-    // Clear any local storage or session data
-    localStorage.removeItem('user');
-    // Redirect to appropriate login page based on user role
-    if (user?.role === 'employee') {
-      window.location.href = '/employee-login';
-    } else {
-      window.location.href = '/hr-login';
+  const handleLogout = async () => {
+    try {
+      // Call server logout endpoint to destroy session
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include' // Include session cookies
+      });
+      
+      // Clear any local storage or session data
+      localStorage.removeItem('user');
+      
+      // Redirect to appropriate login page based on user role
+      if (user?.role === 'employee') {
+        window.location.href = '/employee-login';
+      } else {
+        window.location.href = '/hr-login';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if server logout fails, still clear local data and redirect
+      localStorage.removeItem('user');
+      window.location.href = '/';
     }
   };
 
