@@ -452,14 +452,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         employeeId: auth.employeeId
       };
 
-      res.json({
-        success: true,
-        user: {
-          id: auth.id,
-          email: auth.email,
-          role: auth.role,
-          companyId: auth.companyId
+      // Save session explicitly
+      req.session.save((err: any) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Failed to save session" });
         }
+        
+        console.log("Session saved successfully for user:", auth.email);
+        res.json({
+          success: true,
+          user: {
+            id: auth.id,
+            email: auth.email,
+            role: auth.role,
+            companyId: auth.companyId
+          }
+        });
       });
     } catch (error) {
       console.error("HR login error:", error);
@@ -491,15 +500,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         employeeId: auth.employeeId
       };
 
-      res.json({
-        success: true,
-        user: {
-          id: auth.id,
-          email: auth.email,
-          role: auth.role,
-          companyId: auth.companyId,
-          employeeId: auth.employeeId
+      // Save session explicitly
+      req.session.save((err: any) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Failed to save session" });
         }
+        
+        console.log("Session saved successfully for employee:", auth.employeeId);
+        res.json({
+          success: true,
+          user: {
+            id: auth.id,
+            email: auth.email,
+            role: auth.role,
+            companyId: auth.companyId,
+            employeeId: auth.employeeId
+          }
+        });
       });
     } catch (error) {
       console.error("Employee login error:", error);
@@ -557,16 +575,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/auth/user', isAuthenticated, getUserProfile, async (req: any, res) => {
+  // Get current user session for local auth
+  app.get('/api/auth/user', (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      res.json({
-        ...user,
-        permissions: req.userProfile?.role
-      });
+      if (!req.session.authUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      res.json(req.session.authUser);
     } catch (error) {
-      console.error("Error fetching user:", error);
+      console.error("Error fetching user session:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
