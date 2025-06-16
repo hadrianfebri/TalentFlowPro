@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Users, 
   Clock, 
@@ -23,86 +24,133 @@ import talentWhizLogo from "@assets/TALENTWHIZ_COLOR_1749955055542.png";
 export default function Sidebar() {
   const [location] = useLocation();
   const { t, isRTL } = useLanguage();
+  const { user } = useAuth();
 
   const handleLogout = () => {
     // Clear any local storage or session data
     localStorage.removeItem('user');
-    // Redirect to HR login page
-    window.location.href = '/hr-login';
+    // Redirect to appropriate login page based on user role
+    if (user?.role === 'employee') {
+      window.location.href = '/employee-login';
+    } else {
+      window.location.href = '/hr-login';
+    }
   };
 
-  const navigationItems = [
-    {
-      name: t('nav.dashboard'),
-      href: "/",
-      icon: LayoutDashboard,
-    },
-    {
-      name: t('nav.employees'),
-      href: "/employees",
-      icon: Users,
-    },
-    {
-      name: t('nav.attendance'),
-      href: "/attendance",
-      icon: Clock,
-    },
-    {
-      name: t('nav.payroll'),
-      href: "/payroll",
-      icon: DollarSign,
-    },
-    {
-      name: "Komponen Gaji",
-      href: "/salary-components",
-      icon: DollarSign,
-    },
-    {
-      name: t('nav.leaves'),
-      href: "/leaves",
-      icon: Calendar,
-    },
-    {
-      name: t('nav.documents'),
-      href: "/documents",
-      icon: FileText,
-    },
-    {
-      name: t('nav.reimbursements'),
-      href: "/reimbursement",
-      icon: Receipt,
-    },
-    {
-      name: t('nav.performance'),
-      href: "/performance",
-      icon: BarChart3,
-    },
-    {
-      name: t('nav.jobs'),
-      href: "/recruitment",
-      icon: UserPlus,
-    },
-    {
-      name: t('nav.applications'),
-      href: "/add-applicant",
-      icon: UserCheck,
-    },
-    {
-      name: "Upload Pelamar",
-      href: "/applicant-upload",
-      icon: Gift,
-    },
-    {
-      name: "AI Testing",
-      href: "/ai-testing",
-      icon: Brain,
-    },
-    {
-      name: t('nav.settings'),
-      href: "/settings",
-      icon: Settings,
-    },
-  ];
+  // Define navigation items based on user role
+  const getNavigationItems = () => {
+    if (user?.role === 'employee') {
+      // Employee navigation - limited access
+      return [
+        {
+          name: t('nav.dashboard'),
+          href: "/",
+          icon: LayoutDashboard,
+        },
+        {
+          name: t('nav.attendance'),
+          href: "/employee-attendance",
+          icon: Clock,
+        },
+        {
+          name: t('nav.leaves'),
+          href: "/leaves",
+          icon: Calendar,
+        },
+        {
+          name: t('nav.documents'),
+          href: "/documents",
+          icon: FileText,
+        },
+        {
+          name: t('nav.reimbursements'),
+          href: "/reimbursement",
+          icon: Receipt,
+        },
+        {
+          name: t('nav.performance'),
+          href: "/performance",
+          icon: BarChart3,
+        },
+      ];
+    } else {
+      // Admin/HR navigation - full access
+      return [
+        {
+          name: t('nav.dashboard'),
+          href: "/",
+          icon: LayoutDashboard,
+        },
+        {
+          name: t('nav.employees'),
+          href: "/employees",
+          icon: Users,
+        },
+        {
+          name: t('nav.attendance'),
+          href: "/attendance",
+          icon: Clock,
+        },
+        {
+          name: t('nav.payroll'),
+          href: "/payroll",
+          icon: DollarSign,
+        },
+        {
+          name: "Komponen Gaji",
+          href: "/salary-components",
+          icon: DollarSign,
+        },
+        {
+          name: t('nav.leaves'),
+          href: "/leaves",
+          icon: Calendar,
+        },
+        {
+          name: t('nav.documents'),
+          href: "/documents",
+          icon: FileText,
+        },
+        {
+          name: t('nav.reimbursements'),
+          href: "/reimbursement",
+          icon: Receipt,
+        },
+        {
+          name: t('nav.performance'),
+          href: "/performance",
+          icon: BarChart3,
+        },
+        {
+          name: t('nav.jobs'),
+          href: "/recruitment",
+          icon: UserPlus,
+        },
+        {
+          name: t('nav.applications'),
+          href: "/add-applicant",
+          icon: UserCheck,
+        },
+        {
+          name: "Upload Pelamar",
+          href: "/applicant-upload",
+          icon: Gift,
+        },
+        {
+          name: "AI Testing",
+          href: "/ai-testing",
+          icon: Brain,
+        },
+        {
+          name: t('nav.settings'),
+          href: "/settings",
+          icon: Settings,
+        },
+      ];
+    }
+  };
+
+  const navigationItems = getNavigationItems();
 
   return (
     <aside className={cn(

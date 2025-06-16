@@ -123,6 +123,15 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
+- **June 16, 2025**: Fixed employee attendance system and role-based navigation
+  - Resolved "Akses Terbatas" issue where employees couldn't access attendance page
+  - Implemented role-based sidebar navigation showing different menu items for employees vs admin/HR
+  - Fixed routing so employees are directed to `/employee-attendance` instead of `/attendance`
+  - Completed full-stack employee attendance system with working check-in/check-out functionality
+  - Successfully tested authentication flow with employee user (EMP003)
+  - Removed debug logging after confirming system stability
+  - Updated logout functionality to redirect users to appropriate login pages based on role
+
 - **June 16, 2025**: Fixed translation system and authentication infrastructure
   - Resolved translation keys displaying instead of actual text on login pages
   - Updated LanguageContext.tsx to use complete translations from shared/i18n.ts
