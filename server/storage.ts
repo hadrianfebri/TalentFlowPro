@@ -55,6 +55,7 @@ import { eq, and, desc, gte, lte, sql } from "drizzle-orm";
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Local authentication operations
@@ -159,6 +160,11 @@ export class DatabaseStorage implements IStorage {
   // User operations (mandatory for Replit Auth)
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
@@ -659,6 +665,35 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(employees, eq(leaveRequests.employeeId, employees.id))
       .where(eq(employees.companyId, companyId))
       .orderBy(desc(leaveRequests.createdAt));
+  }
+
+  async getLeaveRequestById(id: number): Promise<LeaveRequest | undefined> {
+    const [leaveRequest] = await db
+      .select({
+        id: leaveRequests.id,
+        employeeId: leaveRequests.employeeId,
+        leaveTypeId: leaveRequests.leaveTypeId,
+        startDate: leaveRequests.startDate,
+        endDate: leaveRequests.endDate,
+        totalDays: leaveRequests.totalDays,
+        reason: leaveRequests.reason,
+        status: leaveRequests.status,
+        approvedBy: leaveRequests.approvedBy,
+        approvedAt: leaveRequests.approvedAt,
+        rejectionReason: leaveRequests.rejectionReason,
+        documents: leaveRequests.documents,
+        createdAt: leaveRequests.createdAt,
+        updatedAt: leaveRequests.updatedAt,
+        employee: {
+          firstName: employees.firstName,
+          lastName: employees.lastName,
+          employeeId: employees.employeeId,
+        }
+      })
+      .from(leaveRequests)
+      .innerJoin(employees, eq(leaveRequests.employeeId, employees.id))
+      .where(eq(leaveRequests.id, id));
+    return leaveRequest;
   }
 
   async createLeaveRequest(data: InsertLeaveRequest): Promise<LeaveRequest> {
