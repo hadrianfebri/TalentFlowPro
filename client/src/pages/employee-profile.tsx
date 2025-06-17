@@ -26,12 +26,12 @@ interface EmployeeProfile {
 
 export default function EmployeeProfile() {
   const { data: profile, isLoading, error } = useQuery({
-    queryKey: ['/api/employee-profile'],
+    queryKey: ['/api/employee/profile'],
     retry: 1,
   });
 
   const { data: payrollHistory } = useQuery({
-    queryKey: ['/api/payroll-history'],
+    queryKey: ['/api/employee/payroll-history'],
     retry: 1,
   });
 

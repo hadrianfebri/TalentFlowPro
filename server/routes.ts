@@ -741,9 +741,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hireDate: employee.hireDate,
         salary: Number(employee.basicSalary) || 5000000,
         status: employee.status,
-        address: employee.currentAddress || '',
-        emergencyContact: employee.emergencyContact || '',
-        emergencyPhone: employee.emergencyPhone || '',
+        address: employee.homeAddress || '',
+        emergencyContact: typeof employee.emergencyContact === 'object' && employee.emergencyContact ? 
+          (employee.emergencyContact as any).name || '' : '',
+        emergencyPhone: typeof employee.emergencyContact === 'object' && employee.emergencyContact ? 
+          (employee.emergencyContact as any).phone || '' : '',
       };
 
       res.json(profile);
