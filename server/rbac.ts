@@ -18,21 +18,61 @@ export interface AuthenticatedRequest extends Request {
 // Middleware untuk mengambil profile user dengan role
 export const getUserProfile = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user.claims.sub;
-    const user = await storage.getUser(userId);
+    const authUser = req.session?.authUser;
     
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    // Handle session-based authentication (HR/Employee login)
+    if (authUser) {
+      if (authUser.role === 'employee') {
+        // For employees, get the employee record
+        const employee = await storage.getEmployeeByEmployeeId(authUser.employeeId);
+        if (!employee) {
+          return res.status(404).json({ message: "Employee record not found" });
+        }
+        
+        req.userProfile = {
+          id: authUser.email,
+          role: authUser.role,
+          employeeId: employee.id, // Use database employee ID
+          companyId: employee.companyId,
+        };
+      } else {
+        // For HR/Admin, get the user record
+        const user = await storage.getUserByEmail(authUser.email);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        req.userProfile = {
+          id: user.id,
+          role: authUser.role,
+          employeeId: undefined,
+          companyId: user.companyId || "",
+        };
+      }
+      
+      return next();
     }
+    
+    // Handle Replit auth
+    if (req.user?.claims?.sub) {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
-    req.userProfile = {
-      id: user.id,
-      role: user.role || "employee",
-      employeeId: user.employeeId ?? undefined,
-      companyId: user.companyId || "",
-    };
-
-    next();
+      req.userProfile = {
+        id: user.id,
+        role: user.role || "employee",
+        employeeId: user.employeeId ?? undefined,
+        companyId: user.companyId || "",
+      };
+      
+      return next();
+    }
+    
+    return res.status(401).json({ message: "Authentication required" });
   } catch (error) {
     console.error("Error getting user profile:", error);
     res.status(500).json({ message: "Failed to get user profile" });
