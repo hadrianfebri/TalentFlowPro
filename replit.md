@@ -123,12 +123,13 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
-- **June 17, 2025**: Fixed document management system and completed authentication integration
-  - Resolved document creation authentication issues by implementing getUserProfile middleware for both Replit Auth and session-based authentication
+- **June 17, 2025**: Fixed reimbursement system and completed authentication integration across all modules
+  - Resolved reimbursement list display issue by adding getUserProfile middleware to reimbursement GET endpoint
+  - Fixed document creation authentication issues by implementing getUserProfile middleware for both Replit Auth and session-based authentication
   - Fixed schema field mapping issue where frontend "title" field needed to map to backend "name" field
-  - Document endpoints now work correctly for employee authentication with proper company association
-  - Completed document upload and retrieval functionality for all user roles
-  - Both leave request and document management systems now fully functional with proper RBAC
+  - All major systems now work correctly for employee authentication: attendance, leave requests, documents, and reimbursements
+  - Completed comprehensive RBAC implementation across entire platform
+  - All employee and HR functionality fully operational with proper company association
 
 - **June 17, 2025**: Fixed leave request system and implemented proper role-based access control
   - Resolved "undefined undefined (undefined)" and "Loading employee data..." display issues

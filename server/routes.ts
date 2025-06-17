@@ -2203,11 +2203,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get('/api/reimbursements', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      console.log("Reimbursement GET - userProfile:", req.userProfile);
       const companyId = req.userProfile?.companyId;
 
       if (!companyId) {
-        console.log("No company ID found for reimbursements:", req.userProfile);
         return res.status(400).json({ message: "User not associated with company" });
       }
 
