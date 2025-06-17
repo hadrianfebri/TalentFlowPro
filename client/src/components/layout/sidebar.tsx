@@ -62,6 +62,11 @@ export default function Sidebar() {
           icon: LayoutDashboard,
         },
         {
+          name: "Profil Saya",
+          href: "/employee-profile",
+          icon: UserCheck,
+        },
+        {
           name: t('nav.attendance'),
           href: "/employee-attendance",
           icon: Clock,

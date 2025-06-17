@@ -739,11 +739,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         position: employee.position,
         department: 'IT Department',
         hireDate: employee.hireDate,
-        salary: 5000000,
+        salary: Number(employee.basicSalary) || 5000000,
         status: employee.status,
         address: employee.address || '',
         emergencyContact: employee.emergencyContact || '',
-        emergencyPhone: employee.emergencyContactPhone || '',
+        emergencyPhone: employee.emergencyContactNumber || employee.emergencyContactPhone || '',
       };
 
       res.json(profile);
