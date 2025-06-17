@@ -415,6 +415,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Debug endpoint for session
+  app.get('/api/debug/session', (req: any, res) => {
+    res.json({
+      session: req.session,
+      user: req.user,
+      authUser: req.session?.authUser
+    });
+  });
+
   // Local authentication routes
   app.post('/api/auth/login-hr', i18nMiddleware, async (req: any, res) => {
     try {
