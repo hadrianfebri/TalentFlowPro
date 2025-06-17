@@ -487,7 +487,7 @@ export class DatabaseStorage implements IStorage {
           id: sql<string>`CAST(${leaveRequests.id} AS TEXT)`,
           type: sql<string>`'leave'`,
           title: sql<string>`CONCAT('Pengajuan cuti ', ${leaveRequests.leaveType})`,
-          description: sql<string>`CONCAT('Status: ', ${leaveRequests.status}, ' | ', TO_CHAR(${leaveRequests.startDate}, 'DD Mon'), ' - ', TO_CHAR(${leaveRequests.endDate}, 'DD Mon'))`,
+          description: sql<string>`CONCAT('Status: ', ${leaveRequests.status})`,
           timestamp: leaveRequests.createdAt,
         })
         .from(leaveRequests)

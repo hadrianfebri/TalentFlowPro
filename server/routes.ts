@@ -632,7 +632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let stats;
       if (role === 'employee' && employeeId) {
         // Employee-specific stats
-        stats = await dbStorage.getEmployeeDashboardStats(employeeId, companyId);
+        stats = await dbStorage.getEmployeeStats(employeeId, companyId);
       } else {
         // Admin/HR company-wide stats
         stats = await dbStorage.getDashboardStats(companyId);
