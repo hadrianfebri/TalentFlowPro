@@ -123,13 +123,16 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
-- **June 17, 2025**: Fixed reimbursement system and completed authentication integration across all modules
+- **June 17, 2025**: Fixed reimbursement system and completed comprehensive RBAC implementation
   - Resolved reimbursement list display issue by adding getUserProfile middleware to reimbursement GET endpoint
   - Fixed document creation authentication issues by implementing getUserProfile middleware for both Replit Auth and session-based authentication
   - Fixed schema field mapping issue where frontend "title" field needed to map to backend "name" field
+  - Implemented role-based access control for reimbursement approvals - employees cannot see or access approve/reject buttons
+  - Added frontend role checking with `canApprove` condition for admin/HR only
+  - Backend already secured with `requireAdminOrHR` middleware for approval endpoints
   - All major systems now work correctly for employee authentication: attendance, leave requests, documents, and reimbursements
-  - Completed comprehensive RBAC implementation across entire platform
-  - All employee and HR functionality fully operational with proper company association
+  - Completed comprehensive RBAC implementation across entire platform with proper role separation
+  - All employee and HR functionality fully operational with secure, role-based access controls
 
 - **June 17, 2025**: Fixed leave request system and implemented proper role-based access control
   - Resolved "undefined undefined (undefined)" and "Loading employee data..." display issues

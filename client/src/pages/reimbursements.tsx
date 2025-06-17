@@ -86,6 +86,12 @@ export default function Reimbursements() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Get current user data to check role
+  const { data: currentUser } = useQuery({
+    queryKey: ["/api/auth/user"],
+    enabled: isAuthenticated,
+  });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedReimbursement, setSelectedReimbursement] = useState<Reimbursement | null>(null);
@@ -207,6 +213,9 @@ export default function Reimbursements() {
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge className={config.className}>{config.label}</Badge>;
   };
+
+  // Check if current user can approve/reject (admin or hr role)
+  const canApprove = currentUser?.role === 'admin' || currentUser?.role === 'hr';
 
   const filteredReimbursements = reimbursements?.filter(reimbursement => {
     const matchesSearch = 
@@ -544,7 +553,7 @@ export default function Reimbursements() {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              {reimbursement.status === "pending" && (
+                              {reimbursement.status === "pending" && canApprove && (
                                 <>
                                   <Button
                                     variant="ghost"
