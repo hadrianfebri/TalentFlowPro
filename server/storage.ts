@@ -341,7 +341,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Employee-specific dashboard stats
-  async getEmployeeDashboardStats(employeeId: number, companyId: string): Promise<any> {
+  async getEmployeeStats(employeeId: number, companyId: string): Promise<any> {
     try {
       // Get employee data
       const employee = await this.getEmployee(employeeId);
@@ -371,7 +371,7 @@ export class DatabaseStorage implements IStorage {
         .from(attendance)
         .where(and(
           eq(attendance.employeeId, employeeId),
-          sql`date LIKE ${currentMonth + '%'}`,
+          sql`date_part('year', ${attendance.date}) = ${new Date().getFullYear()} AND date_part('month', ${attendance.date}) = ${new Date().getMonth() + 1}`,
           eq(attendance.status, 'present')
         ));
       
@@ -454,6 +454,72 @@ export class DatabaseStorage implements IStorage {
       }));
     } catch (error) {
       console.error("Error fetching recent activities:", error);
+      return [];
+    }
+  }
+
+  // Employee-specific recent activities
+  async getEmployeeRecentActivities(employeeId: number, companyId: string): Promise<any[]> {
+    try {
+      // Get employee's recent attendance
+      const recentAttendance = await db
+        .select({
+          id: sql<string>`CAST(${attendance.id} AS TEXT)`,
+          type: sql<string>`'attendance'`,
+          title: sql<string>`CASE 
+            WHEN ${attendance.checkOut} IS NOT NULL THEN 'Check-out berhasil'
+            ELSE 'Check-in berhasil'
+          END`,
+          description: sql<string>`CASE 
+            WHEN ${attendance.checkOut} IS NOT NULL THEN CONCAT('Waktu kerja: ', TO_CHAR(${attendance.checkIn}, 'HH24:MI'), ' - ', TO_CHAR(${attendance.checkOut}, 'HH24:MI'))
+            ELSE CONCAT('Masuk kerja: ', TO_CHAR(${attendance.checkIn}, 'HH24:MI'), ' WIB')
+          END`,
+          timestamp: attendance.createdAt,
+        })
+        .from(attendance)
+        .where(eq(attendance.employeeId, employeeId))
+        .orderBy(desc(attendance.createdAt))
+        .limit(5);
+
+      // Get employee's recent leave requests
+      const recentLeaves = await db
+        .select({
+          id: sql<string>`CAST(${leaveRequests.id} AS TEXT)`,
+          type: sql<string>`'leave'`,
+          title: sql<string>`CONCAT('Pengajuan cuti ', ${leaveRequests.leaveType})`,
+          description: sql<string>`CONCAT('Status: ', ${leaveRequests.status}, ' | ', TO_CHAR(${leaveRequests.startDate}, 'DD Mon'), ' - ', TO_CHAR(${leaveRequests.endDate}, 'DD Mon'))`,
+          timestamp: leaveRequests.createdAt,
+        })
+        .from(leaveRequests)
+        .where(eq(leaveRequests.employeeId, employeeId))
+        .orderBy(desc(leaveRequests.createdAt))
+        .limit(3);
+
+      // Get employee's recent reimbursements
+      const recentReimbursements = await db
+        .select({
+          id: sql<string>`CAST(${reimbursements.id} AS TEXT)`,
+          type: sql<string>`'reimbursement'`,
+          title: sql<string>`CONCAT('Reimbursement: ', ${reimbursements.name})`,
+          description: sql<string>`CONCAT('Rp ', ${reimbursements.amount}, ' - Status: ', ${reimbursements.status})`,
+          timestamp: reimbursements.createdAt,
+        })
+        .from(reimbursements)
+        .where(eq(reimbursements.employeeId, employeeId))
+        .orderBy(desc(reimbursements.createdAt))
+        .limit(2);
+
+      // Combine and sort all activities
+      const allActivities = [...recentAttendance, ...recentLeaves, ...recentReimbursements]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 8);
+
+      return allActivities.map(activity => ({
+        ...activity,
+        timestamp: activity.timestamp?.toISOString() || new Date().toISOString()
+      }));
+    } catch (error) {
+      console.error("Error fetching employee recent activities:", error);
       return [];
     }
   }

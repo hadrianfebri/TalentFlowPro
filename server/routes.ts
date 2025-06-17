@@ -676,11 +676,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/dashboard/activities', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
       const companyId = req.userProfile?.companyId;
+      const role = req.userProfile?.role;
+      const employeeId = req.userProfile?.employeeId;
+      
       if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const activities = await dbStorage.getRecentActivities(companyId);
+      let activities;
+      if (role === 'employee' && employeeId) {
+        // Employee-specific activities
+        activities = await dbStorage.getEmployeeRecentActivities(employeeId, companyId);
+      } else {
+        // Admin/HR company-wide activities
+        activities = await dbStorage.getRecentActivities(companyId);
+      }
+      
       res.json(activities);
     } catch (error) {
       console.error("Error fetching activities:", error);

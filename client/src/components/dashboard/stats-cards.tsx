@@ -9,7 +9,7 @@ interface DashboardStats {
   // Company-wide stats (Admin/HR)
   totalEmployees?: number;
   employeeGrowth?: string;
-  todayAttendance?: number;
+  todayAttendance?: number | string;
   attendanceRate?: string;
   pendingLeaves?: number;
   urgentLeaves?: string;
@@ -19,7 +19,6 @@ interface DashboardStats {
   // Employee-specific stats
   employeeName?: string;
   employeeId?: string;
-  todayAttendance?: string;
   attendanceIcon?: string;
   monthlyAttendance?: number;
 }
