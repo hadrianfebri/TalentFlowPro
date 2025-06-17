@@ -619,15 +619,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/dashboard/stats', isAuthenticated, async (req: any, res) => {
+  app.get('/api/dashboard/stats', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      const companyId = req.userProfile?.companyId;
+      if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const stats = await dbStorage.getDashboardStats(user.companyId);
+      const stats = await dbStorage.getDashboardStats(companyId);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -663,15 +662,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/dashboard/activities', isAuthenticated, async (req: any, res) => {
+  app.get('/api/dashboard/activities', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      const companyId = req.userProfile?.companyId;
+      if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const activities = await dbStorage.getRecentActivities(user.companyId);
+      const activities = await dbStorage.getRecentActivities(companyId);
       res.json(activities);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -679,15 +677,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/dashboard/ai-insights', isAuthenticated, async (req: any, res) => {
+  app.get('/api/dashboard/ai-insights', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      const companyId = req.userProfile?.companyId;
+      if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const insights = await dbStorage.getAIInsights(user.companyId);
+      const insights = await dbStorage.getAIInsights(companyId);
       res.json(insights);
     } catch (error) {
       console.error("Error fetching AI insights:", error);
