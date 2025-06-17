@@ -1997,15 +1997,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/documents', isAuthenticated, async (req: any, res) => {
+  app.get('/api/documents', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      const companyId = req.userProfile?.companyId;
+
+      if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const documents = await dbStorage.getDocuments(user.companyId);
+      const documents = await dbStorage.getDocuments(companyId);
       res.json(documents);
     } catch (error) {
       console.error("Error fetching documents:", error);
@@ -2085,17 +2085,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.post('/api/documents', isAuthenticated, async (req: any, res) => {
+  app.post('/api/documents', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      console.log("Document creation - userProfile:", req.userProfile);
+      console.log("Document creation - session authUser:", req.session?.authUser);
+      
+      const companyId = req.userProfile?.companyId;
+      const userId = req.user?.claims?.sub || req.session?.authUser?.id;
+
+      if (!companyId) {
+        console.log("No company ID found in userProfile:", req.userProfile);
         return res.status(400).json({ message: "User not associated with company" });
       }
 
       const validatedData = insertDocumentSchema.parse({
         ...req.body,
-        companyId: user.companyId,
+        companyId: companyId,
         createdBy: userId,
       });
       
