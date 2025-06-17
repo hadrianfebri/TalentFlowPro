@@ -18,7 +18,9 @@ export interface AuthenticatedRequest extends Request {
 // Middleware untuk mengambil profile user dengan role
 export const getUserProfile = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    console.log("getUserProfile middleware called");
     const authUser = req.session?.authUser;
+    console.log("Session authUser:", authUser);
     
     // Handle session-based authentication (HR/Employee login)
     if (authUser) {

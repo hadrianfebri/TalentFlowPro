@@ -2201,15 +2201,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/reimbursements', isAuthenticated, async (req: any, res) => {
+  app.get('/api/reimbursements', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      console.log("Reimbursement GET - userProfile:", req.userProfile);
+      const companyId = req.userProfile?.companyId;
+
+      if (!companyId) {
+        console.log("No company ID found for reimbursements:", req.userProfile);
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const reimbursements = await dbStorage.getReimbursements(user.companyId);
+      const reimbursements = await dbStorage.getReimbursements(companyId);
       res.json(reimbursements);
     } catch (error) {
       console.error("Error fetching reimbursements:", error);
