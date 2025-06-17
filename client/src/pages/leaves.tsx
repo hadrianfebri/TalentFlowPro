@@ -113,10 +113,23 @@ export default function Leaves() {
     enabled: isAuthenticated && (user as any)?.role !== "employee",
   });
 
-  // Get current employee data for logged-in user based on employee ID string
-  const { data: currentEmployee } = useQuery<Employee>({
-    queryKey: ["/api/employees", (user as any)?.employeeId],
-    enabled: isAuthenticated && !!(user as any)?.employeeId && (user as any)?.role === "employee",
+  // Get current employee data for logged-in user
+  const { data: currentEmployee } = useQuery<Employee | null>({
+    queryKey: ["/api/employees/current"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/employees");
+        const employees = response as Employee[];
+        if (employees && employees.length > 0) {
+          return employees[0];
+        }
+        return null;
+      } catch (error) {
+        console.error("Failed to fetch current employee:", error);
+        return null;
+      }
+    },
+    enabled: isAuthenticated && (user as any)?.role === "employee",
   });
 
   const createLeaveMutation = useMutation({
@@ -384,8 +397,8 @@ export default function Leaves() {
                           {(user as any)?.role === "employee" ? (
                             <div className="flex items-center h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
                               {currentEmployee ? 
-                                `${currentEmployee.firstName} ${currentEmployee.lastName} (${currentEmployee.employeeId})` : 
-                                "Loading..."
+                                `${currentEmployee.firstName || 'Unknown'} ${currentEmployee.lastName || 'User'} (${currentEmployee.employeeId || 'N/A'})` : 
+                                "Loading employee data..."
                               }
                               <input 
                                 type="hidden" 
