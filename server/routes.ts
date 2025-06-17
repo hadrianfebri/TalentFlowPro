@@ -2087,9 +2087,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.post('/api/documents', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      console.log("Document creation - request body:", req.body);
-      console.log("Document creation - title field:", req.body.title);
-      
       const companyId = req.userProfile?.companyId;
       const userId = req.user?.claims?.sub || req.session?.authUser?.id;
 
@@ -2097,13 +2094,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const validatedData = insertDocumentSchema.parse({
-        ...req.body,
-        name: req.body.title, // Map title to name field
+      // Map frontend fields to backend schema
+      const documentData = {
+        name: req.body.title || req.body.name, // Frontend sends 'title', backend expects 'name'
+        type: req.body.type,
+        description: req.body.description,
+        filePath: req.body.filePath,
+        fileSize: req.body.fileSize,
+        mimeType: req.body.mimeType,
+        isTemplate: req.body.isTemplate || false,
+        employeeId: req.body.employeeId,
         companyId: companyId,
-        createdBy: userId,
-      });
-      
+        createdBy: String(userId),
+      };
+
+      const validatedData = insertDocumentSchema.parse(documentData);
       const document = await dbStorage.createDocument(validatedData);
       res.status(201).json(document);
     } catch (error) {
