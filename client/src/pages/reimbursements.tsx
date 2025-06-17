@@ -699,7 +699,7 @@ export default function Reimbursements() {
                   )}
                 </div>
                 <div className="flex space-x-2">
-                  {selectedReimbursement.status === "pending" && (
+                  {selectedReimbursement.status === "pending" && canApprove && (
                     <>
                       <Button
                         onClick={() => {
