@@ -124,11 +124,11 @@ The system uses 13 main tables:
 ## Recent Changes
 
 - **June 17, 2025**: Fixed leave request form employee field display issue
-  - Resolved "undefined undefined (undefined)" display in employee field
-  - Added proper error handling and fallback values for employee data
-  - Improved query logic for current employee data retrieval
-  - Enhanced form display with better loading states and error messages
-  - Leave request system now fully functional with proper employee name display
+  - Resolved "undefined undefined (undefined)" and "Loading employee data..." display issues
+  - Simplified query logic to use working /api/employees endpoint
+  - Updated employee data to show proper Indonesian names
+  - Form now displays "Karyawan Aktif (EMP003)" correctly
+  - Leave request system fully functional with accurate employee information
 
 - **June 16, 2025**: Completed employee attendance system with check-in/check-out buttons
   - Fixed circular JSON structure error in attendance check-in endpoint that was causing app crashes
