@@ -741,9 +741,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hireDate: employee.hireDate,
         salary: Number(employee.basicSalary) || 5000000,
         status: employee.status,
-        address: employee.address || '',
+        address: employee.currentAddress || '',
         emergencyContact: employee.emergencyContact || '',
-        emergencyPhone: employee.emergencyContactNumber || employee.emergencyContactPhone || '',
+        emergencyPhone: employee.emergencyPhone || '',
       };
 
       res.json(profile);

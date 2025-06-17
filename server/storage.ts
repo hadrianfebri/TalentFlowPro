@@ -480,7 +480,7 @@ export class DatabaseStorage implements IStorage {
         .select({
           id: sql<string>`CAST(${leaveRequests.id} AS TEXT)`,
           type: sql<string>`'leave'`,
-          title: sql<string>`CONCAT('Pengajuan cuti ', ${leaveRequests.leaveType})`,
+          title: sql<string>`'Pengajuan Cuti'`,
           description: sql<string>`CONCAT('Status: ', ${leaveRequests.status})`,
           timestamp: leaveRequests.createdAt,
         })
@@ -494,8 +494,8 @@ export class DatabaseStorage implements IStorage {
         .select({
           id: sql<string>`CAST(${reimbursements.id} AS TEXT)`,
           type: sql<string>`'reimbursement'`,
-          title: sql<string>`CONCAT('Reimbursement: ', ${reimbursements.name})`,
-          description: sql<string>`CONCAT('Rp ', ${reimbursements.amount}, ' - Status: ', ${reimbursements.status})`,
+          title: sql<string>`'Pengajuan Reimbursement'`,
+          description: sql<string>`CONCAT('Status: ', ${reimbursements.status})`,
           timestamp: reimbursements.createdAt,
         })
         .from(reimbursements)
