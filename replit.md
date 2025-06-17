@@ -123,12 +123,16 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
-- **June 17, 2025**: Fixed leave request form employee field display issue
+- **June 17, 2025**: Fixed leave request system and implemented proper role-based access control
   - Resolved "undefined undefined (undefined)" and "Loading employee data..." display issues
   - Simplified query logic to use working /api/employees endpoint
-  - Updated employee data to show proper Indonesian names
-  - Form now displays "Karyawan Aktif (EMP003)" correctly
-  - Leave request system fully functional with accurate employee information
+  - Updated employee data to show proper Indonesian names "Karyawan Aktif (EMP003)"
+  - Implemented proper RBAC for leave approval system:
+    - Employees can only view and create leave requests (no approve/reject buttons)
+    - HR and Admin users can approve/reject leave requests
+    - Added backend authorization middleware to approval endpoints
+    - Prevents employees from approving their own requests via API calls
+  - Leave request system fully secure and functional with proper role separation
 
 - **June 16, 2025**: Completed employee attendance system with check-in/check-out buttons
   - Fixed circular JSON structure error in attendance check-in endpoint that was causing app crashes

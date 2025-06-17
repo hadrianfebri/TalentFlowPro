@@ -1777,10 +1777,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/leaves/:id/approve', isAuthenticated, async (req: any, res) => {
+  app.put('/api/leaves/:id/approve', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user?.claims?.sub || req.session?.authUser?.id;
       
       const leave = await dbStorage.approveLeaveRequest(parseInt(id), userId);
       res.json(leave);
@@ -1790,11 +1790,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/leaves/:id/reject', isAuthenticated, async (req: any, res) => {
+  app.put('/api/leaves/:id/reject', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { rejectionReason } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = req.user?.claims?.sub || req.session?.authUser?.id;
       
       const leave = await dbStorage.rejectLeaveRequest(parseInt(id), userId, rejectionReason);
       res.json(leave);

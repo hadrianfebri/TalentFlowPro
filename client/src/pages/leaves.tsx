@@ -592,7 +592,8 @@ export default function Leaves() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end items-center space-x-2">
-                              {leave.status === 'pending' && (
+                              {/* Only show approve/reject buttons for HR/Admin users */}
+                              {leave.status === 'pending' && (user as any)?.role !== 'employee' && (
                                 <>
                                   <Button
                                     variant="outline"
