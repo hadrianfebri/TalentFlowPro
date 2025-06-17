@@ -72,6 +72,8 @@ export interface IStorage {
   // Employee operations
   getEmployees(companyId: string): Promise<Employee[]>;
   getEmployee(id: number): Promise<Employee | undefined>;
+  getEmployeeById(id: number): Promise<Employee | undefined>;
+  getEmployeeByEmployeeId(employeeId: string): Promise<Employee | undefined>;
   createEmployee(employee: InsertEmployee): Promise<Employee>;
   updateEmployee(id: number, data: Partial<InsertEmployee>): Promise<Employee>;
   deleteEmployee(id: number): Promise<void>;
@@ -88,6 +90,7 @@ export interface IStorage {
   
   // Leave operations
   getLeaveRequests(companyId: string): Promise<LeaveRequest[]>;
+  getLeaveRequestById(id: number): Promise<LeaveRequest | undefined>;
   createLeaveRequest(data: InsertLeaveRequest): Promise<LeaveRequest>;
   approveLeaveRequest(id: number, approvedBy: string): Promise<LeaveRequest>;
   rejectLeaveRequest(id: number, approvedBy: string, reason: string): Promise<LeaveRequest>;
@@ -426,6 +429,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getEmployee(id: number): Promise<Employee | undefined> {
+    const [employee] = await db
+      .select()
+      .from(employees)
+      .where(eq(employees.id, id));
+    return employee;
+  }
+
+  async getEmployeeById(id: number): Promise<Employee | undefined> {
     const [employee] = await db
       .select()
       .from(employees)

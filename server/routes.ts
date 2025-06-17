@@ -1703,9 +1703,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/leaves', isAuthenticated, async (req: any, res) => {
     try {
-      const validatedData = insertLeaveRequestSchema.parse(req.body);
+      const authUser = req.session?.authUser;
+      
+      // Check if user is authenticated through session or Replit auth
+      let userId: string | null = null;
+      let userCompanyId: string | null = null;
+      
+      if (authUser) {
+        // Session-based authentication (HR/Employee login)
+        if (authUser.role === 'employee') {
+          // Employee can only create leave for themselves
+          const employee = await dbStorage.getEmployeeByEmployeeId(authUser.employeeId);
+          if (!employee) {
+            return res.status(404).json({ message: "Employee record not found" });
+          }
+          
+          // Override employeeId to ensure employee can only create leave for themselves
+          req.body.employeeId = employee.id;
+          userCompanyId = employee.companyId;
+        } else if (authUser.role === 'hr' || authUser.role === 'admin') {
+          // HR/Admin can create leave for any employee in their company
+          const user = await dbStorage.getUserByEmail(authUser.email);
+          if (!user) {
+            return res.status(404).json({ message: "User not found" });
+          }
+          userCompanyId = user.companyId;
+        }
+      } else if (req.user?.claims?.sub) {
+        // Replit auth
+        userId = req.user.claims.sub;
+        const user = await dbStorage.getUser(userId);
+        if (!user?.companyId) {
+          return res.status(400).json({ message: "User not associated with company" });
+        }
+        userCompanyId = user.companyId;
+      } else {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Validate that the employee belongs to the same company
+      const targetEmployee = await dbStorage.getEmployeeById(req.body.employeeId);
+      if (!targetEmployee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+      
+      if (targetEmployee.companyId !== userCompanyId) {
+        return res.status(403).json({ message: "Cannot create leave request for employee from different company" });
+      }
+
+      const validatedData = insertLeaveRequestSchema.parse({
+        ...req.body,
+        status: 'pending', // Always start as pending
+        createdAt: new Date().toISOString()
+      });
+      
       const leave = await dbStorage.createLeaveRequest(validatedData);
-      res.status(201).json(leave);
+      
+      // Fetch the leave with employee details for response
+      const leaveWithEmployee = await dbStorage.getLeaveRequestById(leave.id);
+      res.status(201).json(leaveWithEmployee);
     } catch (error) {
       console.error("Error creating leave request:", error);
       res.status(500).json({ message: "Failed to create leave request" });
