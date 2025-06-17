@@ -660,7 +660,8 @@ export default function Leaves() {
                                     <Eye className="h-4 w-4 mr-2" />
                                     Lihat Detail
                                   </DropdownMenuItem>
-                                  {leave.status === 'pending' && (
+                                  {/* Only show approve/reject options for HR/Admin users */}
+                                  {leave.status === 'pending' && (user as any)?.role !== 'employee' && (
                                     <>
                                       <DropdownMenuItem 
                                         className="text-sm text-green-600"
