@@ -71,31 +71,31 @@ export default function EmployeeProfile() {
             </Button>
           </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Personal Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Informasi Pribadi
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-24 h-24 bg-forest/10 rounded-full flex items-center justify-center">
-                <User className="h-12 w-12 text-forest" />
-              </div>
-            </div>
-            
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-forest">
-                {profile.firstName} {profile.lastName}
-              </h2>
-              <p className="text-muted-foreground">{profile.position}</p>
-              <Badge variant="secondary" className="mt-2">
-                {profile.status}
-              </Badge>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Personal Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Informasi Pribadi
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-center mb-6">
+                  <div className="w-24 h-24 bg-forest/10 rounded-full flex items-center justify-center">
+                    <User className="h-12 w-12 text-forest" />
+                  </div>
+                </div>
+                
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-bold text-forest">
+                    {profile.firstName} {profile.lastName}
+                  </h2>
+                  <p className="text-muted-foreground">{profile.position}</p>
+                  <Badge variant="secondary" className="mt-2">
+                    {profile.status}
+                  </Badge>
+                </div>
 
             <Separator />
 
@@ -134,6 +134,33 @@ export default function EmployeeProfile() {
                     <p className="font-medium">{profile.address}</p>
                   </div>
                 </div>
+              )}
+
+              {(profile.emergencyContact || profile.emergencyPhone) && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-forest">Kontak Darurat</h4>
+                    {profile.emergencyContact && (
+                      <div className="flex items-center gap-3">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Nama Kontak</p>
+                          <p className="font-medium">{profile.emergencyContact}</p>
+                        </div>
+                      </div>
+                    )}
+                    {profile.emergencyPhone && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Telepon Darurat</p>
+                          <p className="font-medium">{profile.emergencyPhone}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </CardContent>
@@ -252,9 +279,9 @@ export default function EmployeeProfile() {
           )}
         </CardContent>
       </Card>
-          </div>
-        </main>
-      </div>
     </div>
+  </main>
+</div>
+</div>
   );
 }
