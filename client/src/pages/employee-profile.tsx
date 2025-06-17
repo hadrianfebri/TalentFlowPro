@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { User, Mail, Phone, MapPin, Calendar, Building, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 
 interface EmployeeProfile {
   id: number;
@@ -56,14 +58,18 @@ export default function EmployeeProfile() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-forest">Profil Karyawan</h1>
-        <Button variant="outline" className="gap-2">
-          <FileText className="h-4 w-4" />
-          Unduh Profil
-        </Button>
-      </div>
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-auto p-6 space-y-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-forest">Profil Karyawan</h1>
+            <Button variant="outline" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Unduh Profil
+            </Button>
+          </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
@@ -246,6 +252,9 @@ export default function EmployeeProfile() {
           )}
         </CardContent>
       </Card>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
