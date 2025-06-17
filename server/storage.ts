@@ -340,6 +340,94 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Employee-specific dashboard stats
+  async getEmployeeDashboardStats(employeeId: number, companyId: string): Promise<any> {
+    try {
+      // Get employee data
+      const employee = await this.getEmployee(employeeId);
+      if (!employee) {
+        throw new Error("Employee not found");
+      }
+
+      // Get today's attendance for this employee
+      const today = new Date().toISOString().split('T')[0];
+      const todayAttendanceResult = await db
+        .select()
+        .from(attendance)
+        .where(and(
+          eq(attendance.employeeId, employeeId),
+          eq(attendance.date, today)
+        ));
+      
+      const todayAttendance = todayAttendanceResult[0];
+      const attendanceStatus = todayAttendance ? 
+        (todayAttendance.checkOut ? "Sudah Check Out" : "Sedang Bekerja") : 
+        "Belum Check In";
+
+      // Get this month's attendance count
+      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+      const monthlyAttendanceResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(attendance)
+        .where(and(
+          eq(attendance.employeeId, employeeId),
+          sql`date LIKE ${currentMonth + '%'}`,
+          eq(attendance.status, 'present')
+        ));
+      
+      const monthlyAttendance = monthlyAttendanceResult[0]?.count || 0;
+
+      // Get pending leave requests for this employee
+      const pendingLeavesResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(leaveRequests)
+        .where(and(
+          eq(leaveRequests.employeeId, employeeId),
+          eq(leaveRequests.status, 'pending')
+        ));
+      
+      const pendingLeaves = pendingLeavesResult[0]?.count || 0;
+
+      // Get current month salary
+      const currentPayrollResult = await db
+        .select()
+        .from(payroll)
+        .where(and(
+          eq(payroll.employeeId, employeeId),
+          eq(payroll.period, currentMonth)
+        ));
+      
+      const currentSalary = currentPayrollResult[0]?.netSalary || "0";
+
+      return {
+        employeeName: `${employee.firstName} ${employee.lastName}`,
+        employeeId: employee.employeeId,
+        todayAttendance: attendanceStatus,
+        attendanceIcon: todayAttendance ? (todayAttendance.checkOut ? "✓" : "⏰") : "○",
+        monthlyAttendance,
+        attendanceRate: `${monthlyAttendance} hari bulan ini`,
+        pendingLeaves,
+        urgentLeaves: pendingLeaves > 0 ? `${pendingLeaves} menunggu persetujuan` : "Tidak ada",
+        monthlyPayroll: `Rp ${parseFloat(currentSalary).toLocaleString('id-ID')}`,
+        payrollStatus: currentPayrollResult[0]?.status || "Belum diproses"
+      };
+    } catch (error) {
+      console.error("Error fetching employee dashboard stats:", error);
+      return {
+        employeeName: "Unknown Employee",
+        employeeId: "N/A",
+        todayAttendance: "Belum Check In",
+        attendanceIcon: "○",
+        monthlyAttendance: 0,
+        attendanceRate: "0 hari bulan ini",
+        pendingLeaves: 0,
+        urgentLeaves: "Tidak ada",
+        monthlyPayroll: "Rp 0",
+        payrollStatus: "Belum ada data"
+      };
+    }
+  }
+
   async getRecentActivities(companyId: string): Promise<any[]> {
     try {
       // Get recent attendance check-ins
