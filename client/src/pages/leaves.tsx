@@ -114,23 +114,13 @@ export default function Leaves() {
   });
 
   // Get current employee data for logged-in user
-  const { data: currentEmployee } = useQuery<Employee | null>({
-    queryKey: ["/api/employees/current"],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest("GET", "/api/employees");
-        const employees = response as Employee[];
-        if (employees && employees.length > 0) {
-          return employees[0];
-        }
-        return null;
-      } catch (error) {
-        console.error("Failed to fetch current employee:", error);
-        return null;
-      }
-    },
+  const { data: allEmployees } = useQuery<Employee[]>({
+    queryKey: ["/api/employees"],
     enabled: isAuthenticated && (user as any)?.role === "employee",
   });
+
+  // Extract current employee from the employees list
+  const currentEmployee = allEmployees && allEmployees.length > 0 ? allEmployees[0] : null;
 
   const createLeaveMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/leaves", data),
