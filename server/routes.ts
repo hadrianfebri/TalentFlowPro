@@ -2087,19 +2087,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.post('/api/documents', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      console.log("Document creation - userProfile:", req.userProfile);
-      console.log("Document creation - session authUser:", req.session?.authUser);
+      console.log("Document creation - request body:", req.body);
+      console.log("Document creation - title field:", req.body.title);
       
       const companyId = req.userProfile?.companyId;
       const userId = req.user?.claims?.sub || req.session?.authUser?.id;
 
       if (!companyId) {
-        console.log("No company ID found in userProfile:", req.userProfile);
         return res.status(400).json({ message: "User not associated with company" });
       }
 
       const validatedData = insertDocumentSchema.parse({
         ...req.body,
+        name: req.body.title, // Map title to name field
         companyId: companyId,
         createdBy: userId,
       });

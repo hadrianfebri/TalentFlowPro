@@ -6,6 +6,15 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Debug middleware for document requests
+app.use('/api/documents', (req, res, next) => {
+  if (req.method === 'POST') {
+    console.log("Document POST - raw body:", req.body);
+    console.log("Document POST - content-type:", req.headers['content-type']);
+  }
+  next();
+});
+
 // Serve uploaded files statically
 app.use('/uploads', express.static('uploads'));
 
