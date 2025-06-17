@@ -714,6 +714,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Employee Profile API
+  app.get('/api/employee/profile', isAuthenticated, getUserProfile, async (req: any, res) => {
+    try {
+      const employeeId = req.userProfile?.employeeId;
+      const role = req.userProfile?.role;
+      
+      if (role !== 'employee' || !employeeId) {
+        return res.status(403).json({ message: "Access denied. Employee only." });
+      }
+
+      const employee = await dbStorage.getEmployee(employeeId);
+      if (!employee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+
+      const profile = {
+        id: employee.id,
+        employeeId: employee.employeeId,
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+        email: employee.personalEmail || employee.workEmail || '',
+        phone: employee.phone || '',
+        position: employee.position,
+        department: 'IT Department',
+        hireDate: employee.hireDate,
+        salary: 5000000,
+        status: employee.status,
+        address: employee.address || '',
+        emergencyContact: employee.emergencyContact || '',
+        emergencyPhone: employee.emergencyContactPhone || '',
+      };
+
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching employee profile:", error);
+      res.status(500).json({ message: "Failed to fetch employee profile" });
+    }
+  });
+
+  // Employee Payroll History API
+  app.get('/api/employee/payroll-history', isAuthenticated, getUserProfile, async (req: any, res) => {
+    try {
+      const employeeId = req.userProfile?.employeeId;
+      const role = req.userProfile?.role;
+      
+      if (role !== 'employee' || !employeeId) {
+        return res.status(403).json({ message: "Access denied. Employee only." });
+      }
+
+      const payrollHistory = await dbStorage.getEmployeePayrollHistory(employeeId);
+      res.json(payrollHistory);
+    } catch (error) {
+      console.error("Error fetching payroll history:", error);
+      res.status(500).json({ message: "Failed to fetch payroll history" });
+    }
+  });
+
   // Employee Management API
   /**
    * @swagger

@@ -466,14 +466,8 @@ export class DatabaseStorage implements IStorage {
         .select({
           id: sql<string>`CAST(${attendance.id} AS TEXT)`,
           type: sql<string>`'attendance'`,
-          title: sql<string>`CASE 
-            WHEN ${attendance.checkOut} IS NOT NULL THEN 'Check-out berhasil'
-            ELSE 'Check-in berhasil'
-          END`,
-          description: sql<string>`CASE 
-            WHEN ${attendance.checkOut} IS NOT NULL THEN CONCAT('Waktu kerja: ', TO_CHAR(${attendance.checkIn}, 'HH24:MI'), ' - ', TO_CHAR(${attendance.checkOut}, 'HH24:MI'))
-            ELSE CONCAT('Masuk kerja: ', TO_CHAR(${attendance.checkIn}, 'HH24:MI'), ' WIB')
-          END`,
+          title: sql<string>`'Absensi Hari Ini'`,
+          description: sql<string>`CONCAT('Check-in: ', TO_CHAR(${attendance.checkIn}, 'HH24:MI'), ' WIB')`,
           timestamp: attendance.createdAt,
         })
         .from(attendance)
@@ -536,6 +530,22 @@ export class DatabaseStorage implements IStorage {
       return insights;
     } catch (error) {
       console.error("Error fetching AI insights:", error);
+      return [];
+    }
+  }
+
+  async getEmployeePayrollHistory(employeeId: number): Promise<any[]> {
+    try {
+      const payrollHistory = await db
+        .select()
+        .from(payroll)
+        .where(eq(payroll.employeeId, employeeId))
+        .orderBy(desc(payroll.createdAt))
+        .limit(12); // Last 12 months
+
+      return payrollHistory;
+    } catch (error) {
+      console.error("Error fetching employee payroll history:", error);
       return [];
     }
   }
