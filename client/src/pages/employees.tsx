@@ -543,8 +543,13 @@ export default function Employees() {
   };
 
   const onSubmitEdit = (data: EmployeeFormData) => {
+    console.log("Form submission data:", data);
+    console.log("Selected employee:", selectedEmployee);
     if (selectedEmployee) {
+      console.log("Submitting update for employee ID:", selectedEmployee.id);
       updateEmployeeMutation.mutate({ ...data, id: selectedEmployee.id });
+    } else {
+      console.error("No selected employee for edit");
     }
   };
 
