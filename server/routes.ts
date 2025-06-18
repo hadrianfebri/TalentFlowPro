@@ -838,47 +838,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Employee not found" });
       }
 
-      // Generate simple text-based slip for now
-      const slipContent = `
-=====================================
-         SLIP GAJI KARYAWAN
-=====================================
-
-Nama Karyawan    : ${employee.firstName} ${employee.lastName}
-ID Karyawan      : ${employee.employeeId}
-Periode          : ${payroll.period}
-Tanggal Cetak    : ${new Date().toLocaleDateString('id-ID')}
-
--------------------------------------
-         RINCIAN GAJI
--------------------------------------
-
-Gaji Pokok       : Rp ${Number(payroll.basicSalary || 0).toLocaleString('id-ID')}
-Lembur           : Rp ${Number(payroll.overtimePay || 0).toLocaleString('id-ID')}
-Tunjangan        : Rp ${JSON.stringify(payroll.allowances) !== '{}' ? '500,000' : '0'}
-
-GAJI KOTOR       : Rp ${Number(payroll.grossSalary || 0).toLocaleString('id-ID')}
-
--------------------------------------
-         POTONGAN
--------------------------------------
-
-BPJS Kesehatan   : Rp ${Number(payroll.bpjsHealth || 0).toLocaleString('id-ID')}
-BPJS Ketenagakerjaan : Rp ${Number(payroll.bpjsEmployment || 0).toLocaleString('id-ID')}
-PPh 21           : Rp ${Number(payroll.pph21 || 0).toLocaleString('id-ID')}
-
-TOTAL POTONGAN   : Rp ${(Number(payroll.bpjsHealth || 0) + Number(payroll.bpjsEmployment || 0) + Number(payroll.pph21 || 0)).toLocaleString('id-ID')}
-
-=====================================
-GAJI BERSIH      : Rp ${Number(payroll.netSalary || 0).toLocaleString('id-ID')}
-=====================================
-
-Slip ini dicetak secara otomatis oleh sistem TalentWhiz.ai
-      `;
+      // Generate PDF slip
+      const { generatePayrollSlipPDF } = await import('./pdfGenerator');
+      const pdfBuffer = await generatePayrollSlipPDF(payroll, employee);
       
-      const pdfBuffer = Buffer.from(slipContent, 'utf-8');
-      
-      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="slip-gaji-${payroll.period}.pdf"`);
       res.send(pdfBuffer);
     } catch (error) {

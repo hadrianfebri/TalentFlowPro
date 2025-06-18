@@ -67,7 +67,7 @@ export default function EmployeeProfile() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `slip-gaji-${payroll.period}.txt`;
+      link.download = `slip-gaji-${payroll.period}.pdf`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -150,50 +150,61 @@ export default function EmployeeProfile() {
                   Informasi Pribadi
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">ID Karyawan</label>
-                    <p className="text-gray-900">{profile.employeeId}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Email</label>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-gray-400" />
-                      <p className="text-gray-900">{profile.email}</p>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">ID Karyawan</label>
+                      <p className="text-gray-900 font-medium">{profile.employeeId}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Email</label>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gray-400" />
+                        <p className="text-gray-900">{profile.email}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Nomor Telepon</label>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        <p className="text-gray-900">{profile.phone || 'Tidak tersedia'}</p>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Nomor Telepon</label>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-400" />
-                      <p className="text-gray-900">{profile.phone || 'Tidak tersedia'}</p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Alamat Lengkap</label>
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
+                        <p className="text-gray-900">{profile.address || 'Alamat belum diisi'}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Status Karyawan</label>
+                      <div className="mt-1">
+                        <Badge variant={profile.status === 'active' ? 'default' : 'secondary'}>
+                          {profile.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Alamat</label>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-400" />
-                      <p className="text-gray-900">{profile.address || 'Tidak tersedia'}</p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kontak Darurat</label>
+                      <p className="text-gray-900">{profile.emergencyContact || 'Belum diisi'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Telepon Darurat</label>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        <p className="text-gray-900">{profile.emergencyPhone || 'Belum diisi'}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-                
-                {(profile.emergencyContact || profile.emergencyPhone) && (
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Kontak Darurat</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Nama</label>
-                        <p className="text-gray-900">{profile.emergencyContact || 'Tidak tersedia'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Nomor Telepon</label>
-                        <p className="text-gray-900">{profile.emergencyPhone || 'Tidak tersedia'}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
