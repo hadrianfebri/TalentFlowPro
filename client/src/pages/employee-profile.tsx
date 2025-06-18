@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { User, Mail, Phone, MapPin, Calendar, Building, FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
+import { Badge } from "@/components/ui/badge"; 
+import { User, Mail, Phone, MapPin, Calendar, DollarSign, Download, FileText, Clock } from "lucide-react";
+import { format } from "date-fns";
 
 interface EmployeeProfile {
   id: number;
@@ -24,18 +24,33 @@ interface EmployeeProfile {
   emergencyPhone?: string;
 }
 
+interface PayrollRecord {
+  id: number;
+  period: string;
+  basicSalary: number;
+  overtimePay: number;
+  allowances: any;
+  bpjsHealth: number;
+  bpjsEmployment: number;
+  pph21: number;
+  grossSalary: number;
+  netSalary: number;
+  status: string;
+  createdAt: string;
+}
+
 export default function EmployeeProfile() {
-  const { data: profile, isLoading, error } = useQuery({
+  const { data: profile, isLoading, error } = useQuery<EmployeeProfile>({
     queryKey: ['/api/employee/profile'],
     retry: 1,
   });
 
-  const { data: payrollHistory } = useQuery({
+  const { data: payrollHistory = [], isLoading: payrollLoading } = useQuery<PayrollRecord[]>({
     queryKey: ['/api/employee/payroll-history'],
     retry: 1,
   });
 
-  const handleDownloadSlip = async (payroll: any) => {
+  const handleDownloadSlip = async (payroll: PayrollRecord) => {
     try {
       const response = await fetch(`/api/employee/payroll/${payroll.id}/download`, {
         method: 'GET',
@@ -45,14 +60,14 @@ export default function EmployeeProfile() {
       });
 
       if (!response.ok) {
-        throw new Error('Gagal mengunduh slip gaji');
+        throw new Error('Failed to download slip');
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `slip-gaji-${payroll.period}.pdf`;
+      link.download = `slip-gaji-${payroll.period}.txt`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -68,7 +83,7 @@ export default function EmployeeProfile() {
       <div className="flex h-screen bg-gray-50">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
+          <Header pageTitle="Profil Karyawan" />
           <main className="flex-1 overflow-auto p-6">
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
@@ -82,17 +97,16 @@ export default function EmployeeProfile() {
     );
   }
 
-  if (error) {
+  if (error || !profile) {
     return (
       <div className="flex h-screen bg-gray-50">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
+          <Header pageTitle="Profil Karyawan" />
           <main className="flex-1 overflow-auto p-6">
             <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <p className="text-red-600 mb-2">Gagal memuat profil karyawan</p>
-                <p className="text-muted-foreground">Silakan coba lagi nanti</p>
+              <div className="text-center text-red-600">
+                <p>Gagal memuat profil karyawan. Silakan refresh halaman.</p>
               </div>
             </div>
           </main>
@@ -105,17 +119,29 @@ export default function EmployeeProfile() {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-auto p-6 space-y-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-forest">Profil Karyawan</h1>
-            <Button variant="outline" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Unduh Profil
-            </Button>
-          </div>
+        <Header pageTitle="Profil Karyawan" />
+        <main className="flex-1 overflow-auto p-6">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {profile.firstName} {profile.lastName}
+                </h1>
+                <p className="text-gray-600">{profile.position}</p>
+                <p className="text-sm text-gray-500">Status: 
+                  <Badge variant={profile.status === 'active' ? 'default' : 'secondary'} className="ml-2">
+                    {profile.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
+                  </Badge>
+                </p>
+              </div>
+              <div className="flex space-x-3">
+                <Button variant="outline" size="sm">
+                  Edit Profil
+                </Button>
+              </div>
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Personal Information */}
             <Card>
               <CardHeader>
@@ -125,185 +151,145 @@ export default function EmployeeProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-center mb-6">
-                  <div className="w-24 h-24 bg-forest/10 rounded-full flex items-center justify-center">
-                    <User className="h-12 w-12 text-forest" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">ID Karyawan</label>
+                    <p className="text-gray-900">{profile.employeeId}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      <p className="text-gray-900">{profile.email}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Nomor Telepon</label>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-gray-400" />
+                      <p className="text-gray-900">{profile.phone || 'Tidak tersedia'}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Alamat</label>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <p className="text-gray-900">{profile.address || 'Tidak tersedia'}</p>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-forest">
-                    {profile?.firstName} {profile?.lastName}
-                  </h2>
-                  <p className="text-muted-foreground">{profile?.position}</p>
-                  <Badge variant="secondary" className="mt-2">
-                    {profile?.status}
-                  </Badge>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">ID Karyawan</p>
-                      <p className="font-medium">{profile?.employeeId}</p>
+                {(profile.emergencyContact || profile.emergencyPhone) && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium text-gray-900 mb-2">Kontak Darurat</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Nama</label>
+                        <p className="text-gray-900">{profile.emergencyContact || 'Tidak tersedia'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Nomor Telepon</label>
+                        <p className="text-gray-900">{profile.emergencyPhone || 'Tidak tersedia'}</p>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{profile?.email}</p>
-                    </div>
-                  </div>
-
-                  {profile?.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Telepon</p>
-                        <p className="font-medium">{profile.phone}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {profile?.address && (
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Alamat</p>
-                        <p className="font-medium">{profile.address}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {(profile?.emergencyContact || profile?.emergencyPhone) && (
-                    <>
-                      <Separator />
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-forest">Kontak Darurat</h4>
-                        {profile?.emergencyContact && (
-                          <div className="flex items-center gap-3">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Nama Kontak</p>
-                              <p className="font-medium">{profile.emergencyContact}</p>
-                            </div>
-                          </div>
-                        )}
-                        {profile?.emergencyPhone && (
-                          <div className="flex items-center gap-3">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Telepon Darurat</p>
-                              <p className="font-medium">{profile.emergencyPhone}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Work Information */}
+            {/* Employment Information */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Building className="h-5 w-5" />
+                  <FileText className="h-5 w-5" />
                   Informasi Pekerjaan
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3">
-                    <Building className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Posisi</p>
-                      <p className="font-medium">{profile?.position}</p>
-                    </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Posisi</label>
+                    <p className="text-gray-900">{profile.position}</p>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Building className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Departemen</p>
-                      <p className="font-medium">{profile?.department}</p>
-                    </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Departemen</label>
+                    <p className="text-gray-900">{profile.department}</p>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Tanggal Bergabung</p>
-                      <p className="font-medium">
-                        {profile?.hireDate ? new Date(profile.hireDate).toLocaleDateString('id-ID') : 'Tidak tersedia'}
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Tanggal Masuk</label>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <p className="text-gray-900">
+                        {profile.hireDate ? format(new Date(profile.hireDate), 'dd MMMM yyyy') : 'Tidak tersedia'}
                       </p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Gaji</p>
-                      <p className="font-medium">
-                        {profile?.salary ? `Rp ${profile.salary.toLocaleString('id-ID')}` : 'Tidak tersedia'}
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Gaji</label>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-gray-400" />
+                      <p className="text-gray-900">
+                        Rp {profile.salary ? Number(profile.salary).toLocaleString('id-ID') : 'Tidak tersedia'}
                       </p>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Payroll History */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Riwayat Slip Gaji
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {payrollHistory && payrollHistory.length > 0 ? (
-                <div className="space-y-4">
-                  {payrollHistory.map((payroll: any) => (
-                    <div key={payroll.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-medium">
-                          {new Date(payroll.period + '-01').toLocaleDateString('id-ID', {
-                            month: 'long',
-                            year: 'numeric'
-                          })}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Gaji Bersih: Rp {payroll.netSalary?.toLocaleString('id-ID')}
-                        </p>
+            {/* Payroll History */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Riwayat Slip Gaji
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {payrollLoading ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-forest mx-auto mb-2"></div>
+                    <p className="text-sm text-muted-foreground">Memuat riwayat gaji...</p>
+                  </div>
+                ) : payrollHistory.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Belum ada riwayat slip gaji tersedia.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {payrollHistory.map((payroll) => (
+                      <div key={payroll.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <p className="font-medium text-gray-900">Periode {payroll.period}</p>
+                              <p className="text-sm text-green-600 font-medium">
+                                Gaji Bersih: Rp {Number(payroll.netSalary).toLocaleString('id-ID')}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Status: <Badge variant={payroll.status === 'paid' ? 'default' : 'secondary'}>
+                                  {payroll.status === 'paid' ? 'Sudah Dibayar' : 'Menunggu'}
+                                </Badge>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadSlip(payroll)}
+                          className="flex items-center gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Download Slip
+                        </Button>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2"
-                        onClick={() => handleDownloadSlip(payroll)}
-                      >
-                        <Download className="h-4 w-4" />
-                        Unduh
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Belum ada riwayat slip gaji</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </main>
       </div>
     </div>
