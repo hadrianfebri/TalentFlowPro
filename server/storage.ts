@@ -550,6 +550,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getPayrollById(id: number): Promise<any | undefined> {
+    try {
+      const [payrollRecord] = await db
+        .select()
+        .from(payroll)
+        .where(eq(payroll.id, id));
+      return payrollRecord;
+    } catch (error) {
+      console.error("Error fetching payroll by ID:", error);
+      return undefined;
+    }
+  }
+
   async generateAIInsights(companyId: string): Promise<AIInsight[]> {
     try {
       // Generate sample insights - in real implementation, this would call DeepSeek API

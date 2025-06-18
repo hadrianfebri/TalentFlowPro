@@ -773,6 +773,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Employee Payroll Slip Download API
+  app.get('/api/employee/payroll/:payrollId/download', isAuthenticated, getUserProfile, async (req: any, res) => {
+    try {
+      const { payrollId } = req.params;
+      const employeeId = req.userProfile?.employeeId;
+      const role = req.userProfile?.role;
+      
+      if (role !== 'employee' || !employeeId) {
+        return res.status(403).json({ message: "Access denied. Employee only." });
+      }
+
+      // Get payroll record and verify it belongs to the employee
+      const payroll = await dbStorage.getPayrollById(parseInt(payrollId));
+      if (!payroll || payroll.employeeId !== employeeId) {
+        return res.status(404).json({ message: "Payroll record not found or access denied" });
+      }
+
+      // Get employee details for the slip
+      const employee = await dbStorage.getEmployee(employeeId);
+      if (!employee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+
+      // Generate PDF slip (simple text-based for now)
+      const pdfBuffer = generateSimplePayrollSlip(payroll, employee);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="slip-gaji-${payroll.period}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error downloading payroll slip:", error);
+      res.status(500).json({ message: "Failed to download payroll slip" });
+    }
+  });
+
   // Employee Management API
   /**
    * @swagger

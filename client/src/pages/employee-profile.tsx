@@ -35,6 +35,34 @@ export default function EmployeeProfile() {
     retry: 1,
   });
 
+  const handleDownloadSlip = async (payroll: any) => {
+    try {
+      const response = await fetch(`/api/employee/payroll/${payroll.id}/download`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/pdf',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Gagal mengunduh slip gaji');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `slip-gaji-${payroll.period}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading slip:', error);
+      alert('Gagal mengunduh slip gaji. Silakan coba lagi.');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen bg-gray-50">
@@ -256,7 +284,12 @@ export default function EmployeeProfile() {
                           Gaji Bersih: Rp {payroll.netSalary?.toLocaleString('id-ID')}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm" className="gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => handleDownloadSlip(payroll)}
+                      >
                         <Download className="h-4 w-4" />
                         Unduh
                       </Button>
