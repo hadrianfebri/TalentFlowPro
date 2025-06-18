@@ -52,8 +52,8 @@ export default function EmployeeLogin() {
         description: t("login.success.description"),
       });
       
-      // Redirect to employee attendance page
-      setLocation("/employee-attendance");
+      // Redirect to dashboard
+      setLocation("/");
     },
     onError: (error: any) => {
       toast({
