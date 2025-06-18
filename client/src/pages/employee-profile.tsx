@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge"; 

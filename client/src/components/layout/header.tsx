@@ -10,7 +10,7 @@ interface HeaderProps {
   pageTitle: string;
 }
 
-export function Header({ pageTitle }: HeaderProps) {
+export default function Header({ pageTitle }: HeaderProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [notificationCount] = useState(3);
