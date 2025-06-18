@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 
 export async function generatePayrollSlipPDF(payroll: any, employee: any): Promise<Buffer> {
   const doc = new jsPDF();

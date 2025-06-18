@@ -822,13 +822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const employeeId = req.userProfile?.employeeId;
       const role = req.userProfile?.role;
       
-      console.log("PDF Download Debug:", {
-        payrollId,
-        employeeId,
-        role,
-        userProfile: req.userProfile,
-        authUser: req.session?.authUser
-      });
+
       
       if (role !== 'employee' || !employeeId) {
         return res.status(403).json({ message: "Access denied. Employee only." });
