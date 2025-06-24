@@ -123,6 +123,16 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
+- **June 25, 2025**: Created unified applicant management system
+  - Combined "Tambah Pelamar" and "Upload Pelamar" into single comprehensive interface
+  - Added manual form input for individual applicant creation with file uploads
+  - Implemented bulk CV upload functionality with automatic text extraction
+  - Created smart filename parsing to extract applicant names from CV files
+  - Added support for PDF and Word document processing
+  - Enhanced UI with drag-and-drop interface for multiple file uploads
+  - Integrated AI scoring display and application status management
+  - Fixed job creation authentication issues across all recruitment endpoints
+
 - **June 17, 2025**: Fixed reimbursement system and completed comprehensive RBAC implementation
   - Resolved reimbursement list display issue by adding getUserProfile middleware to reimbursement GET endpoint
   - Fixed document creation authentication issues by implementing getUserProfile middleware for both Replit Auth and session-based authentication

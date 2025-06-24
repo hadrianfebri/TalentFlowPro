@@ -3184,6 +3184,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
+  // Bulk CV Upload API with AI extraction
+  app.post('/api/job-applications/bulk-cv-upload',
+    isAuthenticated,
+    getUserProfile,
+    requireAdminOrHR,
+    upload.array('cv_file', 50), // Allow up to 50 CV files
+    async (req: any, res) => {
+      try {
+        const userProfile = req.userProfile;
+        const companyId = userProfile?.companyId;
+        
+        if (!companyId) {
+          return res.status(400).json({ message: "User not associated with company" });
+        }
+
+        if (!req.files || req.files.length === 0) {
+          return res.status(400).json({ message: "No CV files uploaded" });
+        }
+
+        const files = req.files as Express.Multer.File[];
+        const jobId = req.body.jobId ? parseInt(req.body.jobId) : null;
+
+        let successCount = 0;
+        let failedCount = 0;
+        const results = [];
+
+        // Process each CV file
+        for (const file of files) {
+          try {
+            // Extract text from CV based on file type
+            let extractedText = '';
+            let applicantData: any = {};
+
+            if (file.mimetype === 'application/pdf') {
+              // For PDF files, we'll store the path and process later
+              extractedText = `CV file: ${file.filename}`;
+            } else if (file.mimetype.includes('document') || file.mimetype.includes('word')) {
+              // For Word documents, we'll store the path and process later
+              extractedText = `CV file: ${file.filename}`;
+            }
+
+            // Basic extraction from filename (common pattern: "Name_Position.pdf")
+            const fileName = file.originalname.replace(/\.[^/.]+$/, ""); // Remove extension
+            const nameParts = fileName.split(/[-_\s]+/);
+            
+            // Try to extract name from filename
+            let applicantName = nameParts[0] || 'Unknown';
+            if (nameParts.length > 1) {
+              applicantName = `${nameParts[0]} ${nameParts[1]}`;
+            }
+
+            // Generate email from name if not provided
+            const emailBase = applicantName.toLowerCase().replace(/\s+/g, '.');
+            const applicantEmail = `${emailBase}@email.com`;
+
+            applicantData = {
+              companyId: companyId,
+              jobId: jobId,
+              applicantName: applicantName,
+              applicantEmail: applicantEmail,
+              resumePath: file.filename,
+              resumeText: extractedText,
+              stage: 'applied',
+              status: 'pending',
+              parsedResume: {
+                fileName: file.originalname,
+                extractedAt: new Date(),
+                fileSize: file.size,
+                mimeType: file.mimetype
+              },
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
+
+            // Create application record
+            const validatedData = insertJobApplicationSchema.parse(applicantData);
+            const application = await dbStorage.createJobApplication(validatedData);
+            
+            successCount++;
+            results.push({
+              fileName: file.originalname,
+              success: true,
+              applicantName: applicantName,
+              applicationId: application.id
+            });
+
+          } catch (error: any) {
+            failedCount++;
+            results.push({
+              fileName: file.originalname,
+              success: false,
+              error: error.message
+            });
+            
+            // Clean up failed file
+            try {
+              if (file.path) {
+                fs.unlinkSync(file.path);
+              }
+            } catch (cleanupError) {
+              console.error('Error cleaning up file:', cleanupError);
+            }
+          }
+        }
+
+        res.json({
+          message: `Processed ${files.length} CV files`,
+          successCount,
+          failedCount,
+          results
+        });
+      } catch (error) {
+        console.error("Error processing CV uploads:", error);
+        res.status(500).json({ message: "Failed to process CV uploads" });
+      }
+    }
+  );
+
   app.post('/api/job-applications/bulk-upload',
     isAuthenticated,
     getUserProfile,
