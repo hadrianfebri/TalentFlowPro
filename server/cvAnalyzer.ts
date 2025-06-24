@@ -1,9 +1,12 @@
 import OpenAI from "openai";
 import fs from "fs/promises";
 import path from "path";
+import { exec } from "child_process";
+import { promisify } from "util";
 
 // Using GPT-4.1 as requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const execAsync = promisify(exec);
 
 export interface CVAnalysisResult {
   personalInfo: {
@@ -63,34 +66,55 @@ export class CVAnalyzer {
       console.log("Reading CV file:", fullPath);
       const fileBuffer = await fs.readFile(fullPath);
       
-      // For now, use a smart approach that analyzes CV file existence and metadata
-      // This provides more accurate scoring than random numbers
-      console.log("Analyzing CV file metadata and form data...");
+      // Extract PDF text using Python script
+      console.log("Extracting PDF text using Python...");
       
-      // Get file stats for analysis
-      const stats = await fs.stat(fullPath);
-      const fileSizeKB = Math.round(stats.size / 1024);
-      
-      console.log(`CV file analysis: ${fileSizeKB}KB, created: ${stats.birthtime}`);
-      
-      // Create synthetic CV content based on file properties and form data
-      let cvContent = `CURRICULUM VITAE
-      
-Name: [Extracted from filename: ${path.basename(filePath, '.pdf')}]
-File Size: ${fileSizeKB}KB (${fileSizeKB > 100 ? 'Comprehensive' : 'Basic'} CV)
-Document Type: PDF Resume
+      try {
+        const pythonScriptPath = path.join(process.cwd(), 'scripts', 'pdf_extractor.py');
+        const command = `python3 "${pythonScriptPath}" "${fullPath}"`;
+        
+        console.log("Running PDF extraction command:", command);
+        const { stdout, stderr } = await execAsync(command);
+        
+        if (stderr) {
+          console.log("Python stderr:", stderr);
+        }
+        
+        const extractionResult = JSON.parse(stdout);
+        console.log("PDF extraction result:", {
+          success: extractionResult.success,
+          method: extractionResult.method,
+          textLength: extractionResult.length,
+          wordCount: extractionResult.word_count
+        });
+        
+        if (extractionResult.success && extractionResult.text) {
+          console.log("Successfully extracted PDF text, length:", extractionResult.text.length);
+          return extractionResult.text;
+        } else {
+          throw new Error(extractionResult.error || "PDF extraction failed");
+        }
+        
+      } catch (pythonError) {
+        console.log("Python PDF extraction failed:", pythonError.message);
+        
+        // Fallback to file metadata analysis
+        console.log("Using fallback metadata analysis...");
+        const stats = await fs.stat(fullPath);
+        const fileSizeKB = Math.round(stats.size / 1024);
+        
+        return `CV Document Analysis (Metadata-based)
+        
+File: ${path.basename(filePath)}
+Size: ${fileSizeKB}KB
+Type: PDF Resume
 
-This CV document contains professional information for job application analysis.
-The document appears to be a ${fileSizeKB > 200 ? 'detailed' : 'standard'} format CV with multiple sections.
+This is a ${fileSizeKB > 100 ? 'comprehensive' : 'basic'} CV document.
+Document characteristics suggest ${fileSizeKB > 150 ? 'experienced professional' : 'entry to mid-level candidate'}.
+Professional PDF format indicates attention to presentation quality.
 
-Based on file characteristics:
-- Document length suggests ${fileSizeKB > 150 ? 'experienced' : 'entry-level'} professional
-- File size indicates ${fileSizeKB > 100 ? 'comprehensive' : 'basic'} content coverage
-- Professional PDF format suggests good attention to presentation
-
-Note: This analysis is based on file metadata and form inputs due to PDF text extraction limitations.`;
-
-      return cvContent;
+Note: Full text extraction failed, analysis based on file properties and form data.`;
+      }
     } catch (error) {
       console.error("Error extracting CV content:", error);
       throw error;
