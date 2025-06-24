@@ -1,6 +1,19 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
+import { 
+  format, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval, 
+  isSameDay, 
+  isSameMonth,
+  addMonths,
+  subMonths,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  parseISO
+} from "date-fns";
 import { id } from "date-fns/locale";
 import { 
   Clock, 
@@ -10,7 +23,10 @@ import {
   XCircle,
   Timer,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CalendarDays,
+  User,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +60,8 @@ export default function EmployeeAttendance() {
   const recordsPerPage = 10;
   const [attendancePhoto, setAttendancePhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'daily' | 'calendar'>('daily');
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   // Get current location
   const getCurrentLocation = () => {
