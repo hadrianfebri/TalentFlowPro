@@ -26,10 +26,11 @@ import {
   payroll,
   jobs,
   jobApplications,
+  departments,
 } from "@shared/schema";
 import { z } from "zod";
 import { format } from "date-fns";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gte, count } from "drizzle-orm";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -3847,14 +3848,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get attendance data for last 7 days
       const attendanceData = await db
         .select({
-          date: attendance.checkInTime,
+          date: attendance.date,
           status: attendance.status
         })
         .from(attendance)
         .innerJoin(employees, eq(attendance.employeeId, employees.id))
         .where(and(
           eq(employees.companyId, userProfile.companyId),
-          gte(attendance.checkInTime, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+          gte(attendance.date, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
         ));
 
       // Group by date and count
