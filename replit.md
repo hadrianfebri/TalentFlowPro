@@ -123,6 +123,15 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
+- **June 24, 2025**: Implemented advanced AI-powered CV analysis system
+  - Added OpenAI GPT-4o integration for CV content extraction and analysis
+  - Created sophisticated job matching algorithm using actual CV content
+  - Implemented PDF text extraction with pdf-parse library
+  - AI scoring now analyzes skills, experience, and education from CV text
+  - Job compatibility scoring based on semantic analysis of requirements vs candidate profile
+  - Added detailed scoring breakdown with reasoning for transparency
+  - Replaced basic form-based scoring with deep CV content analysis
+
 - **June 25, 2025**: Created unified applicant management system
   - Combined "Tambah Pelamar" and "Upload Pelamar" into single comprehensive interface
   - Added manual form input for individual applicant creation with file uploads
