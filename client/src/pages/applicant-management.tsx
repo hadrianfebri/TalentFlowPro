@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UserPlus, Upload, FileText, Eye, Trash2, Download } from "lucide-react";
@@ -57,6 +58,8 @@ export default function ApplicantManagement() {
   const [isBulkUploadDialogOpen, setIsBulkUploadDialogOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const { data: jobs } = useQuery<Job[]>({
     queryKey: ["/api/jobs"],
@@ -91,6 +94,29 @@ export default function ApplicantManagement() {
       toast({
         title: "Error",
         description: "Gagal menambahkan pelamar",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // AI scoring mutation
+  const aiScoringMutation = useMutation({
+    mutationFn: (applicationId: number) => {
+      return apiRequest(`/api/job-applications/${applicationId}/ai-score`, {
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/job-applications"] });
+      toast({
+        title: "AI Scoring Complete",
+        description: "CV telah dianalisis dan diberi score",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Gagal melakukan AI scoring",
         variant: "destructive",
       });
     },
@@ -451,11 +477,18 @@ export default function ApplicantManagement() {
                         </TableCell>
                         <TableCell>
                           {application.aiMatchScore ? (
-                            <Badge variant="outline">
+                            <Badge variant="outline" className="bg-green-50 text-green-700">
                               {Math.round(parseFloat(application.aiMatchScore))}%
                             </Badge>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => aiScoringMutation.mutate(application.id)}
+                              disabled={aiScoringMutation.isPending}
+                            >
+                              {aiScoringMutation.isPending ? "Analyzing..." : "Score CV"}
+                            </Button>
                           )}
                         </TableCell>
                         <TableCell>
@@ -463,11 +496,22 @@ export default function ApplicantManagement() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedApplication(application);
+                                setIsViewDialogOpen(true);
+                              }}
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
                             {application.resumePath && (
-                              <Button variant="ghost" size="sm">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => window.open(`/uploads/${application.resumePath}`, '_blank')}
+                              >
                                 <Download className="h-4 w-4" />
                               </Button>
                             )}
@@ -480,6 +524,117 @@ export default function ApplicantManagement() {
               )}
             </CardContent>
           </Card>
+
+          {/* View Applicant Sheet */}
+          <Sheet open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <SheetContent className="w-[600px] sm:w-[600px]">
+              <SheetHeader>
+                <SheetTitle>Detail Pelamar</SheetTitle>
+                <SheetDescription>
+                  Informasi lengkap kandidat dan analisis CV
+                </SheetDescription>
+              </SheetHeader>
+              
+              {selectedApplication && (
+                <div className="mt-6 space-y-6">
+                  {/* Basic Info */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Informasi Dasar</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Nama Lengkap</Label>
+                        <p className="text-sm text-muted-foreground">{selectedApplication.applicantName}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Email</Label>
+                        <p className="text-sm text-muted-foreground">{selectedApplication.applicantEmail}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Telepon</Label>
+                        <p className="text-sm text-muted-foreground">{selectedApplication.applicantPhone || '-'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Posisi</Label>
+                        <p className="text-sm text-muted-foreground">{selectedApplication.job?.title || '-'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI Analysis */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Analisis AI</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Match Score</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          {selectedApplication.aiMatchScore ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700">
+                              {Math.round(parseFloat(selectedApplication.aiMatchScore))}%
+                            </Badge>
+                          ) : (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => aiScoringMutation.mutate(selectedApplication.id)}
+                              disabled={aiScoringMutation.isPending}
+                            >
+                              {aiScoringMutation.isPending ? "Analyzing..." : "Generate Score"}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Status</Label>
+                        <div className="mt-1">
+                          {getApplicationStageBadge(selectedApplication.stage)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Files */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Dokumen</h3>
+                    <div className="space-y-2">
+                      {selectedApplication.resumePath && (
+                        <div className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            <span className="text-sm">CV / Resume</span>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.open(`/uploads/${selectedApplication.resumePath}`, '_blank')}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Application Info */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Info Aplikasi</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Tanggal Melamar</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(selectedApplication.createdAt).toLocaleDateString('id-ID')}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Source</Label>
+                        <p className="text-sm text-muted-foreground">Manual Entry</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </SheetContent>
+          </Sheet>
         </main>
       </div>
     </div>
