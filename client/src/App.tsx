@@ -25,9 +25,7 @@ import Recruitment from "@/pages/recruitment";
 import ApplicantManagement from "@/pages/applicant-management";
 import SalaryComponents from "@/pages/salary-components";
 import Settings from "@/pages/settings";
-import ApplicantUpload from "@/pages/applicant-upload";
 import AITesting from "@/pages/ai-testing";
-import AddApplicant from "@/pages/add-applicant";
 import HRLogin from "@/pages/hr-login";
 import EmployeeLogin from "@/pages/employee-login";
 import EmployeeAttendance from "@/pages/employee-attendance";
@@ -66,8 +64,6 @@ function Router() {
           <Route path="/performance" component={Performance} />
           <Route path="/recruitment" component={Recruitment} />
           <Route path="/applicant-management" component={ApplicantManagement} />
-          <Route path="/add-applicant" component={AddApplicant} />
-          <Route path="/applicant-upload" component={ApplicantUpload} />
           <Route path="/ai-testing" component={AITesting} />
           <Route path="/salary-components" component={SalaryComponents} />
           <Route path="/settings" component={Settings} />

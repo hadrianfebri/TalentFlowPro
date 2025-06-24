@@ -141,19 +141,14 @@ export default function Sidebar() {
           icon: BarChart3,
         },
         {
-          name: t('nav.jobs'),
+          name: t('nav.recruitment'),
           href: "/recruitment",
-          icon: UserPlus,
+          icon: Briefcase,
         },
         {
-          name: t('nav.applications'),
-          href: "/add-applicant",
-          icon: UserCheck,
-        },
-        {
-          name: "Upload Pelamar",
-          href: "/applicant-upload",
-          icon: Gift,
+          name: "Manajemen Pelamar",
+          href: "/applicant-management",
+          icon: Users,
         },
         {
           name: "AI Testing",
