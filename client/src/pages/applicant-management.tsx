@@ -264,10 +264,7 @@ export default function ApplicantManagement() {
                       </div>
                     </div>
 
-                    <div>
-                      <Label htmlFor="coverLetter">Surat Lamaran</Label>
-                      <Textarea name="coverLetter" rows={4} />
-                    </div>
+
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
