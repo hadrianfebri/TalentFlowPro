@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage as dbStorage } from "./storage";
 import { db } from "./db";
@@ -473,6 +474,16 @@ function formatCurrency(amount: string | number) {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Swagger documentation
   setupSwagger(app);
+  
+  // Serve uploaded files with proper headers
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.pdf')) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline');
+      }
+    }
+  }));
   
   // Auth middleware
   await setupAuth(app);

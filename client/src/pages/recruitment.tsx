@@ -83,6 +83,7 @@ interface JobApplication {
   coverLetter?: string;
   parsedResume?: any;
   keywordScore?: string;
+  aiMatchScore?: string; // Add AI match score field
   stage: string;
   notes?: string;
   interviewDate?: string;
@@ -836,13 +837,16 @@ export default function Recruitment() {
                               </TableCell>
                               <TableCell>{getApplicationStageBadge(application.stage)}</TableCell>
                               <TableCell>
-                                {application.keywordScore ? (
-                                  <div className="flex items-center">
-                                    <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                                    <span className="font-medium">{parseFloat(application.keywordScore).toFixed(1)}</span>
+                                {application.aiMatchScore ? (
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                                      {Math.round(parseFloat(application.aiMatchScore))}%
+                                    </Badge>
                                   </div>
                                 ) : (
-                                  <Badge variant="outline">Belum dianalisis</Badge>
+                                  <Badge variant="outline" className="bg-gray-50 text-gray-600">
+                                    Belum dianalisis
+                                  </Badge>
                                 )}
                               </TableCell>
                               <TableCell>
@@ -865,7 +869,20 @@ export default function Recruitment() {
                               <TableCell className="text-right">
                                 <div className="flex justify-end space-x-2">
                                   {application.resumePath && (
-                                    <Button variant="ghost" size="sm" title="Lihat CV">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      title="Lihat CV"
+                                      onClick={() => {
+                                        let resumeUrl = application.resumePath;
+                                        if (resumeUrl.startsWith('uploads/')) {
+                                          resumeUrl = `/${resumeUrl}`;
+                                        } else if (!resumeUrl.startsWith('/')) {
+                                          resumeUrl = `/uploads/${resumeUrl}`;
+                                        }
+                                        window.open(resumeUrl, '_blank');
+                                      }}
+                                    >
                                       <FileText className="h-4 w-4" />
                                     </Button>
                                   )}
