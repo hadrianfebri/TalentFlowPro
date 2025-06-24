@@ -510,18 +510,17 @@ export default function ApplicantManagement() {
                             </div>
                           ) : (
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500 italic">
-                                AI scoring...
-                              </span>
+                              <Badge variant="outline" className="bg-gray-50 text-gray-600">
+                                Belum dianalisis
+                              </Badge>
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                onClick={() => {
-                                  queryClient.invalidateQueries({ queryKey: ["/api/job-applications"] });
-                                }}
-                                className="text-xs"
+                                onClick={() => aiScoringMutation.mutate(application.id)}
+                                disabled={aiScoringMutation.isPending}
+                                className="text-xs text-blue-600 hover:text-blue-800"
                               >
-                                Refresh
+                                {aiScoringMutation.isPending ? "Scoring..." : "Score AI"}
                               </Button>
                             </div>
                           )}
@@ -545,7 +544,11 @@ export default function ApplicantManagement() {
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                onClick={() => window.open(`/uploads/${application.resumePath}`, '_blank')}
+                                onClick={() => {
+                                  const path = application.resumePath.startsWith('/') ? application.resumePath.substring(1) : application.resumePath;
+                                  window.open(`/${path}`, '_blank');
+                                }}
+                                title="Lihat CV"
                               >
                                 <Download className="h-4 w-4" />
                               </Button>

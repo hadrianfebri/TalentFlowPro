@@ -3638,6 +3638,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Application not found" });
       }
 
+      // Auto-create employee when status changed to 'hired'
+      if (stage === 'hired') {
+        try {
+          console.log("Creating employee from hired applicant:", updatedApplication.applicantName);
+          
+          // Generate new employee ID
+          const existingEmployees = await dbStorage.getEmployees(req.userProfile!.companyId);
+          const employeeNumber = existingEmployees.length + 1;
+          const employeeId = `EMP${employeeNumber.toString().padStart(3, '0')}`;
+          
+          const employeeData = {
+            companyId: req.userProfile!.companyId,
+            employeeId: employeeId,
+            firstName: updatedApplication.applicantName.split(' ')[0] || updatedApplication.applicantName,
+            lastName: updatedApplication.applicantName.split(' ').slice(1).join(' ') || '',
+            email: updatedApplication.applicantEmail,
+            phone: updatedApplication.applicantPhone || '',
+            position: updatedApplication.job?.title || 'Employee',
+            departmentId: updatedApplication.job?.departmentId || null,
+            salary: updatedApplication.offerAmount ? parseFloat(updatedApplication.offerAmount) : 5000000,
+            hireDate: new Date(),
+            status: 'active'
+          };
+          
+          const newEmployee = await dbStorage.createEmployee(employeeData);
+          console.log("Employee created successfully:", newEmployee.employeeId);
+          
+        } catch (error) {
+          console.error("Error creating employee from hired applicant:", error);
+          // Don't fail the application update if employee creation fails
+        }
+      }
+
       res.json(updatedApplication);
     } catch (error) {
       console.error("Error updating application status:", error);
