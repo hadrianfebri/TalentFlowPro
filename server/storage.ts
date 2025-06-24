@@ -1319,6 +1319,10 @@ export class DatabaseStorage implements IStorage {
         stage: jobApplications.stage,
         status: jobApplications.status,
         aiMatchScore: jobApplications.aiMatchScore,
+        interviewDate: jobApplications.interviewDate,
+        notes: jobApplications.notes,
+        offerAmount: jobApplications.offerAmount,
+        hiredDate: jobApplications.hiredDate,
         createdAt: jobApplications.createdAt,
         updatedAt: jobApplications.updatedAt,
         job: {
