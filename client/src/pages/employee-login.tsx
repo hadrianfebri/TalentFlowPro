@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, UserCheck, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ export default function EmployeeLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
   const form = useForm<EmployeeLoginInput>({
     resolver: zodResolver(employeeLoginSchema),
@@ -52,8 +53,13 @@ export default function EmployeeLogin() {
         description: t("login.success.description"),
       });
       
-      // Redirect to dashboard
-      setLocation("/");
+      // Invalidate auth query to refresh user state
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Redirect to dashboard with small delay to allow auth state to update
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
     },
     onError: (error: any) => {
       toast({

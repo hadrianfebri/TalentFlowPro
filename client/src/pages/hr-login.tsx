@@ -20,6 +20,7 @@ export default function HRLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
   const form = useForm<HRLoginInput>({
     resolver: zodResolver(hrLoginSchema),
