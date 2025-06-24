@@ -1872,27 +1872,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/leaves', isAuthenticated, async (req: any, res) => {
+  app.get('/api/leave-requests', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      let companyId: string;
-      
-      // Handle both Replit auth and local auth
-      if (req.session?.authUser) {
-        // Local auth (employee/HR login)
-        companyId = req.session.authUser.companyId;
-      } else if (req.user?.claims?.sub) {
-        // Replit auth
-        const userId = req.user.claims.sub;
-        const user = await dbStorage.getUser(userId);
-        if (!user?.companyId) {
-          return res.status(400).json({ message: "User not associated with company" });
-        }
-        companyId = user.companyId;
-      } else {
-        return res.status(401).json({ message: "Authentication required" });
+      const userProfile = req.userProfile;
+      if (!userProfile?.companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const leaves = await dbStorage.getLeaveRequests(companyId);
+      const leaves = await dbStorage.getLeaveRequests(userProfile.companyId);
       res.json(leaves);
     } catch (error) {
       console.error("Error fetching leave requests:", error);
@@ -2078,16 +2065,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/payroll', isAuthenticated, async (req: any, res) => {
+  app.get('/api/payroll', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      const userProfile = req.userProfile;
+      if (!userProfile?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
       const { period } = req.query;
-      const payroll = await dbStorage.getPayroll(user.companyId, period as string);
+      const payroll = await dbStorage.getPayroll(userProfile.companyId, period as string);
       res.json(payroll);
     } catch (error) {
       console.error("Error fetching payroll:", error);
