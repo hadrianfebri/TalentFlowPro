@@ -3156,13 +3156,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           applicantPhone: req.body.applicantPhone || null,
           jobId: req.body.jobId ? parseInt(req.body.jobId) : null,
           resumePath,
-          photoPath,
-          experienceYears: req.body.experienceYears ? parseInt(req.body.experienceYears) : 0,
-          educationLevel: req.body.educationLevel || null,
+          portfolioPath,
+          education: req.body.educationLevel ? JSON.stringify([{ level: req.body.educationLevel }]) : null,
+          experience: req.body.experienceYears ? JSON.stringify([{ years: parseInt(req.body.experienceYears) }]) : null,
           stage: 'applied',
           status: 'pending',
-          createdAt: new Date(),
-          updatedAt: new Date()
+          source: 'manual',
+          createdBy: userProfile.id
         };
 
         console.log("Application data to create:", applicationData);
