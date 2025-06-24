@@ -101,9 +101,9 @@ export default function ApplicantManagement() {
     mutationFn: (data: { files: FileList; jobId?: number }) => {
       const formData = new FormData();
       
-      // Add each CV file
+      // Add each CV file with proper field name for multer
       Array.from(data.files).forEach((file, index) => {
-        formData.append(`cv_file_${index}`, file);
+        formData.append(`cv_file`, file);
       });
       
       if (data.jobId) {
