@@ -103,10 +103,20 @@ export default function ApplicantManagement() {
   const aiScoringMutation = useMutation({
     mutationFn: async (applicationId: number) => {
       try {
-        const response = await apiRequest(`/api/job-applications/${applicationId}/ai-score`, {
-          method: 'POST'
+        const response = await fetch(`/api/job-applications/${applicationId}/ai-score`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
         });
-        return response;
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to score CV');
+        }
+        
+        return response.json();
       } catch (error) {
         console.error('AI scoring error:', error);
         throw error;
