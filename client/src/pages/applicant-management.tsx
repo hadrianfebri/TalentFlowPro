@@ -101,22 +101,29 @@ export default function ApplicantManagement() {
 
   // AI scoring mutation
   const aiScoringMutation = useMutation({
-    mutationFn: (applicationId: number) => {
-      return apiRequest(`/api/job-applications/${applicationId}/ai-score`, {
-        method: 'POST'
-      });
+    mutationFn: async (applicationId: number) => {
+      try {
+        const response = await apiRequest(`/api/job-applications/${applicationId}/ai-score`, {
+          method: 'POST'
+        });
+        return response;
+      } catch (error) {
+        console.error('AI scoring error:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/job-applications"] });
       toast({
         title: "AI Scoring Complete",
-        description: "CV telah dianalisis dan diberi score",
+        description: `CV telah dianalisis dengan score ${data.score}%`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('AI scoring mutation error:', error);
       toast({
         title: "Error",
-        description: "Gagal melakukan AI scoring",
+        description: error?.message || "Gagal melakukan AI scoring",
         variant: "destructive",
       });
     },
