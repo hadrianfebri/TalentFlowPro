@@ -30,7 +30,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { format } from "date-fns";
-import { eq, and, gte, count } from "drizzle-orm";
+import { eq, and, gte, lte, count } from "drizzle-orm";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -4448,61 +4448,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (authUser?.role === 'employee') {
-        // For employees, get their attendance data in the date range
-        const attendanceRecords = await db
-          .select({
-            id: attendance.id,
-            date: attendance.date,
-            checkIn: attendance.checkIn,
-            checkOut: attendance.checkOut,
-            checkInLocation: attendance.checkInLocation,
-            checkOutLocation: attendance.checkOutLocation,
-            workingHours: attendance.workingHours,
-            overtimeHours: attendance.overtimeHours,
-            status: attendance.status,
-            notes: attendance.notes,
-          })
-          .from(attendance)
-          .innerJoin(employees, eq(attendance.employeeId, employees.id))
-          .where(and(
-            eq(employees.employeeId, authUser.employeeId),
-            gte(attendance.date, startDate as string),
-            lte(attendance.date, endDate as string)
-          ))
-          .orderBy(attendance.date);
-        
+        // Use the existing storage method for employee attendance
+        const attendanceRecords = await dbStorage.getEmployeeAttendanceRange(authUser.employeeId, startDate as string, endDate as string);
         res.json(attendanceRecords);
       } else {
         // For admin/HR users, get all attendance data in the range
-        const attendanceRecords = await db
-          .select({
-            id: attendance.id,
-            employeeId: attendance.employeeId,
-            date: attendance.date,
-            checkIn: attendance.checkIn,
-            checkOut: attendance.checkOut,
-            checkInLocation: attendance.checkInLocation,
-            checkOutLocation: attendance.checkOutLocation,
-            workingHours: attendance.workingHours,
-            overtimeHours: attendance.overtimeHours,
-            status: attendance.status,
-            notes: attendance.notes,
-            employee: {
-              firstName: employees.firstName,
-              lastName: employees.lastName,
-              employeeId: employees.employeeId,
-              position: employees.position,
-            }
-          })
-          .from(attendance)
-          .innerJoin(employees, eq(attendance.employeeId, employees.id))
-          .where(and(
-            eq(employees.companyId, authUser.companyId),
-            gte(attendance.date, startDate as string),
-            lte(attendance.date, endDate as string)
-          ))
-          .orderBy(attendance.date);
-        
+        const attendanceRecords = await dbStorage.getAttendanceRange(startDate as string, endDate as string);
         res.json(attendanceRecords);
       }
     } catch (error) {

@@ -713,6 +713,66 @@ export class DatabaseStorage implements IStorage {
     return attendanceRecord?.attendance || null;
   }
 
+  async getEmployeeAttendanceRange(employeeId: string, startDate: string, endDate: string): Promise<Attendance[]> {
+    return db
+      .select({
+        id: attendance.id,
+        employeeId: attendance.employeeId,
+        date: attendance.date,
+        checkIn: attendance.checkIn,
+        checkOut: attendance.checkOut,
+        checkInLocation: attendance.checkInLocation,
+        checkOutLocation: attendance.checkOutLocation,
+        checkInPhoto: attendance.checkInPhoto,
+        checkOutPhoto: attendance.checkOutPhoto,
+        workingHours: attendance.workingHours,
+        overtimeHours: attendance.overtimeHours,
+        status: attendance.status,
+        notes: attendance.notes,
+        createdAt: attendance.createdAt,
+      })
+      .from(attendance)
+      .innerJoin(employees, eq(attendance.employeeId, employees.id))
+      .where(and(
+        eq(employees.employeeId, employeeId),
+        gte(attendance.date, startDate),
+        lte(attendance.date, endDate)
+      ))
+      .orderBy(attendance.date);
+  }
+
+  async getAttendanceRange(startDate: string, endDate: string): Promise<Attendance[]> {
+    return db
+      .select({
+        id: attendance.id,
+        employeeId: attendance.employeeId,
+        date: attendance.date,
+        checkIn: attendance.checkIn,
+        checkOut: attendance.checkOut,
+        checkInLocation: attendance.checkInLocation,
+        checkOutLocation: attendance.checkOutLocation,
+        checkInPhoto: attendance.checkInPhoto,
+        checkOutPhoto: attendance.checkOutPhoto,
+        workingHours: attendance.workingHours,
+        overtimeHours: attendance.overtimeHours,
+        status: attendance.status,
+        notes: attendance.notes,
+        createdAt: attendance.createdAt,
+        employee: {
+          firstName: employees.firstName,
+          lastName: employees.lastName,
+          employeeId: employees.employeeId,
+        }
+      })
+      .from(attendance)
+      .innerJoin(employees, eq(attendance.employeeId, employees.id))
+      .where(and(
+        gte(attendance.date, startDate),
+        lte(attendance.date, endDate)
+      ))
+      .orderBy(attendance.date);
+  }
+
   async getAttendanceById(id: number): Promise<Attendance | null> {
     const [attendanceRecord] = await db
       .select()
