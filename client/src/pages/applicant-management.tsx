@@ -125,8 +125,8 @@ export default function ApplicantManagement() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/job-applications"] });
       toast({
-        title: "AI Scoring Complete",
-        description: `CV telah dianalisis dengan score ${data.score}%`,
+        title: "AI Re-scoring Complete",
+        description: `CV telah dianalisis ulang dengan score ${data.score}%`,
       });
     },
     onError: (error: any) => {
@@ -494,18 +494,36 @@ export default function ApplicantManagement() {
                         </TableCell>
                         <TableCell>
                           {application.aiMatchScore ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-700">
-                              {Math.round(parseFloat(application.aiMatchScore))}%
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="bg-green-50 text-green-700">
+                                {Math.round(parseFloat(application.aiMatchScore))}%
+                              </Badge>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => aiScoringMutation.mutate(application.id)}
+                                disabled={aiScoringMutation.isPending}
+                                className="text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                {aiScoringMutation.isPending ? "Re-scoring..." : "Re-score"}
+                              </Button>
+                            </div>
                           ) : (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => aiScoringMutation.mutate(application.id)}
-                              disabled={aiScoringMutation.isPending}
-                            >
-                              {aiScoringMutation.isPending ? "Analyzing..." : "Score CV"}
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500 italic">
+                                AI scoring...
+                              </span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  queryClient.invalidateQueries({ queryKey: ["/api/job-applications"] });
+                                }}
+                                className="text-xs"
+                              >
+                                Refresh
+                              </Button>
+                            </div>
                           )}
                         </TableCell>
                         <TableCell>
@@ -585,18 +603,23 @@ export default function ApplicantManagement() {
                         <Label className="text-sm font-medium">Match Score</Label>
                         <div className="flex items-center gap-2 mt-1">
                           {selectedApplication.aiMatchScore ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-700">
-                              {Math.round(parseFloat(selectedApplication.aiMatchScore))}%
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="bg-green-50 text-green-700">
+                                {Math.round(parseFloat(selectedApplication.aiMatchScore))}%
+                              </Badge>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => aiScoringMutation.mutate(selectedApplication.id)}
+                                disabled={aiScoringMutation.isPending}
+                              >
+                                {aiScoringMutation.isPending ? "Re-scoring..." : "Re-score"}
+                              </Button>
+                            </div>
                           ) : (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => aiScoringMutation.mutate(selectedApplication.id)}
-                              disabled={aiScoringMutation.isPending}
-                            >
-                              {aiScoringMutation.isPending ? "Analyzing..." : "Generate Score"}
-                            </Button>
+                            <span className="text-sm text-gray-500 italic">
+                              AI scoring in progress...
+                            </span>
                           )}
                         </div>
                       </div>

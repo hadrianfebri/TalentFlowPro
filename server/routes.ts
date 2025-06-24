@@ -3169,6 +3169,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const validatedData = insertJobApplicationSchema.parse(applicationData);
         const application = await dbStorage.createJobApplication(validatedData);
+        
+        // Auto-run AI scoring after successful application creation
+        if (application.id && applicationData.resumePath) {
+          console.log("Starting automatic AI scoring for application:", application.id);
+          
+          // Run AI scoring in background (non-blocking)
+          setImmediate(async () => {
+            try {
+              const { cvAnalyzer } = await import('./cvAnalyzer.js');
+              
+              // Get application with job details
+              const applications = await dbStorage.getJobApplications(userProfile.companyId);
+              const fullApplication = applications.find(app => app.id === application.id);
+              
+              if (!fullApplication?.resumePath || !fullApplication.job) {
+                console.log("Skipping auto AI scoring - missing CV or job info");
+                return;
+              }
+
+              console.log("Auto AI scoring: Extracting CV content...");
+              const cvText = await cvAnalyzer.extractCVContent(fullApplication.resumePath);
+              
+              if (cvText.length > 50) {
+                console.log("Auto AI scoring: Analyzing CV structure...");
+                const cvAnalysis = await cvAnalyzer.analyzeCVContent(cvText);
+                
+                console.log("Auto AI scoring: Calculating job match...");
+                const jobMatch = await cvAnalyzer.calculateJobMatch(
+                  cvAnalysis,
+                  fullApplication.job.description || "No description available",
+                  fullApplication.job.title
+                );
+
+                const finalScore = Math.max(45, Math.min(95, jobMatch.overallScore));
+                
+                // Update application with AI score
+                await dbStorage.updateJobApplication(application.id, {
+                  aiMatchScore: finalScore.toString()
+                });
+
+                console.log(`Auto AI scoring completed for application ${application.id}: ${finalScore}%`);
+              } else {
+                console.log("Auto AI scoring: CV text too short, using fallback score");
+                await dbStorage.updateJobApplication(application.id, {
+                  aiMatchScore: "60"
+                });
+              }
+            } catch (autoScoringError) {
+              console.error("Auto AI scoring failed:", autoScoringError.message);
+              // Set fallback score if auto scoring fails
+              await dbStorage.updateJobApplication(application.id, {
+                aiMatchScore: "55"
+              });
+            }
+          });
+        }
+        
         res.status(201).json(application);
       } catch (error) {
         console.error("Error creating job application:", error);
