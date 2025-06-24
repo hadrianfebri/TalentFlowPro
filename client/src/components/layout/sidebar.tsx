@@ -151,11 +151,7 @@ export default function Sidebar() {
           href: "/applicant-management",
           icon: Users,
         },
-        {
-          name: "AI Testing",
-          href: "/ai-testing",
-          icon: Brain,
-        },
+
         {
           name: t('nav.settings'),
           href: "/settings",
