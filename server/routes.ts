@@ -3149,19 +3149,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Parse form data and create application
-        const formData = {
-          ...req.body,
-          companyId: user.companyId,
+        const applicationData = {
+          companyId: userProfile.companyId,
+          applicantName: req.body.applicantName,
+          applicantEmail: req.body.applicantEmail,
+          applicantPhone: req.body.applicantPhone || null,
+          jobId: req.body.jobId ? parseInt(req.body.jobId) : null,
           resumePath,
-          portfolioPath,
           photoPath,
-          jobId: parseInt(req.body.job_id),
-          experienceYears: parseInt(req.body.experience_years) || 0,
+          experienceYears: req.body.experienceYears ? parseInt(req.body.experienceYears) : 0,
+          educationLevel: req.body.educationLevel || null,
+          stage: 'applied',
+          status: 'pending',
           createdAt: new Date(),
           updatedAt: new Date()
         };
 
-        const validatedData = insertJobApplicationSchema.parse(formData);
+        console.log("Application data to create:", applicationData);
+        
+        const validatedData = insertJobApplicationSchema.parse(applicationData);
         const application = await dbStorage.createJobApplication(validatedData);
         res.status(201).json(application);
       } catch (error) {
