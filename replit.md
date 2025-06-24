@@ -123,6 +123,16 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
+- **June 24, 2025**: Fixed critical RBAC security vulnerabilities in employee access controls
+  - ✅ Employee /api/employees now returns only their own data (not all company employees)
+  - ✅ Employee /api/payroll now filtered to show only their own payroll records
+  - ✅ Employee /api/reimbursements now filtered to show only their own reimbursements
+  - ✅ Employee /api/jobs blocked with requireAdminOrHR middleware (403 access denied)
+  - ✅ Employee /api/job-applications blocked with requireAdminOrHR middleware (403 access denied)
+  - ✅ All admin/HR functions confirmed working: dashboard, employees, attendance, documents, recruitment
+  - ✅ Employee can only access their permitted data: own profile, own attendance, own leave requests
+  - ✅ Comprehensive RBAC testing completed - security vulnerabilities resolved
+
 - **June 24, 2025**: Completed comprehensive AI-powered recruitment system
   - ✅ Implemented advanced AI-powered CV analysis using OpenAI GPT-4o
   - ✅ Created sophisticated job matching algorithm analyzing actual CV content

@@ -2385,13 +2385,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get('/api/reimbursements', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const companyId = req.userProfile?.companyId;
-
-      if (!companyId) {
+      const userProfile = req.userProfile;
+      if (!userProfile?.companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const reimbursements = await dbStorage.getReimbursements(companyId);
+      let reimbursements = await dbStorage.getReimbursements(userProfile.companyId);
+      
+      // Employee hanya bisa lihat reimbursement mereka sendiri
+      if (userProfile.role === "employee" && userProfile.employeeId) {
+        reimbursements = reimbursements.filter(r => r.employeeId === userProfile.employeeId);
+      }
+      
       res.json(reimbursements);
     } catch (error) {
       console.error("Error fetching reimbursements:", error);
@@ -2706,7 +2711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/jobs', isAuthenticated, getUserProfile, async (req: any, res) => {
+  app.get('/api/jobs', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const userProfile = req.userProfile;
       const companyId = userProfile?.companyId;
@@ -3017,7 +3022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/job-applications', isAuthenticated, getUserProfile, async (req: any, res) => {
+  app.get('/api/job-applications', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const userProfile = req.userProfile;
       const companyId = userProfile?.companyId;
