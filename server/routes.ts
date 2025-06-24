@@ -2682,15 +2682,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/jobs', isAuthenticated, async (req: any, res) => {
+  app.get('/api/jobs', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      const userProfile = req.userProfile;
+      const companyId = userProfile?.companyId;
+      
+      if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const jobs = await dbStorage.getJobs(user.companyId);
+      const jobs = await dbStorage.getJobs(companyId);
       res.json(jobs);
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -2726,22 +2727,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.post('/api/jobs', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      const userProfile = req.userProfile;
+      const companyId = userProfile?.companyId;
+      
+      if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
       const validatedData = insertJobSchema.parse({
         ...req.body,
-        companyId: user.companyId,
-        createdBy: userId,
+        companyId: companyId,
+        createdBy: userProfile.id,
       });
       
       const job = await dbStorage.createJob(validatedData);
       res.status(201).json(job);
     } catch (error) {
       console.error("Error creating job:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: "Invalid data provided", 
+          errors: error.errors 
+        });
+      }
       res.status(500).json({ message: "Failed to create job" });
     }
   });
@@ -2985,15 +2993,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
-  app.get('/api/job-applications', isAuthenticated, async (req: any, res) => {
+  app.get('/api/job-applications', isAuthenticated, getUserProfile, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await dbStorage.getUser(userId);
-      if (!user?.companyId) {
+      const userProfile = req.userProfile;
+      const companyId = userProfile?.companyId;
+      
+      if (!companyId) {
         return res.status(400).json({ message: "User not associated with company" });
       }
 
-      const applications = await dbStorage.getJobApplications(user.companyId);
+      const applications = await dbStorage.getJobApplications(companyId);
       res.json(applications);
     } catch (error) {
       console.error("Error fetching job applications:", error);
@@ -3069,9 +3078,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ]),
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
-        const user = await dbStorage.getUser(userId);
-        if (!user?.companyId) {
+        const userProfile = req.userProfile;
+        const companyId = userProfile?.companyId;
+        
+        if (!companyId) {
           return res.status(400).json({ message: "User not associated with company" });
         }
 
