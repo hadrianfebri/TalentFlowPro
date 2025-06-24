@@ -56,21 +56,29 @@ export default function AttendanceCalendar() {
   const { data: monthlyAttendance = [], isLoading } = useQuery<AttendanceRecord[]>({
     queryKey: ["/api/attendance/monthly", format(currentMonth, 'yyyy-MM')],
     queryFn: async () => {
-      const startDate = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
-      const endDate = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
-      const response = await fetch(`/api/attendance/range?startDate=${startDate}&endDate=${endDate}`);
-      if (!response.ok) {
-        // Fallback to regular attendance endpoint
+      try {
+        const startDate = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
+        const endDate = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
+        const response = await fetch(`/api/attendance/range?startDate=${startDate}&endDate=${endDate}`);
+        if (response.ok) {
+          return response.json();
+        }
+        
+        // Fallback to regular attendance endpoint and filter
         const fallbackResponse = await fetch('/api/attendance');
         if (!fallbackResponse.ok) throw new Error('Failed to fetch attendance');
         const allData = await fallbackResponse.json();
-        // Filter to current month
-        return allData.filter((record: AttendanceRecord) => {
+        
+        // Filter to current month - ensure it's an array
+        const attendanceArray = Array.isArray(allData) ? allData : [];
+        return attendanceArray.filter((record: AttendanceRecord) => {
           const recordDate = parseISO(record.date);
           return recordDate >= startOfMonth(currentMonth) && recordDate <= endOfMonth(currentMonth);
         });
+      } catch (error) {
+        console.error('Error fetching monthly attendance:', error);
+        return [];
       }
-      return response.json();
     },
     retry: 1,
   });
