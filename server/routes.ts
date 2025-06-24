@@ -3191,16 +3191,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "User not associated with company" });
         }
 
-        // Get application and job details
-        const application = await dbStorage.getJobApplication(applicationId);
+        // Get application details first
+        const applications = await dbStorage.getJobApplications(userProfile.companyId);
+        const application = applications.find(app => app.id === applicationId);
+        
         if (!application) {
           return res.status(404).json({ message: "Application not found" });
         }
 
         // Simple AI scoring algorithm based on CV analysis
-        const jobApplication = application.jobApplications || application;
-        const job = application.jobs || await dbStorage.getJob(jobApplication.jobId);
+        const jobApplication = application;
         
+        const job = application.job;
         if (!job) {
           return res.status(404).json({ message: "Job not found" });
         }
@@ -3209,10 +3211,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let score = 0;
         let factors = 0;
 
+        // Get the raw application data to access education and experience
+        const [rawApplication] = await db
+          .select()
+          .from(jobApplications)
+          .where(eq(jobApplications.id, applicationId));
+
         // Factor 1: Education level match (20% weight)
-        if (jobApplication.education) {
+        if (rawApplication?.education) {
           try {
-            const education = JSON.parse(jobApplication.education);
+            const education = JSON.parse(rawApplication.education);
             if (education && education.length > 0) {
               const eduLevel = education[0].level;
               if (eduLevel === 'sarjana' || eduLevel === 'magister' || eduLevel === 'doktor') {
@@ -3228,12 +3236,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             score += 10; // default score if parsing fails
             factors++;
           }
+        } else {
+          score += 10;
+          factors++;
         }
 
         // Factor 2: Experience match (30% weight)
-        if (jobApplication.experience) {
+        if (rawApplication?.experience) {
           try {
-            const experience = JSON.parse(jobApplication.experience);
+            const experience = JSON.parse(rawApplication.experience);
             if (experience && experience.length > 0) {
               const expYears = experience[0].years || 0;
               if (expYears >= 5) {
@@ -3251,16 +3262,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             score += 15; // default score if parsing fails
             factors++;
           }
+        } else {
+          score += 15;
+          factors++;
         }
 
         // Factor 3: CV availability (10% weight)
-        if (jobApplication.resumePath) {
+        if (application.resumePath) {
           score += 10;
           factors++;
         }
 
         // Factor 4: Contact completeness (10% weight)
-        if (jobApplication.applicantPhone && jobApplication.applicantEmail) {
+        if (application.applicantPhone && application.applicantEmail) {
           score += 10;
           factors++;
         }
@@ -3284,8 +3298,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           breakdown: {
             education: Math.min(score >= 20 ? 20 : 15, 20),
             experience: Math.min(score >= 50 ? 30 : 25, 30),
-            cvAvailable: jobApplication.resumePath ? 10 : 0,
-            contactComplete: (jobApplication.applicantPhone && jobApplication.applicantEmail) ? 10 : 0,
+            cvAvailable: application.resumePath ? 10 : 0,
+            contactComplete: (application.applicantPhone && application.applicantEmail) ? 10 : 0,
             jobRelevance: Math.floor(Math.random() * 20) + 15
           }
         });
