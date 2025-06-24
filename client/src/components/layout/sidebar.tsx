@@ -142,7 +142,7 @@ export default function Sidebar() {
           icon: BarChart3,
         },
         {
-          name: t('nav.recruitment'),
+          name: t('nav.jobs'),
           href: "/recruitment",
           icon: Briefcase,
         },
