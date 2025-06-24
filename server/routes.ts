@@ -3654,6 +3654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             firstName: updatedApplication.applicantName.split(' ')[0] || updatedApplication.applicantName,
             lastName: updatedApplication.applicantName.split(' ').slice(1).join(' ') || '',
             email: updatedApplication.applicantEmail,
+            workEmail: updatedApplication.applicantEmail, // Add required work_email field
             phone: updatedApplication.applicantPhone || '',
             position: updatedApplication.job?.title || 'Employee',
             departmentId: updatedApplication.job?.departmentId || null,

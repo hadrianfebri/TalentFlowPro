@@ -545,8 +545,14 @@ export default function ApplicantManagement() {
                                 variant="ghost" 
                                 size="sm"
                                 onClick={() => {
-                                  const path = application.resumePath.startsWith('/') ? application.resumePath.substring(1) : application.resumePath;
-                                  window.open(`/${path}`, '_blank');
+                                  // Handle different resume path formats
+                                  let resumeUrl = application.resumePath;
+                                  if (resumeUrl.startsWith('uploads/')) {
+                                    resumeUrl = `/${resumeUrl}`;
+                                  } else if (!resumeUrl.startsWith('/')) {
+                                    resumeUrl = `/uploads/${resumeUrl}`;
+                                  }
+                                  window.open(resumeUrl, '_blank');
                                 }}
                                 title="Lihat CV"
                               >
