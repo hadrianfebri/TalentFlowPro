@@ -3194,9 +3194,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "User not associated with company" });
         }
 
-        // Advanced AI scoring algorithm based on real CV data
-        let totalScore = 0;
-        let maxScore = 100;
+        // Advanced AI scoring with CV content analysis
+        console.log("Starting AI scoring for application:", applicationId);
         
         // Get application details for analysis
         const applications = await dbStorage.getJobApplications(userProfile.companyId);
@@ -3206,108 +3205,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Application not found" });
         }
 
-        // Get raw application data for education/experience analysis
-        const [rawApplication] = await db
-          .select()
-          .from(jobApplications)
-          .where(eq(jobApplications.id, applicationId));
-
-        console.log("Analyzing application:", {
-          name: application.applicantName,
-          hasCV: !!application.resumePath,
-          education: rawApplication?.education,
-          experience: rawApplication?.experience
-        });
-
-        // 1. PENDIDIKAN (25% weight)
-        let educationScore = 0;
-        if (rawApplication?.education) {
-          try {
-            const education = JSON.parse(rawApplication.education);
-            const eduLevel = education[0]?.level;
-            switch(eduLevel) {
-              case 'doktor': educationScore = 25; break;
-              case 'magister': educationScore = 22; break; 
-              case 'sarjana': educationScore = 20; break;
-              case 'diploma': educationScore = 15; break;
-              case 'sma': educationScore = 10; break;
-              default: educationScore = 10;
-            }
-          } catch(e) {
-            educationScore = 10; // default
-          }
-        } else {
-          educationScore = 10;
+        if (!application.resumePath) {
+          return res.status(400).json({ message: "CV tidak tersedia untuk analisis" });
         }
 
-        // 2. PENGALAMAN KERJA (35% weight)
-        let experienceScore = 0;
-        if (rawApplication?.experience) {
-          try {
-            const experience = JSON.parse(rawApplication.experience);
-            const years = experience[0]?.years || 0;
-            if (years >= 10) experienceScore = 35;
-            else if (years >= 7) experienceScore = 30;
-            else if (years >= 5) experienceScore = 25;
-            else if (years >= 3) experienceScore = 20;
-            else if (years >= 1) experienceScore = 15;
-            else experienceScore = 5;
-          } catch(e) {
-            experienceScore = 10; // default
-          }
-        } else {
-          experienceScore = 10;
+        if (!application.job) {
+          return res.status(400).json({ message: "Job information not found" });
         }
 
-        // 3. KELENGKAPAN CV (20% weight)
-        let cvScore = 0;
-        if (application.resumePath) {
-          cvScore += 15; // CV tersedia
-          if (application.applicantPhone) cvScore += 3; // Kontak lengkap
-          if (application.applicantEmail.includes('@')) cvScore += 2; // Email valid
-        } else {
-          cvScore = 5; // Minimal score tanpa CV
-        }
-
-        // 4. KESESUAIAN POSISI (20% weight) - Analisis berdasarkan job requirements
-        let jobMatchScore = 0;
-        const job = application.job;
-        if (job) {
-          // Base match score
-          jobMatchScore = 10;
-          
-          // Bonus berdasarkan kombinasi pendidikan + pengalaman
-          const eduLevel = rawApplication?.education ? JSON.parse(rawApplication.education)[0]?.level : '';
-          const expYears = rawApplication?.experience ? JSON.parse(rawApplication.experience)[0]?.years : 0;
-          
-          if ((eduLevel === 'sarjana' || eduLevel === 'magister' || eduLevel === 'doktor') && expYears >= 3) {
-            jobMatchScore += 8; // Kombinasi baik
-          } else if (eduLevel === 'sarjana' && expYears >= 1) {
-            jobMatchScore += 5; // Kombinasi cukup
-          } else if (expYears >= 5) {
-            jobMatchScore += 6; // Pengalaman kompensasi
-          }
-          
-          // Random factor untuk variasi (max 2 poin)
-          jobMatchScore += Math.floor(Math.random() * 3);
-        } else {
-          jobMatchScore = 10;
-        }
-
-        // TOTAL CALCULATION
-        totalScore = educationScore + experienceScore + cvScore + jobMatchScore;
+        console.log("Analyzing CV:", application.resumePath);
         
-        // Normalize to 100% max dan minimum 45%
-        const finalScore = Math.max(45, Math.min(95, totalScore));
-        
-        console.log("AI Scoring Breakdown:", {
-          education: `${educationScore}/25`,
-          experience: `${experienceScore}/35`, 
-          cv: `${cvScore}/20`,
-          jobMatch: `${jobMatchScore}/20`,
-          total: `${totalScore}/100`,
-          final: `${finalScore}%`
-        });
+        let finalScore = 50; // Default fallback score
+        let breakdown = {
+          education: { score: 0, reason: "CV analysis failed" },
+          experience: { score: 0, reason: "CV analysis failed" },
+          skills: { score: 0, reason: "CV analysis failed" },
+          overall: { score: 50, reason: "Using fallback score" }
+        };
+
+        try {
+          // Extract CV content using OpenAI
+          console.log("Extracting CV content...");
+          const cvText = await cvAnalyzer.extractCVContent(application.resumePath);
+          console.log("CV text extracted, length:", cvText.length);
+
+          if (cvText.length > 50) {
+            // Analyze CV structure
+            console.log("Analyzing CV structure...");
+            const cvAnalysis = await cvAnalyzer.analyzeCVContent(cvText);
+            console.log("CV analysis completed:", {
+              hasEducation: cvAnalysis.education?.length > 0,
+              hasExperience: cvAnalysis.workExperience?.length > 0,
+              skillsCount: cvAnalysis.skills?.technical?.length || 0
+            });
+
+            // Calculate job match
+            console.log("Calculating job match...");
+            const jobMatch = await cvAnalyzer.calculateJobMatch(
+              cvAnalysis,
+              application.job.description || "No description available",
+              application.job.title
+            );
+
+            finalScore = Math.max(45, Math.min(95, jobMatch.overallScore));
+            breakdown = jobMatch.breakdown;
+            
+            console.log("Job match analysis completed:", {
+              overallScore: jobMatch.overallScore,
+              finalScore: finalScore
+            });
+          } else {
+            console.log("CV text too short, using basic scoring");
+            finalScore = 55; // Basic score for incomplete CV
+            breakdown.overall.reason = "CV content insufficient for detailed analysis";
+          }
+        } catch (error) {
+          console.error("Error in CV analysis:", error);
+          // Fallback to basic scoring if AI analysis fails
+          finalScore = 60;
+          breakdown.overall.reason = `AI analysis failed: ${error.message}`;
+        }
         
         console.log("Generated AI score:", finalScore);
         
@@ -3322,30 +3279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true, 
           score: finalScore,
           message: "AI scoring completed successfully",
-          breakdown: {
-            education: {
-              score: educationScore,
-              maxScore: 25,
-              weight: "25%"
-            },
-            experience: {
-              score: experienceScore,
-              maxScore: 35,
-              weight: "35%"
-            },
-            cv: {
-              score: cvScore,
-              maxScore: 20,
-              weight: "20%"
-            },
-            jobMatch: {
-              score: jobMatchScore,
-              maxScore: 20,
-              weight: "20%"
-            },
-            total: totalScore,
-            final: finalScore
-          }
+          breakdown: breakdown
         });
       } catch (error: any) {
         console.error("Error performing AI scoring:", error);
