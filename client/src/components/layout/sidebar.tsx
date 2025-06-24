@@ -16,7 +16,8 @@ import {
   LayoutDashboard,
   Settings,
   UserCheck,
-  LogOut
+  LogOut,
+  Briefcase
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import talentWhizLogo from "@assets/TALENTWHIZ_COLOR_1749955055542.png";
