@@ -30,6 +30,7 @@ import HRLogin from "@/pages/hr-login";
 import EmployeeLogin from "@/pages/employee-login";
 import EmployeeAttendance from "@/pages/employee-attendance";
 import EmployeeProfile from "@/pages/employee-profile";
+import AttendanceCalendar from "@/pages/attendance-calendar";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -56,6 +57,7 @@ function Router() {
           <Route path="/employees" component={Employees} />
           <Route path="/attendance" component={Attendance} />
           <Route path="/employee-attendance" component={EmployeeAttendance} />
+          <Route path="/attendance-calendar" component={AttendanceCalendar} />
           <Route path="/employee-profile" component={EmployeeProfile} />
           <Route path="/payroll" component={Payroll} />
           <Route path="/leaves" component={Leaves} />

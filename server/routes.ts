@@ -4437,6 +4437,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get attendance range for calendar view
+  app.get('/api/attendance/range', isAuthenticated, async (req: any, res) => {
+    try {
+      const authUser = req.session?.authUser;
+      const { startDate, endDate } = req.query;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "Start date and end date are required" });
+      }
+      
+      if (authUser?.role === 'employee') {
+        // For employees, get their attendance data in the date range
+        const attendanceRecords = await db
+          .select({
+            id: attendance.id,
+            date: attendance.date,
+            checkIn: attendance.checkIn,
+            checkOut: attendance.checkOut,
+            checkInLocation: attendance.checkInLocation,
+            checkOutLocation: attendance.checkOutLocation,
+            workingHours: attendance.workingHours,
+            overtimeHours: attendance.overtimeHours,
+            status: attendance.status,
+            notes: attendance.notes,
+          })
+          .from(attendance)
+          .innerJoin(employees, eq(attendance.employeeId, employees.id))
+          .where(and(
+            eq(employees.employeeId, authUser.employeeId),
+            gte(attendance.date, startDate as string),
+            lte(attendance.date, endDate as string)
+          ))
+          .orderBy(attendance.date);
+        
+        res.json(attendanceRecords);
+      } else {
+        // For admin/HR users, get all attendance data in the range
+        const attendanceRecords = await db
+          .select({
+            id: attendance.id,
+            employeeId: attendance.employeeId,
+            date: attendance.date,
+            checkIn: attendance.checkIn,
+            checkOut: attendance.checkOut,
+            checkInLocation: attendance.checkInLocation,
+            checkOutLocation: attendance.checkOutLocation,
+            workingHours: attendance.workingHours,
+            overtimeHours: attendance.overtimeHours,
+            status: attendance.status,
+            notes: attendance.notes,
+            employee: {
+              firstName: employees.firstName,
+              lastName: employees.lastName,
+              employeeId: employees.employeeId,
+              position: employees.position,
+            }
+          })
+          .from(attendance)
+          .innerJoin(employees, eq(attendance.employeeId, employees.id))
+          .where(and(
+            eq(employees.companyId, authUser.companyId),
+            gte(attendance.date, startDate as string),
+            lte(attendance.date, endDate as string)
+          ))
+          .orderBy(attendance.date);
+        
+        res.json(attendanceRecords);
+      }
+    } catch (error) {
+      console.error("Error fetching attendance range:", error);
+      res.status(500).json({ message: "Failed to fetch attendance range" });
+    }
+  });
+
   // Check-in endpoint with photo support
   app.post("/api/attendance/checkin", upload.single('photo'), async (req: any, res) => {
     try {
