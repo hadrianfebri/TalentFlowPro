@@ -123,6 +123,16 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
+- **June 24, 2025**: Completed comprehensive dashboard RBAC implementation
+  - ✅ Fixed useQueryClient import error in hr-login.tsx
+  - ✅ Implemented role-based dashboard components (employee vs admin/HR views)
+  - ✅ Employee dashboard shows only personal data: own attendance, rewards, activities
+  - ✅ Admin/HR dashboard shows full management features: company stats, analytics, quick actions
+  - ✅ Hidden inappropriate components from employee view (AI insights, company analytics)
+  - ✅ Verified login credentials: admin@contohUMKM.com / admin123, EMP003 / emp123
+  - ✅ Calendar view and employee attendance data successfully synchronized
+  - ✅ Comprehensive RBAC security implementation across all dashboard components
+
 - **June 24, 2025**: Fixed critical RBAC security vulnerabilities in employee access controls
   - ✅ Employee /api/employees now returns only their own data (not all company employees)
   - ✅ Employee /api/payroll now filtered to show only their own payroll records
