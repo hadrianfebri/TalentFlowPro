@@ -87,7 +87,7 @@ export default function ApplicantManagement() {
       setIsManualDialogOpen(false);
       toast({
         title: "Berhasil",
-        description: "Pelamar berhasil ditambahkan",
+        description: "Pelamar berhasil ditambahkan. AI scoring sedang berjalan otomatis...",
       });
     },
     onError: (error) => {
