@@ -1123,6 +1123,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       500:
    *         description: Server error
    */
+  // Employee self-update profile endpoint
+  app.put('/api/employee/profile', isAuthenticated, getUserProfile, async (req: any, res) => {
+    try {
+      const userProfile = req.userProfile;
+      if (!userProfile?.id) {
+        return res.status(400).json({ message: "User profile not found" });
+      }
+
+      // Only allow updating specific fields for self-service
+      const allowedFields = ['phone', 'homeAddress', 'emergencyContact'];
+      const updateData = Object.keys(req.body)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key === 'homeAddress' ? 'address' : key] = req.body[key];
+          return obj;
+        }, {} as any);
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+
+      const employee = await dbStorage.updateEmployee(userProfile.employeeId, updateData);
+      res.json(employee);
+    } catch (error) {
+      console.error("Error updating employee profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   app.put('/api/employees/:id', isAuthenticated, getUserProfile, requireAdminOrHR, async (req: any, res) => {
     try {
       const { id } = req.params;

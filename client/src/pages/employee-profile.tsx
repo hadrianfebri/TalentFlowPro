@@ -92,7 +92,7 @@ export default function EmployeeProfile() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch(`/api/employees/${profile?.id}`, {
+      const response = await fetch('/api/employee/profile', {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
