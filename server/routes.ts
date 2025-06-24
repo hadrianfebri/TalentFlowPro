@@ -816,8 +816,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         salary: Number(employee.basicSalary) || 5000000,
         status: employee.status,
         address: employee.homeAddress || '',
-        emergencyContact: typeof employee.emergencyContact === 'object' && employee.emergencyContact ? 
-          (employee.emergencyContact as any).name || '' : '',
+        emergencyContact: typeof employee.emergencyContact === 'string' ? 
+          employee.emergencyContact : 
+          (typeof employee.emergencyContact === 'object' && employee.emergencyContact ? 
+            (employee.emergencyContact as any).name || (employee.emergencyContact as any).phone || '' : ''),
         emergencyPhone: typeof employee.emergencyContact === 'object' && employee.emergencyContact ? 
           (employee.emergencyContact as any).phone || '' : '',
       };
@@ -1136,7 +1138,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateData = Object.keys(req.body)
         .filter(key => allowedFields.includes(key))
         .reduce((obj, key) => {
-          obj[key === 'homeAddress' ? 'address' : key] = req.body[key];
+          if (key === 'homeAddress') {
+            obj['homeAddress'] = req.body[key];
+          } else {
+            obj[key] = req.body[key];
+          }
           return obj;
         }, {} as any);
 

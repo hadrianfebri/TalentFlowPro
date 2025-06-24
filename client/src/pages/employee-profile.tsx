@@ -113,6 +113,10 @@ export default function EmployeeProfile() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/employee/profile'] });
       setIsEditDialogOpen(false);
+      // Force a refetch to ensure UI updates
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/employee/profile'] });
+      }, 100);
     },
     onError: () => {
       toast({
