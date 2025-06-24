@@ -54,8 +54,14 @@ export default function HRLogin() {
         description: t("login.success.description"),
       });
       
-      // Redirect to HR dashboard
-      setLocation("/dashboard");
+      // Store user data in localStorage for immediate access
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Invalidate auth query to refresh user state
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Force page reload to ensure proper authentication state
+      window.location.href = "/";
     },
     onError: (error: any) => {
       toast({
