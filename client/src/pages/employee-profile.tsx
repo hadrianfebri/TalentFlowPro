@@ -48,6 +48,12 @@ interface PayrollRecord {
   createdAt: string;
 }
 
+const updateProfileSchema = z.object({
+  phone: z.string().optional(),
+  homeAddress: z.string().optional(),
+  emergencyContact: z.string().optional(),
+});
+
 export default function EmployeeProfile() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
