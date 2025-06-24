@@ -3226,6 +3226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // Extract CV content using OpenAI
           console.log("Extracting CV content...");
+          const { cvAnalyzer } = await import('./cvAnalyzer.js');
           const cvText = await cvAnalyzer.extractCVContent(application.resumePath);
           console.log("CV text extracted, length:", cvText.length);
 
