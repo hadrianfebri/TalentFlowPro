@@ -1306,9 +1306,27 @@ export class DatabaseStorage implements IStorage {
     await db.delete(jobs).where(eq(jobs.id, id));
   }
 
-  async getJobApplications(companyId: string): Promise<JobApplication[]> {
+  async getJobApplications(companyId: string): Promise<any[]> {
     return db
-      .select()
+      .select({
+        id: jobApplications.id,
+        jobId: jobApplications.jobId,
+        applicantName: jobApplications.applicantName,
+        applicantEmail: jobApplications.applicantEmail,
+        applicantPhone: jobApplications.applicantPhone,
+        resumePath: jobApplications.resumePath,
+        portfolioPath: jobApplications.portfolioPath,
+        stage: jobApplications.stage,
+        status: jobApplications.status,
+        aiMatchScore: jobApplications.aiMatchScore,
+        createdAt: jobApplications.createdAt,
+        updatedAt: jobApplications.updatedAt,
+        job: {
+          title: jobs.title,
+          location: jobs.location,
+          type: jobs.type
+        }
+      })
       .from(jobApplications)
       .leftJoin(jobs, eq(jobApplications.jobId, jobs.id))
       .where(eq(jobs.companyId, companyId))
