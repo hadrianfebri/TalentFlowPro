@@ -7,9 +7,16 @@ import {
   ChevronRight 
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function QuickActions() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+
+  // Only show quick actions for admin and HR users, not employees
+  if (user?.role === 'employee') {
+    return null;
+  }
 
   const quickActions = [
     {
