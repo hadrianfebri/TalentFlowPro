@@ -258,6 +258,23 @@ export default function EmployeeAttendance() {
                 <h1 className="text-3xl font-bold text-gray-900">Absensi Saya</h1>
                 <p className="text-gray-600">Kelola absensi dan lihat rekap kehadiran Anda</p>
               </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="default"
+                  className="flex items-center gap-2"
+                >
+                  <Clock className="h-4 w-4" />
+                  Absensi Harian
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = '/attendance-calendar'}
+                  className="flex items-center gap-2"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  Rekap Bulanan
+                </Button>
+              </div>
             </div>
 
       {/* Today's Attendance Card */}

@@ -73,6 +73,11 @@ export default function Sidebar() {
           icon: Clock,
         },
         {
+          name: "Rekap Absensi",
+          href: "/attendance-calendar",
+          icon: Calendar,
+        },
+        {
           name: t('nav.leaves'),
           href: "/leaves",
           icon: Calendar,

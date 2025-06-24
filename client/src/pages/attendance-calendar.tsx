@@ -201,6 +201,31 @@ export default function AttendanceCalendar() {
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-6xl mx-auto space-y-6">
             
+            {/* Navigation Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Rekap Absensi Bulanan</h1>
+                <p className="text-gray-600">Lihat rekap kehadiran Anda dalam bentuk kalender</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = '/employee-attendance'}
+                  className="flex items-center gap-2"
+                >
+                  <Clock className="h-4 w-4" />
+                  Absensi Harian
+                </Button>
+                <Button
+                  variant="default"
+                  className="flex items-center gap-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Rekap Bulanan
+                </Button>
+              </div>
+            </div>
+            
             {/* Monthly Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
