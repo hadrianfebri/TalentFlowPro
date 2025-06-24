@@ -3191,9 +3191,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     upload.single('file'),
     async (req: any, res) => {
       try {
-        const userId = req.user.claims.sub;
-        const user = await dbStorage.getUser(userId);
-        if (!user?.companyId) {
+        const userProfile = req.userProfile;
+        const companyId = userProfile?.companyId;
+        
+        if (!companyId) {
           return res.status(400).json({ message: "User not associated with company" });
         }
 
@@ -3247,7 +3248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const row of dataToProcess) {
           try {
             const applicationData = {
-              companyId: user.companyId,
+              companyId: companyId,
               applicantName: row.applicant_name || row.name,
               applicantEmail: row.applicant_email || row.email,
               applicantPhone: row.applicant_phone || row.phone || null,
