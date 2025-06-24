@@ -51,15 +51,35 @@ const multerStorage = multer.diskStorage({
 const upload = multer({ 
   storage: multerStorage,
   fileFilter: (req, file, cb) => {
-    // Accept images only for attendance photos
-    if (file.mimetype.startsWith('image/')) {
+    // Allow images for attendance photos
+    if (file.fieldname === 'photo' && file.mimetype.startsWith('image/')) {
       cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed for attendance photos!'));
+    }
+    // Allow PDFs and Word documents for CV uploads
+    else if ((file.fieldname === 'cv_file' || file.fieldname === 'resume_file') && 
+             (file.mimetype === 'application/pdf' || 
+              file.mimetype.includes('document') || 
+              file.mimetype.includes('word'))) {
+      cb(null, true);
+    }
+    // Allow images for profile photos in applicant management
+    else if (file.fieldname === 'photo_file' && file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    }
+    // Allow general document uploads
+    else if (file.fieldname === 'file' && 
+             (file.mimetype === 'application/pdf' || 
+              file.mimetype.includes('document') || 
+              file.mimetype.includes('word') ||
+              file.mimetype.startsWith('image/'))) {
+      cb(null, true);
+    }
+    else {
+      cb(new Error(`File type ${file.mimetype} not allowed for field ${file.fieldname}`), false);
     }
   },
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 10 * 1024 * 1024 // 10MB limit for CV files
   }
 });
 
