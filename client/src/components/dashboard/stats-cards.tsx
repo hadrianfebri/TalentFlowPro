@@ -131,7 +131,7 @@ export default function StatsCards() {
   // Admin/HR cards
   const statCards = [
     {
-      title: t('dashboard.totalEmployees'),
+      title: "Total Karyawan",
       value: stats.totalEmployees?.toString() || "0",
       change: stats.employeeGrowth || "+0 bulan ini",
       icon: Users,
@@ -140,7 +140,7 @@ export default function StatsCards() {
       changeColor: "text-secondary",
     },
     {
-      title: t('dashboard.todayAttendance'),
+      title: "Hadir Hari Ini",
       value: stats.todayAttendance?.toString() || "0",
       change: stats.attendanceRate || "0% tingkat kehadiran",
       icon: Clock,
@@ -149,7 +149,7 @@ export default function StatsCards() {
       changeColor: "text-secondary",
     },
     {
-      title: t('dashboard.pendingLeaves'),
+      title: "Cuti Pending",
       value: stats.pendingLeaves?.toString() || "0",
       change: stats.urgentLeaves || "0 perlu persetujuan segera",
       icon: Calendar,
@@ -158,7 +158,7 @@ export default function StatsCards() {
       changeColor: "text-destructive",
     },
     {
-      title: t('dashboard.monthlyPayroll'),
+      title: "Payroll Bulan Ini",
       value: stats.monthlyPayroll || "Rp 0",
       change: stats.payrollStatus || "Belum ada data",
       icon: DollarSign,
