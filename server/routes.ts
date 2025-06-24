@@ -2073,7 +2073,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { period } = req.query;
-      const payroll = await dbStorage.getPayroll(userProfile.companyId, period as string);
+      let payroll = await dbStorage.getPayroll(userProfile.companyId, period as string);
+      
+      // Employee hanya bisa lihat payroll mereka sendiri
+      if (userProfile.role === "employee" && userProfile.employeeId) {
+        payroll = payroll.filter(p => p.employeeId === userProfile.employeeId);
+      }
+      
       res.json(payroll);
     } catch (error) {
       console.error("Error fetching payroll:", error);
