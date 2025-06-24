@@ -86,6 +86,7 @@ interface JobApplication {
   stage: string;
   notes?: string;
   interviewDate?: string;
+  interview_date?: string; // Add snake_case version for backend compatibility
   offerAmount?: string;
   hiredDate?: string;
   createdAt: string;
@@ -850,11 +851,11 @@ export default function Recruitment() {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                {application.interviewDate ? (
+                                {(application.interviewDate || application.interview_date) ? (
                                   <div className="text-sm">
                                     <div className="flex items-center">
                                       <Calendar className="h-4 w-4 mr-1 text-primary" />
-                                      {format(new Date(application.interviewDate), 'dd MMM yyyy HH:mm', { locale: id })}
+                                      {format(new Date(application.interviewDate || application.interview_date), 'dd MMM yyyy HH:mm', { locale: id })}
                                     </div>
                                   </div>
                                 ) : (
@@ -948,8 +949,8 @@ export default function Recruitment() {
                 <Input 
                   name="interviewDate" 
                   type="datetime-local"
-                  defaultValue={selectedApplication.interviewDate ? 
-                    new Date(selectedApplication.interviewDate).toISOString().slice(0, 16) : ""}
+                  defaultValue={(selectedApplication.interviewDate || selectedApplication.interview_date) ? 
+                    new Date(selectedApplication.interviewDate || selectedApplication.interview_date).toISOString().slice(0, 16) : ""}
                 />
               </div>
 
