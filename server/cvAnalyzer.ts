@@ -66,9 +66,37 @@ export class CVAnalyzer {
       
       // Check file type and extract accordingly
       if (filePath.toLowerCase().endsWith('.pdf')) {
-        console.log("Extracting PDF content...");
-        const pdfData = await pdf(fileBuffer);
-        return pdfData.text;
+        console.log("Extracting PDF content using OpenAI...");
+        // Use OpenAI for PDF extraction due to pdf-parse library issues
+        const base64Content = fileBuffer.toString('base64');
+        
+        const response = await openai.chat.completions.create({
+          model: "gpt-4.1",
+          messages: [
+            {
+              role: "system",
+              content: "You are a PDF text extraction expert. Extract all text content from the provided PDF accurately, maintaining the structure and format as much as possible."
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Please extract all text content from this PDF CV/Resume document. Return only the raw text content without any analysis or formatting changes."
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:application/pdf;base64,${base64Content}`
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 3000
+        });
+
+        return response.choices[0].message.content || "";
       } else {
         // For other file types (Word docs, images), use OpenAI vision
         console.log("Using OpenAI for file content extraction...");

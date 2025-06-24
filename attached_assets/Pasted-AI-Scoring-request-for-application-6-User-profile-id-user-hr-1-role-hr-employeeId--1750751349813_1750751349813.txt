@@ -1,0 +1,53 @@
+AI Scoring request for application: 6
+User profile: {
+  id: 'user-hr-1',
+  role: 'hr',
+  employeeId: undefined,
+  companyId: 'company-1'
+}
+Starting AI scoring for application: 6
+Analyzing CV: resume_file-1750751214511-989296371.pdf
+Extracting CV content...
+Error in CV analysis: Error: ENOENT: no such file or directory, open './test/data/05-versions-space.pdf'
+    at Object.openSync (node:fs:573:18)
+    at Object.readFileSync (node:fs:452:35)
+    at Object.<anonymous> (/home/runner/workspace/node_modules/pdf-parse/index.js:15:25)
+    at Module._compile (node:internal/modules/cjs/loader:1469:14)
+    at Object.transformer (/home/runner/workspace/node_modules/tsx/dist/register-DCnOAxY2.cjs:2:1186)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1104:12)
+    at cjsLoader (node:internal/modules/esm/translators:346:17)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:286:7)
+    at ModuleJob.run (node:internal/modules/esm/module_job:234:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:473:24)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:3229:34) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: './test/data/05-versions-space.pdf'
+}
+Generated AI score: 60
+node:internal/process/promises:391
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+Error: ENOENT: no such file or directory, open './test/data/05-versions-space.pdf'
+    at Object.openSync (node:fs:573:18)
+    at Object.readFileSync (node:fs:452:35)
+    at Object.<anonymous> (/home/runner/workspace/node_modules/pdf-parse/index.js:15:25)
+    at Module._compile (node:internal/modules/cjs/loader:1469:14)
+    at Object.transformer (/home/runner/workspace/node_modules/tsx/dist/register-DCnOAxY2.cjs:2:1186)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1104:12)
+    at cjsLoader (node:internal/modules/esm/translators:346:17)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:286:7)
+    at ModuleJob.run (node:internal/modules/esm/module_job:234:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:473:24)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:3229:34) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: './test/data/05-versions-space.pdf'
+}
+
+Node.js v20.18.1
