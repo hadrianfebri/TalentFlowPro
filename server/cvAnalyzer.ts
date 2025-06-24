@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import fs from "fs/promises";
 import path from "path";
-import pdf from "pdf-parse";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.js";
 
 // Using GPT-4.1 as requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -66,37 +66,33 @@ export class CVAnalyzer {
       
       // Check file type and extract accordingly
       if (filePath.toLowerCase().endsWith('.pdf')) {
-        console.log("Extracting PDF content using OpenAI...");
-        // Use OpenAI for PDF extraction due to pdf-parse library issues
-        const base64Content = fileBuffer.toString('base64');
+        console.log("Extracting PDF text using pdf.js...");
         
-        const response = await openai.chat.completions.create({
-          model: "gpt-4.1",
-          messages: [
-            {
-              role: "system",
-              content: "You are a PDF text extraction expert. Extract all text content from the provided PDF accurately, maintaining the structure and format as much as possible."
-            },
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Please extract all text content from this PDF CV/Resume document. Return only the raw text content without any analysis or formatting changes."
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:application/pdf;base64,${base64Content}`
-                  }
-                }
-              ]
-            }
-          ],
-          max_tokens: 3000
-        });
-
-        return response.choices[0].message.content || "";
+        try {
+          // Use pdf.js to extract text from PDF
+          const doc = await pdfjsLib.getDocument({ data: fileBuffer }).promise;
+          let fullText = '';
+          
+          for (let pageNum = 1; pageNum <= Math.min(doc.numPages, 3); pageNum++) {
+            const page = await doc.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(' ');
+            fullText += pageText + '\n';
+          }
+          
+          console.log("PDF text extracted, length:", fullText.length);
+          
+          if (fullText.length < 50) {
+            throw new Error("Insufficient text extracted from PDF");
+          }
+          
+          return fullText;
+        } catch (pdfError) {
+          console.log("PDF.js extraction failed, using form data fallback:", pdfError.message);
+          
+          // Fallback: Return a simple text indicating CV is available but cannot be parsed
+          return "CV document available but text extraction failed. Please analyze based on provided form data: education level, experience years, and other application details.";
+        }
       } else {
         // For other file types (Word docs, images), use OpenAI vision
         console.log("Using OpenAI for file content extraction...");
