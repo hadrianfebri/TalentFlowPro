@@ -3836,6 +3836,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dashboard Analytics Endpoints
+  app.get('/api/dashboard/attendance-chart', isAuthenticated, getUserProfile, async (req: any, res) => {
+    try {
+      const userProfile = req.userProfile;
+      if (!userProfile?.companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      // Get attendance data for last 7 days
+      const attendanceData = await db
+        .select({
+          date: attendance.checkInTime,
+          status: attendance.status
+        })
+        .from(attendance)
+        .innerJoin(employees, eq(attendance.employeeId, employees.id))
+        .where(and(
+          eq(employees.companyId, userProfile.companyId),
+          gte(attendance.checkInTime, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+        ));
+
+      // Group by date and count
+      const chartData = [];
+      const dateMap = new Map();
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        dateMap.set(dateStr, { date: dateStr, total: 0, onTime: 0, late: 0 });
+      }
+
+      attendanceData.forEach(record => {
+        const dateStr = new Date(record.date).toISOString().split('T')[0];
+        if (dateMap.has(dateStr)) {
+          const entry = dateMap.get(dateStr);
+          entry.total++;
+          if (record.status === 'late') {
+            entry.late++;
+          } else {
+            entry.onTime++;
+          }
+        }
+      });
+
+      res.json(Array.from(dateMap.values()));
+    } catch (error) {
+      console.error("Error fetching attendance chart data:", error);
+      res.status(500).json({ message: "Failed to fetch attendance chart data" });
+    }
+  });
+
+  app.get('/api/dashboard/department-chart', isAuthenticated, getUserProfile, async (req: any, res) => {
+    try {
+      const userProfile = req.userProfile;
+      if (!userProfile?.companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      // Get employee count by department
+      const departmentData = await db
+        .select({
+          departmentName: departments.name,
+          employeeCount: count(employees.id)
+        })
+        .from(employees)
+        .leftJoin(departments, eq(employees.departmentId, departments.id))
+        .where(and(
+          eq(employees.companyId, userProfile.companyId),
+          eq(employees.status, 'active')
+        ))
+        .groupBy(departments.name, departments.id);
+
+      // Format data for chart
+      const chartData = departmentData.map(dept => ({
+        name: dept.departmentName || 'Tidak Ada Departemen',
+        value: Number(dept.employeeCount) || 0,
+        color: dept.departmentName === 'Human Resources' ? '#8884d8' : 
+               dept.departmentName === 'IT' ? '#82ca9d' :
+               dept.departmentName === 'Finance' ? '#ffc658' :
+               dept.departmentName === 'Operations' ? '#ff7c7c' : '#8dd1e1'
+      }));
+
+      res.json(chartData);
+    } catch (error) {
+      console.error("Error fetching department chart data:", error);
+      res.status(500).json({ message: "Failed to fetch department chart data" });
+    }
+  });
+
+  app.post('/api/ai/generate-insights', isAuthenticated, getUserProfile, async (req: any, res) => {
+    try {
+      const userProfile = req.userProfile;
+      if (!userProfile?.companyId) {
+        return res.status(400).json({ message: "User not associated with company" });
+      }
+
+      // Generate AI insights using actual data
+      const insights = await dbStorage.generateAIInsights(userProfile.companyId);
+      res.json(insights);
+    } catch (error) {
+      console.error("Error generating AI insights:", error);
+      res.status(500).json({ message: "Failed to generate AI insights" });
+    }
+  });
+
   /**
    * @swagger
    * /salary-components:
