@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,11 +73,22 @@ export default function EmployeeProfile() {
   const form = useForm({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
-      phone: profile?.phone || "",
-      homeAddress: profile?.address || "",
-      emergencyContact: profile?.emergencyContact || "",
+      phone: "",
+      homeAddress: "",
+      emergencyContact: "",
     },
   });
+
+  // Update form values when profile data is loaded
+  React.useEffect(() => {
+    if (profile) {
+      form.reset({
+        phone: profile.phone || "",
+        homeAddress: profile.address || "",
+        emergencyContact: profile.emergencyContact || "",
+      });
+    }
+  }, [profile, form]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
