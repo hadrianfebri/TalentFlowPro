@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AttendanceData {
   day: string;
@@ -18,6 +19,7 @@ interface DepartmentData {
 }
 
 export default function AnalyticsCharts() {
+  const { user } = useAuth();
   const { data: attendanceData, isLoading: attendanceLoading } = useQuery<AttendanceData[]>({
     queryKey: ["/api/dashboard/attendance-chart"],
   });
@@ -25,6 +27,11 @@ export default function AnalyticsCharts() {
   const { data: departmentData, isLoading: departmentLoading } = useQuery<DepartmentData[]>({
     queryKey: ["/api/dashboard/department-chart"],
   });
+
+  // Hide analytics charts for employees - these are management-level insights
+  if (user?.role === 'employee') {
+    return null;
+  }
 
   return (
     <div className="mt-8">

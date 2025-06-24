@@ -13,6 +13,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Activity {
   id: string;
@@ -71,9 +72,20 @@ const getActivityIconColor = (type: Activity['type']) => {
 
 export default function ActivityFeed() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const { data: activities, isLoading } = useQuery<Activity[]>({
     queryKey: ["/api/dashboard/activities"],
   });
+
+  // For employees, filter activities to only show their own activities
+  const filteredActivities = user?.role === 'employee' 
+    ? activities?.filter(activity => 
+        activity.type === 'checkin' || 
+        activity.employeeName?.includes(user.firstName || '') ||
+        activity.title?.includes('Anda') || 
+        activity.title?.includes('your')
+      ) || []
+    : activities || [];
 
   if (isLoading) {
     return (
@@ -102,7 +114,7 @@ export default function ActivityFeed() {
     );
   }
 
-  if (!activities || activities.length === 0) {
+  if (!filteredActivities || filteredActivities.length === 0) {
     return (
       <Card className="border border-border shadow-sm">
         <CardHeader>
@@ -122,16 +134,20 @@ export default function ActivityFeed() {
     <Card className="border border-border shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-foreground">{t('dashboard.recentActivities')}</CardTitle>
-          <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-            {t('dashboard.viewAll')}
-            <ArrowRight className="ml-1 h-4 w-4" />
-          </Button>
+          <CardTitle className="text-lg font-semibold text-foreground">
+            {user?.role === 'employee' ? 'Aktivitas Saya' : t('dashboard.recentActivities')}
+          </CardTitle>
+          {user?.role !== 'employee' && (
+            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+              {t('dashboard.viewAll')}
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {activities.slice(0, 4).map((activity) => {
+          {filteredActivities.slice(0, 4).map((activity) => {
             const Icon = getActivityIcon(activity.type);
             return (
               <div 

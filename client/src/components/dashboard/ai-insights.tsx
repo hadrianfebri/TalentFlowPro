@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Brain, TrendingUp, Users, AlertTriangle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AIInsight {
   id: string;
@@ -24,6 +25,7 @@ interface RewardWallet {
 
 export default function AIInsights() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const { data: insights, isLoading: insightsLoading } = useQuery<AIInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
@@ -32,6 +34,61 @@ export default function AIInsights() {
   const { data: rewardWallet } = useQuery<RewardWallet>({
     queryKey: ["/api/dashboard/reward-wallet"],
   });
+
+  // For employees, only show reward wallet, not AI insights which are for management
+  if (user?.role === 'employee') {
+    return (
+      <div className="space-y-6">
+        {/* Personal Reward Wallet for Employee */}
+        <Card className="border border-border shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold text-foreground">Reward Saya</CardTitle>
+              <Badge variant="outline" className="text-xs bg-secondary/10 text-secondary border-secondary/20">
+                BETA
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!rewardWallet ? (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground text-sm">Memuat data reward...</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-center py-4">
+                  <div className="w-16 h-16 reward-badge rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-white text-xl font-bold">
+                      {Math.floor((rewardWallet.monthlyPoints || 0) / 10)}
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">
+                    {(rewardWallet.monthlyPoints || 0).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Poin Saya Bulan Ini</p>
+                </div>
+                
+                <div className="space-y-2 mt-4">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Status</span>
+                    <span className="font-medium text-secondary">
+                      Aktif
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Ranking</span>
+                    <span className="font-medium">
+                      Top Performer
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const generateInsightsMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/ai/generate-insights"),
