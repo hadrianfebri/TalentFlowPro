@@ -104,7 +104,7 @@ export default function Leaves() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   const { data: leaves, isLoading } = useQuery<LeaveRequest[]>({
-    queryKey: ["/api/leaves"],
+    queryKey: ["/api/leave-requests"],
     enabled: isAuthenticated,
   });
 
@@ -125,7 +125,7 @@ export default function Leaves() {
   const createLeaveMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/leaves", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/leaves"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leave-requests"] });
       setIsDialogOpen(false);
       toast({
         title: "Berhasil",
@@ -155,7 +155,7 @@ export default function Leaves() {
   const approveLeaveMutation = useMutation({
     mutationFn: (id: number) => apiRequest("PUT", `/api/leaves/${id}/approve`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/leaves"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leave-requests"] });
       toast({
         title: "Berhasil",
         description: "Pengajuan cuti telah disetujui",
@@ -185,7 +185,7 @@ export default function Leaves() {
     mutationFn: ({ id, reason }: { id: number; reason: string }) => 
       apiRequest("PUT", `/api/leaves/${id}/reject`, { rejectionReason: reason }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/leaves"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leave-requests"] });
       setIsRejectDialogOpen(false);
       setSelectedLeaveForReject(null);
       setRejectionReason("");

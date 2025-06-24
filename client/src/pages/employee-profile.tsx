@@ -1,10 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge"; 
-import { User, Mail, Phone, MapPin, Calendar, DollarSign, Download, FileText, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { User, Mail, Phone, MapPin, Calendar, DollarSign, Download, FileText, Clock, Edit } from "lucide-react";
 import { format } from "date-fns";
 
 interface EmployeeProfile {
@@ -40,6 +49,10 @@ interface PayrollRecord {
 }
 
 export default function EmployeeProfile() {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const { data: profile, isLoading, error } = useQuery<EmployeeProfile>({
     queryKey: ['/api/employee/profile'],
     retry: 1,
@@ -49,6 +62,52 @@ export default function EmployeeProfile() {
     queryKey: ['/api/employee/payroll-history'],
     retry: 1,
   });
+
+  const form = useForm({
+    resolver: zodResolver(updateProfileSchema),
+    defaultValues: {
+      phone: profile?.phone || "",
+      homeAddress: profile?.address || "",
+      emergencyContact: profile?.emergencyContact || "",
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch(`/api/employees/${profile?.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to update profile");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/employee/profile'] });
+      setIsEditDialogOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    updateProfileMutation.mutate(data);
+  };
 
   const handleDownloadSlip = async (payroll: PayrollRecord) => {
     try {
@@ -136,9 +195,77 @@ export default function EmployeeProfile() {
                 </p>
               </div>
               <div className="flex space-x-3">
-                <Button variant="outline" size="sm">
-                  Edit Profil
-                </Button>
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Profil
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Edit Profil</DialogTitle>
+                    </DialogHeader>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>No. Telepon</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masukkan nomor telepon" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="homeAddress"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Alamat Rumah</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masukkan alamat rumah" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="emergencyContact"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Kontak Darurat</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Masukkan kontak darurat" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setIsEditDialogOpen(false)}
+                          >
+                            Batal
+                          </Button>
+                          <Button 
+                            type="submit" 
+                            disabled={updateProfileMutation.isPending}
+                          >
+                            {updateProfileMutation.isPending ? "Menyimpan..." : "Simpan"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
 
