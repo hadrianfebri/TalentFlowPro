@@ -280,84 +280,109 @@
   animation: float-particles 4s ease-in-out infinite;
 }
 
-/* Wave Glow Background Animations */
-@keyframes wave-flow {
-  0% {
-    background-position: 0% 50%;
-    opacity: 0.4;
-  }
-  50% {
-    background-position: 100% 50%;
-    opacity: 0.6;
-  }
-  100% {
-    background-position: 0% 50%;
-    opacity: 0.4;
-  }
-}
-
-@keyframes wave-flow-2 {
-  0% {
-    background-position: 100% 50%;
+/* Abstract Blob Animations */
+@keyframes blob-float-1 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
     opacity: 0.3;
   }
-  50% {
-    background-position: 0% 50%;
+  25% {
+    transform: translate(20px, -30px) rotate(90deg) scale(1.1);
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
     opacity: 0.5;
   }
-  100% {
-    background-position: 100% 50%;
-    opacity: 0.3;
+  50% {
+    transform: translate(-10px, 20px) rotate(180deg) scale(0.9);
+    border-radius: 50% 50% 50% 50% / 60% 40% 60% 40%;
+    opacity: 0.4;
+  }
+  75% {
+    transform: translate(-30px, -10px) rotate(270deg) scale(1.05);
+    border-radius: 70% 30% 40% 60% / 40% 70% 30% 60%;
+    opacity: 0.6;
   }
 }
 
-@keyframes wave-flow-3 {
-  0% {
-    background-position: 50% 0%;
+@keyframes blob-float-2 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    border-radius: 40% 60% 60% 40% / 70% 30% 70% 30%;
+    opacity: 0.25;
+  }
+  33% {
+    transform: translate(-25px, 15px) rotate(120deg) scale(1.15);
+    border-radius: 60% 40% 30% 70% / 40% 60% 40% 60%;
+    opacity: 0.45;
+  }
+  66% {
+    transform: translate(15px, -20px) rotate(240deg) scale(0.85);
+    border-radius: 30% 70% 40% 60% / 60% 40% 70% 30%;
+    opacity: 0.35;
+  }
+}
+
+@keyframes blob-float-3 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
     opacity: 0.2;
   }
   50% {
-    background-position: 50% 100%;
+    transform: translate(10px, 25px) rotate(180deg) scale(1.2);
+    border-radius: 70% 30% 60% 40% / 30% 70% 40% 60%;
     opacity: 0.4;
-  }
-  100% {
-    background-position: 50% 0%;
-    opacity: 0.2;
   }
 }
 
-.wave-glow-bg {
-  background: linear-gradient(45deg, 
-    transparent 0%, 
-    rgba(34, 197, 94, 0.15) 25%, 
-    rgba(16, 185, 129, 0.2) 50%, 
-    rgba(34, 197, 94, 0.15) 75%, 
-    transparent 100%);
-  background-size: 400% 400%;
-  animation: wave-flow 8s ease-in-out infinite;
+.abstract-blob-1 {
+  background: radial-gradient(ellipse at center, 
+    rgba(34, 197, 94, 0.2) 0%, 
+    rgba(16, 185, 129, 0.15) 40%, 
+    transparent 70%);
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  animation: blob-float-1 12s ease-in-out infinite;
+  filter: blur(40px);
+}
+
+.abstract-blob-2 {
+  background: radial-gradient(ellipse at center, 
+    rgba(16, 185, 129, 0.18) 0%, 
+    rgba(34, 197, 94, 0.12) 45%, 
+    transparent 75%);
+  border-radius: 40% 60% 60% 40% / 70% 30% 70% 30%;
+  animation: blob-float-2 15s ease-in-out infinite;
+  filter: blur(50px);
+}
+
+.abstract-blob-3 {
+  background: radial-gradient(ellipse at center, 
+    rgba(34, 197, 94, 0.15) 0%, 
+    rgba(16, 185, 129, 0.1) 50%, 
+    transparent 80%);
+  border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+  animation: blob-float-3 18s ease-in-out infinite;
   filter: blur(60px);
 }
 
-.wave-glow-bg-2 {
-  background: linear-gradient(-45deg, 
-    transparent 0%, 
-    rgba(16, 185, 129, 0.1) 25%, 
-    rgba(34, 197, 94, 0.15) 50%, 
-    rgba(16, 185, 129, 0.1) 75%, 
-    transparent 100%);
-  background-size: 300% 300%;
-  animation: wave-flow-2 12s ease-in-out infinite;
-  filter: blur(80px);
+.abstract-blob-4 {
+  background: radial-gradient(ellipse at center, 
+    rgba(34, 197, 94, 0.12) 0%, 
+    rgba(16, 185, 129, 0.08) 40%, 
+    transparent 65%);
+  border-radius: 70% 30% 40% 60% / 40% 70% 30% 60%;
+  animation: blob-float-1 14s ease-in-out infinite reverse;
+  filter: blur(45px);
 }
 
-.wave-glow-bg-3 {
+.abstract-blob-5 {
   background: radial-gradient(ellipse at center, 
-    rgba(34, 197, 94, 0.08) 0%, 
-    rgba(16, 185, 129, 0.05) 40%, 
-    transparent 70%);
-  background-size: 200% 200%;
-  animation: wave-flow-3 15s ease-in-out infinite;
-  filter: blur(100px);
+    rgba(16, 185, 129, 0.1) 0%, 
+    rgba(34, 197, 94, 0.07) 35%, 
+    transparent 60%);
+  border-radius: 30% 70% 40% 60% / 60% 40% 70% 30%;
+  animation: blob-float-2 16s ease-in-out infinite reverse;
+  filter: blur(55px);
 }
 
 @keyframes wavy-glow-particle {

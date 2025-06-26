@@ -96,10 +96,12 @@ export default function Landing() {
           {/* Dark overlay for better neon contrast */}
           <div className="absolute inset-0 bg-black/40"></div>
           
-          {/* Organic Wave Background */}
-          <div className="absolute inset-0 wave-glow-bg"></div>
-          <div className="absolute inset-0 wave-glow-bg-2"></div>
-          <div className="absolute inset-0 wave-glow-bg-3"></div>
+          {/* Abstract Organic Shapes */}
+          <div className="absolute top-10 left-20 w-96 h-80 abstract-blob-1"></div>
+          <div className="absolute bottom-20 right-10 w-72 h-96 abstract-blob-2"></div>
+          <div className="absolute top-1/2 left-1/2 w-80 h-64 abstract-blob-3"></div>
+          <div className="absolute bottom-10 left-10 w-64 h-72 abstract-blob-4"></div>
+          <div className="absolute top-20 right-1/3 w-56 h-80 abstract-blob-5"></div>
           
           {/* Floating Particles with Wavy Glow */}
           <div className="absolute top-1/4 left-10 w-2 h-2 bg-green-400 rounded-full wavy-glow-particle opacity-90 float-animation shadow-[0_0_15px_rgba(34,197,94,0.8)]"></div>
