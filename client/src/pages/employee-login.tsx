@@ -75,8 +75,8 @@ export default function EmployeeLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden organic-glow-background">
+      <div className="w-full max-w-md space-y-6 relative z-10">
         {/* Logo and Header */}
         <div className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg p-2">
@@ -87,25 +87,25 @@ export default function EmployeeLogin() {
             />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[#2f4f2f] dark:text-white">
+            <h1 className="text-3xl font-bold text-white neon-glow">
               TalentWhiz.ai
             </h1>
-            <p className="text-xs text-[#519e51] dark:text-gray-400 font-medium">
+            <p className="text-xs text-green-400 font-medium">
               UMKM Essentials
             </p>
-            <p className="text-[#519e51] dark:text-gray-400 mt-2">
+            <p className="text-gray-300 mt-2">
               {t("login.employee.subtitle")}
             </p>
           </div>
         </div>
 
         {/* Login Form */}
-        <Card className="border-0 shadow-xl">
+        <Card className="glass-morphism border border-green-400/20 shadow-xl shadow-green-400/10">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-semibold text-center">
+            <CardTitle className="text-2xl font-semibold text-center text-white">
               {t("login.employee.title")}
             </CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-center text-gray-300">
               {t("login.employee.description")}
             </CardDescription>
           </CardHeader>
