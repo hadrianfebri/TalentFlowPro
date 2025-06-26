@@ -123,6 +123,15 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
+- **June 26, 2025**: Enhanced landing page and login interfaces with comprehensive design improvements
+  - ✅ Added pricing plans section with 3 tiers: UMKM Starter (Rp 99,000/month), Professional (Rp 299,000/month), Enterprise (Rp 599,000/month)
+  - ✅ Implemented dynamic neon background elements across all landing page sections for visual consistency
+  - ✅ Updated sidebar design with dark background (#141D14) and elegant neon strip effects
+  - ✅ Applied organic glow background animations to both HR and employee login pages
+  - ✅ Standardized button hover states with subtle green glow effects throughout the application
+  - ✅ Enhanced glass morphism effects for cards and forms with green neon accent theme
+  - ✅ Maintained readability while adding sophisticated visual elements and animations
+
 - **June 24, 2025**: Completed comprehensive dashboard RBAC implementation
   - ✅ Fixed useQueryClient import error in hr-login.tsx
   - ✅ Implemented role-based dashboard components (employee vs admin/HR views)

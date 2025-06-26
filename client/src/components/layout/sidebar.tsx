@@ -170,18 +170,19 @@ export default function Sidebar() {
 
   return (
     <aside className={cn(
-      "w-64 h-screen flex flex-col sidebar-gradient border-r border-white/20 relative",
-      isRTL ? "border-l border-white/20" : "border-r border-white/20"
-    )}>
-      {/* Glass overlay for glassmorphism effect */}
-      <div className="absolute inset-0 bg-white/10 backdrop-blur-sm pointer-events-none"></div>
+      "w-64 h-screen flex flex-col relative",
+      isRTL ? "border-l border-green-400/30" : "border-r border-green-400/30"
+    )} style={{ backgroundColor: '#141D14' }}>
+      {/* Neon Strip Effects */}
+      <div className="absolute inset-y-0 right-0 w-[2px] bg-gradient-to-b from-green-400/60 via-green-400/80 to-green-400/60 pointer-events-none"></div>
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-green-400/40 to-transparent pointer-events-none"></div>
       
-      <div className="p-6 border-b border-white/20 flex-shrink-0 relative z-10">
+      <div className="p-6 border-b border-green-400/20 flex-shrink-0 relative z-10">
         <div className={cn(
           "flex items-center",
           isRTL ? "space-x-reverse space-x-3" : "space-x-3"
         )}>
-          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-md border border-white/30 p-1">
+          <div className="w-10 h-10 bg-green-400/10 rounded-lg flex items-center justify-center border border-green-400/30 p-1">
             <img 
               src={talentWhizLogo} 
               alt="TalentWhiz.ai Logo" 
@@ -207,10 +208,10 @@ export default function Sidebar() {
                 <Link href={item.href}>
                   <div
                     className={cn(
-                      "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group cursor-pointer border border-white/10",
+                      "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group cursor-pointer border border-green-400/10 relative",
                       isActive
-                        ? "bg-white/20 text-white shadow-sm backdrop-blur-md border-white/30"
-                        : "text-white/80 hover:bg-white/10 hover:text-white hover:border-white/20"
+                        ? "bg-green-400/20 text-white shadow-sm border-green-400/40"
+                        : "text-white/80 hover:bg-green-400/10 hover:text-white hover:border-green-400/30"
                     )}
                     style={{ 
                       fontFamily: isRTL ? "'Noto Sans Arabic', 'Segoe UI', sans-serif" : "inherit",
@@ -221,7 +222,7 @@ export default function Sidebar() {
                   >
                     <Icon className={cn(
                       "h-5 w-5 transition-colors flex-shrink-0",
-                      isActive ? "text-white" : "text-white/70 group-hover:text-white"
+                      isActive ? "text-green-400" : "text-white/70 group-hover:text-green-400"
                     )} />
                     <span className="flex-1 text-right" style={{ 
                       textAlign: isRTL ? "right" : "left",
@@ -238,11 +239,11 @@ export default function Sidebar() {
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-white/20 relative z-10">
+      <div className="p-4 border-t border-green-400/20 relative z-10">
         <Button
           onClick={handleLogout}
           variant="ghost"
-          className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10 border border-white/10 hover:border-white/20"
+          className="w-full justify-start text-white/80 hover:text-white hover:bg-green-400/10 border border-green-400/10 hover:border-green-400/30"
         >
           <LogOut className="h-5 w-5 mr-3" />
           {t('nav.logout')}
