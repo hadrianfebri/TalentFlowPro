@@ -43,11 +43,11 @@ export default function QuickActions() {
   ];
 
   return (
-    <Card className="border border-border shadow-sm">
+    <Card className="border border-border shadow-sm h-[400px] flex flex-col">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-foreground">Tindakan Cepat</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col justify-center">
         <div className="space-y-3">
           {quickActions.map((action, index) => (
             <Button

@@ -40,7 +40,7 @@ export default function AIInsights() {
     return (
       <div className="space-y-6">
         {/* Personal Reward Wallet for Employee */}
-        <Card className="border border-border shadow-sm">
+        <Card className="border border-border shadow-sm h-[400px] flex flex-col">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold text-foreground">Reward Saya</CardTitle>
@@ -49,7 +49,7 @@ export default function AIInsights() {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col justify-center">
             {!rewardWallet ? (
               <div className="text-center py-4">
                 <p className="text-muted-foreground text-sm">Memuat data reward...</p>
@@ -148,7 +148,7 @@ export default function AIInsights() {
   return (
     <div className="space-y-6">
       {/* AI Insights Card */}
-      <Card className="ai-insight-card">
+      <Card className="ai-insight-card h-[400px] flex flex-col">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -162,7 +162,7 @@ export default function AIInsights() {
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 flex flex-col justify-center">
           {!insights || insights.length === 0 ? (
             <div className="text-center py-6">
               <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -219,7 +219,7 @@ export default function AIInsights() {
       </Card>
 
       {/* Momentum Loop Rewards */}
-      <Card className="border border-border shadow-sm">
+      <Card className="border border-border shadow-sm h-[300px] flex flex-col">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-foreground">Reward Wallet</CardTitle>
@@ -228,7 +228,7 @@ export default function AIInsights() {
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 flex flex-col justify-center">
           {!rewardWallet ? (
             <div className="text-center py-4">
               <p className="text-muted-foreground text-sm">Memuat data reward...</p>
