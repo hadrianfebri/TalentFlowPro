@@ -89,7 +89,7 @@ export default function ActivityFeed() {
 
   if (isLoading) {
     return (
-      <Card className="border border-border shadow-sm">
+      <Card className="border border-border shadow-sm h-[400px] flex flex-col">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold">{t('dashboard.recentActivities')}</CardTitle>
@@ -116,7 +116,7 @@ export default function ActivityFeed() {
 
   if (!filteredActivities || filteredActivities.length === 0) {
     return (
-      <Card className="border border-border shadow-sm">
+      <Card className="border border-border shadow-sm h-[400px] flex flex-col">
         <CardHeader>
           <CardTitle className="text-lg font-semibold">{t('dashboard.recentActivities')}</CardTitle>
         </CardHeader>
@@ -131,7 +131,7 @@ export default function ActivityFeed() {
   }
 
   return (
-    <Card className="border border-border shadow-sm">
+    <Card className="border border-border shadow-sm h-[400px] flex flex-col">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-foreground">
@@ -145,7 +145,7 @@ export default function ActivityFeed() {
           )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 overflow-y-auto">
         <div className="space-y-4">
           {filteredActivities.slice(0, 4).map((activity) => {
             const Icon = getActivityIcon(activity.type);
