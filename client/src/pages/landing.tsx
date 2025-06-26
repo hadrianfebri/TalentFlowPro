@@ -258,7 +258,14 @@ export default function Landing() {
       </section>
 
       {/* Pricing Plans */}
-      <section className="py-16 px-4 bg-gray-900/50">
+      <section className="py-16 px-4 bg-gray-900/50 relative overflow-hidden">
+        {/* Neon Background Elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-20 right-10 w-36 h-36 bg-green-400/8 rounded-full blur-3xl animate-pulse delay-300"></div>
+          <div className="absolute bottom-20 left-10 w-28 h-28 bg-green-400/12 rounded-full blur-2xl animate-pulse delay-1200"></div>
+          <div className="absolute top-1/3 left-1/2 w-32 h-32 bg-green-400/6 rounded-full blur-3xl animate-pulse delay-800"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-green-400/10 rounded-full blur-xl animate-pulse delay-400"></div>
+        </div>
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h3 className="text-3xl font-bold text-white mb-4">
@@ -337,27 +344,41 @@ export default function Landing() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 px-4 bg-black">
-        <div className="container mx-auto">
+      <section className="py-16 px-4 bg-black relative overflow-hidden">
+        {/* Neon Background Elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-green-400/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/2 right-20 w-24 h-24 bg-green-400/15 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-10 left-1/3 w-40 h-40 bg-green-400/8 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute top-20 right-1/3 w-20 h-20 bg-green-400/12 rounded-full blur-xl animate-pulse delay-700"></div>
+        </div>
+        
+        <div className="container mx-auto relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-green-400 mb-2">≤ 100</div>
-              <p className="text-gray-300">Karyawan per Perusahaan</p>
+            <div className="glass-morphism-small rounded-xl p-6 border border-green-400/20 hover:border-green-400/40 transition-all duration-500 group">
+              <div className="text-4xl font-bold text-green-400 mb-2 group-hover:text-green-300 transition-colors duration-300">≤ 100</div>
+              <p className="text-gray-300 group-hover:text-white transition-colors duration-300">Karyawan per Perusahaan</p>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-green-400 mb-2">8</div>
-              <p className="text-gray-300">Modul HR Terintegrasi</p>
+            <div className="glass-morphism-small rounded-xl p-6 border border-green-400/20 hover:border-green-400/40 transition-all duration-500 group">
+              <div className="text-4xl font-bold text-green-400 mb-2 group-hover:text-green-300 transition-colors duration-300">8</div>
+              <p className="text-gray-300 group-hover:text-white transition-colors duration-300">Modul HR Terintegrasi</p>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-green-400 mb-2">1</div>
-              <p className="text-gray-300">Platform All-in-One</p>
+            <div className="glass-morphism-small rounded-xl p-6 border border-green-400/20 hover:border-green-400/40 transition-all duration-500 group">
+              <div className="text-4xl font-bold text-green-400 mb-2 group-hover:text-green-300 transition-colors duration-300">1</div>
+              <p className="text-gray-300 group-hover:text-white transition-colors duration-300">Platform All-in-One</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-4 bg-gray-900/50">
+      <section className="py-16 px-4 bg-gray-900/50 relative overflow-hidden">
+        {/* Neon Background Elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-10 left-1/4 w-40 h-40 bg-green-400/10 rounded-full blur-3xl animate-pulse delay-600"></div>
+          <div className="absolute bottom-10 right-1/4 w-32 h-32 bg-green-400/8 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-10 w-24 h-24 bg-green-400/12 rounded-full blur-xl animate-pulse delay-200"></div>
+        </div>
         <div className="container mx-auto text-center">
           <div className="max-w-2xl mx-auto">
             <h3 className="text-3xl font-bold text-white mb-4">
