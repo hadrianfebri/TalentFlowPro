@@ -427,6 +427,54 @@
   animation: wavy-glow-particle 3s ease-in-out infinite;
 }
 
+/* Organic Glow Background for Full Section */
+.organic-glow-background {
+  background: 
+    radial-gradient(ellipse 600px 400px at 10% 20%, 
+      rgba(34, 197, 94, 0.15) 0%, 
+      rgba(16, 185, 129, 0.08) 40%, 
+      transparent 70%),
+    radial-gradient(ellipse 800px 300px at 90% 80%, 
+      rgba(16, 185, 129, 0.12) 0%, 
+      rgba(34, 197, 94, 0.06) 50%, 
+      transparent 80%),
+    radial-gradient(ellipse 500px 600px at 50% 10%, 
+      rgba(34, 197, 94, 0.08) 0%, 
+      rgba(16, 185, 129, 0.04) 60%, 
+      transparent 85%),
+    radial-gradient(ellipse 400px 500px at 20% 90%, 
+      rgba(16, 185, 129, 0.1) 0%, 
+      rgba(34, 197, 94, 0.05) 45%, 
+      transparent 75%),
+    radial-gradient(ellipse 700px 200px at 80% 30%, 
+      rgba(34, 197, 94, 0.06) 0%, 
+      rgba(16, 185, 129, 0.03) 55%, 
+      transparent 85%),
+    linear-gradient(135deg, 
+      rgba(15, 23, 42, 0.9) 0%, 
+      rgba(30, 41, 59, 0.8) 25%, 
+      rgba(51, 65, 85, 0.7) 50%, 
+      rgba(30, 41, 59, 0.8) 75%, 
+      rgba(15, 23, 42, 0.9) 100%);
+  
+  animation: organic-breathing 20s ease-in-out infinite;
+}
+
+@keyframes organic-breathing {
+  0%, 100% {
+    filter: blur(0px) brightness(1);
+  }
+  25% {
+    filter: blur(1px) brightness(1.05);
+  }
+  50% {
+    filter: blur(2px) brightness(1.1);
+  }
+  75% {
+    filter: blur(1px) brightness(1.05);
+  }
+}
+
 /* Glass Morphism Effects */
 .glass-morphism {
   background: rgba(255, 255, 255, 0.05);

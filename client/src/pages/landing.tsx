@@ -90,31 +90,7 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
-        {/* Animated Green Neon Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/70 via-gray-900/60 to-slate-800/70">
-          {/* Dark overlay for better neon contrast */}
-          <div className="absolute inset-0 bg-black/40"></div>
-          
-          {/* Abstract Organic Shapes */}
-          <div className="absolute top-10 left-20 w-96 h-80 abstract-blob-1"></div>
-          <div className="absolute bottom-20 right-10 w-72 h-96 abstract-blob-2"></div>
-          <div className="absolute top-1/2 left-1/2 w-80 h-64 abstract-blob-3"></div>
-          <div className="absolute bottom-10 left-10 w-64 h-72 abstract-blob-4"></div>
-          <div className="absolute top-20 right-1/3 w-56 h-80 abstract-blob-5"></div>
-          
-          {/* Floating Particles with Wavy Glow */}
-          <div className="absolute top-1/4 left-10 w-2 h-2 bg-green-400 rounded-full wavy-glow-particle opacity-90 float-animation shadow-[0_0_15px_rgba(34,197,94,0.8)]"></div>
-          <div className="absolute top-1/3 right-20 w-1 h-1 bg-emerald-300 rounded-full wavy-glow-particle opacity-80 float-animation shadow-[0_0_10px_rgba(16,185,129,0.7)]" style={{animationDelay: '0.5s'}}></div>
-          <div className="absolute bottom-1/4 left-1/4 w-1.5 h-1.5 bg-green-300 rounded-full wavy-glow-particle opacity-70 float-animation shadow-[0_0_12px_rgba(34,197,94,0.6)]" style={{animationDelay: '1.5s'}}></div>
-          <div className="absolute bottom-1/3 right-1/3 w-1 h-1 bg-lime-400 rounded-full wavy-glow-particle opacity-60 float-animation shadow-[0_0_8px_rgba(163,230,53,0.8)]" style={{animationDelay: '2.5s'}}></div>
-          <div className="absolute top-1/2 left-20 w-1 h-1 bg-green-500 rounded-full wavy-glow-particle opacity-50 float-animation shadow-[0_0_8px_rgba(34,197,94,0.7)]" style={{animationDelay: '3s'}}></div>
-          <div className="absolute top-2/3 right-10 w-1.5 h-1.5 bg-emerald-400 rounded-full wavy-glow-particle opacity-70 float-animation shadow-[0_0_10px_rgba(16,185,129,0.8)]" style={{animationDelay: '3.5s'}}></div>
-          <div className="absolute bottom-1/2 left-1/3 w-1 h-1 bg-green-300 rounded-full wavy-glow-particle opacity-60 float-animation shadow-[0_0_8px_rgba(34,197,94,0.5)]" style={{animationDelay: '4s'}}></div>
-          <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-emerald-500 rounded-full wavy-glow-particle opacity-50 float-animation shadow-[0_0_12px_rgba(16,185,129,0.6)]" style={{animationDelay: '4.5s'}}></div>
-          
-
-        </div>
+      <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden organic-glow-background">
         
         <div className="container mx-auto text-center relative z-10 py-20">
           <div className="max-w-5xl mx-auto">
@@ -123,7 +99,7 @@ export default function Landing() {
               <span className="text-green-400 neon-glow"> All-in-One</span>
               <br />
               untuk UMKM Indonesia
-              <div className="absolute -inset-4 bg-gradient-to-r from-green-400/30 via-emerald-300/20 to-green-400/30 blur-2xl opacity-50 wavy-glow"></div>
+
             </h2>
             <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto relative z-20">
               TalentWhiz.ai UMKM Essentials mengganti pengelolaan SDM berbasis Excel, 
