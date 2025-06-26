@@ -170,13 +170,13 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
               <Card key={index} className="glass-morphism border-green-400/20 hover:border-green-400/40 hover:shadow-xl hover:shadow-green-400/10 transition-all duration-500 group">
-                <CardHeader className="pb-4">
-                  <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center mb-3 backdrop-blur-sm group-hover:bg-green-400/30 transition-all duration-300">
-                    <feature.icon className="w-6 h-6 text-green-400" />
+                <CardHeader className="pb-4 text-center">
+                  <div className="flex items-center justify-center mb-4">
+                    <feature.icon className="w-8 h-8 text-green-400 group-hover:text-green-300 transition-colors duration-300" />
                   </div>
                   <CardTitle className="text-lg text-white group-hover:text-green-400 transition-colors duration-300">{feature.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="text-center">
                   <CardDescription className="text-sm leading-relaxed text-gray-300">
                     {feature.description}
                   </CardDescription>
@@ -193,9 +193,7 @@ export default function Landing() {
           <div className="max-w-4xl mx-auto text-center">
             <div className="glass-morphism-ai rounded-xl p-8 mb-8 border border-green-400/30 hover:border-green-400/50 transition-all duration-500">
               <div className="flex items-center justify-center mb-6">
-                <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
-                  <Brain className="w-8 h-8 text-primary-foreground" />
-                </div>
+                <Brain className="w-12 h-12 text-green-400" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">
                 Momentum Loop™ dengan AI DeepSeek
@@ -206,15 +204,15 @@ export default function Landing() {
                 engagement dan retensi karyawan.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="glass-morphism-small rounded-lg p-4 border border-green-400/20 hover:border-green-400/40 transition-all duration-300 group">
+                <div className="glass-morphism-small rounded-lg p-4 border border-green-400/20 hover:border-green-400/40 transition-all duration-300 group text-center">
                   <h4 className="font-semibold mb-2 text-white group-hover:text-green-400 transition-colors duration-300">ML Churn Model</h4>
                   <p className="text-gray-300">Prediksi turnover dengan akurasi tinggi</p>
                 </div>
-                <div className="glass-morphism-small rounded-lg p-4 border border-green-400/20 hover:border-green-400/40 transition-all duration-300 group">
+                <div className="glass-morphism-small rounded-lg p-4 border border-green-400/20 hover:border-green-400/40 transition-all duration-300 group text-center">
                   <h4 className="font-semibold mb-2 text-white group-hover:text-green-400 transition-colors duration-300">GPT Micro-coaching</h4>
                   <p className="text-gray-300">Coaching personal berbasis AI</p>
                 </div>
-                <div className="glass-morphism-small rounded-lg p-4 border border-green-400/20 hover:border-green-400/40 transition-all duration-300 group">
+                <div className="glass-morphism-small rounded-lg p-4 border border-green-400/20 hover:border-green-400/40 transition-all duration-300 group text-center">
                   <h4 className="font-semibold mb-2 text-white group-hover:text-green-400 transition-colors duration-300">Real-time Reward</h4>
                   <p className="text-gray-300">Sistem reward dinamis dan otomatis</p>
                 </div>
