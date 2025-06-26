@@ -280,6 +280,71 @@
   animation: float-particles 4s ease-in-out infinite;
 }
 
+/* Wavy Glow Animations */
+@keyframes wavy-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  25% {
+    opacity: 0.5;
+    transform: scale(1.05);
+    filter: blur(1px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+    filter: blur(2px);
+  }
+  75% {
+    opacity: 0.5;
+    transform: scale(1.05);
+    filter: blur(1px);
+  }
+}
+
+@keyframes wavy-glow-particle {
+  0%, 100% {
+    opacity: 0.6;
+    filter: brightness(1) blur(0px);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+  }
+  25% {
+    opacity: 0.8;
+    filter: brightness(1.2) blur(0.5px);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.4) blur(1px);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+  }
+  75% {
+    opacity: 0.8;
+    filter: brightness(1.2) blur(0.5px);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+  }
+}
+
+.wavy-glow {
+  animation: wavy-glow 4s ease-in-out infinite;
+}
+
+.wavy-glow-delayed-1 {
+  animation: wavy-glow 4s ease-in-out infinite;
+  animation-delay: 1.3s;
+}
+
+.wavy-glow-delayed-2 {
+  animation: wavy-glow 4s ease-in-out infinite;
+  animation-delay: 2.6s;
+}
+
+.wavy-glow-particle {
+  animation: wavy-glow-particle 3s ease-in-out infinite;
+}
+
 /* Glass Morphism Effects */
 .glass-morphism {
   background: rgba(255, 255, 255, 0.05);
