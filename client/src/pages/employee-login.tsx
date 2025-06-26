@@ -117,7 +117,7 @@ export default function EmployeeLogin() {
                   name="employeeId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("login.employee_id.label")}</FormLabel>
+                      <FormLabel className="text-gray-300">{t("login.employee_id.label")}</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -136,7 +136,7 @@ export default function EmployeeLogin() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("login.password.label")}</FormLabel>
+                      <FormLabel className="text-gray-300">{t("login.password.label")}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
@@ -167,7 +167,7 @@ export default function EmployeeLogin() {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-[#2f4f2f] hover:bg-[#519e51]"
+                  className="w-full h-11 bg-[#2f4f2f] hover:bg-[#2f4f2f]/80 text-white border border-[#2f4f2f] hover:border-green-400/60 hover:text-green-400 relative overflow-hidden group transition-all duration-300"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? (
@@ -176,7 +176,10 @@ export default function EmployeeLogin() {
                       <span>{t("login.signing_in")}</span>
                     </div>
                   ) : (
-                    t("login.submit")
+                    <>
+                      {t("login.submit")}
+                      <div className="absolute inset-0 shimmer-effect opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </>
                   )}
                 </Button>
               </form>
@@ -184,12 +187,12 @@ export default function EmployeeLogin() {
 
             <div className="mt-6 pt-6 border-t">
               <div className="text-center space-y-2">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-300">
                   {t("login.switch.hr_question")}
                 </p>
                 <Link
                   href="/hr-login"
-                  className="text-green-600 hover:text-green-700 text-sm font-medium inline-flex items-center space-x-1"
+                  className="text-green-400 hover:text-green-300 text-sm font-medium inline-flex items-center space-x-1"
                 >
                   <Building2 className="h-4 w-4" />
                   <span>{t("login.switch.hr_login")}</span>
