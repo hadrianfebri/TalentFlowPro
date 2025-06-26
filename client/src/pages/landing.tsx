@@ -92,39 +92,41 @@ export default function Landing() {
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden">
         {/* Animated Green Neon Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-900/20 via-emerald-800/10 to-green-900/20">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(47,79,47,0.3)_0%,transparent_50%)] animate-pulse"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(81,158,81,0.2)_0%,transparent_50%)] animate-pulse" style={{animationDelay: '1s'}}></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_80%,rgba(34,197,94,0.15)_0%,transparent_50%)] animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/70 via-gray-900/60 to-slate-800/70">
+          {/* Dark overlay for better neon contrast */}
+          <div className="absolute inset-0 bg-black/30"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(34,197,94,0.4)_0%,transparent_50%)] animate-pulse"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(16,185,129,0.3)_0%,transparent_50%)] animate-pulse" style={{animationDelay: '1s'}}></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_80%,rgba(34,197,94,0.25)_0%,transparent_50%)] animate-pulse" style={{animationDelay: '2s'}}></div>
           
           {/* Floating Particles */}
-          <div className="absolute top-20 left-10 w-2 h-2 bg-green-400 rounded-full animate-ping opacity-70 float-animation"></div>
-          <div className="absolute top-32 right-20 w-1 h-1 bg-emerald-300 rounded-full animate-ping opacity-60 float-animation" style={{animationDelay: '0.5s'}}></div>
-          <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-green-300 rounded-full animate-ping opacity-50 float-animation" style={{animationDelay: '1.5s'}}></div>
-          <div className="absolute bottom-60 right-1/3 w-1 h-1 bg-lime-400 rounded-full animate-ping opacity-40 float-animation" style={{animationDelay: '2.5s'}}></div>
-          <div className="absolute top-1/2 left-20 w-1 h-1 bg-green-500 rounded-full animate-ping opacity-30 float-animation" style={{animationDelay: '3s'}}></div>
-          <div className="absolute top-1/3 right-10 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping opacity-50 float-animation" style={{animationDelay: '3.5s'}}></div>
+          <div className="absolute top-20 left-10 w-2 h-2 bg-green-400 rounded-full animate-ping opacity-90 float-animation shadow-[0_0_15px_rgba(34,197,94,0.8)]"></div>
+          <div className="absolute top-32 right-20 w-1 h-1 bg-emerald-300 rounded-full animate-ping opacity-80 float-animation shadow-[0_0_10px_rgba(16,185,129,0.7)]" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-green-300 rounded-full animate-ping opacity-70 float-animation shadow-[0_0_12px_rgba(34,197,94,0.6)]" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute bottom-60 right-1/3 w-1 h-1 bg-lime-400 rounded-full animate-ping opacity-60 float-animation shadow-[0_0_8px_rgba(163,230,53,0.8)]" style={{animationDelay: '2.5s'}}></div>
+          <div className="absolute top-1/2 left-20 w-1 h-1 bg-green-500 rounded-full animate-ping opacity-50 float-animation shadow-[0_0_8px_rgba(34,197,94,0.7)]" style={{animationDelay: '3s'}}></div>
+          <div className="absolute top-1/3 right-10 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping opacity-70 float-animation shadow-[0_0_10px_rgba(16,185,129,0.8)]" style={{animationDelay: '3.5s'}}></div>
           
           {/* Glowing Lines */}
-          <div className="absolute top-0 left-1/4 w-px h-32 bg-gradient-to-b from-green-400/50 to-transparent animate-pulse"></div>
-          <div className="absolute top-20 right-1/3 w-px h-40 bg-gradient-to-b from-emerald-300/40 to-transparent animate-pulse" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-20 left-2/3 w-px h-24 bg-gradient-to-t from-green-300/30 to-transparent animate-pulse" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-0 left-1/4 w-px h-32 bg-gradient-to-b from-green-400/80 to-transparent animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.6)]"></div>
+          <div className="absolute top-20 right-1/3 w-px h-40 bg-gradient-to-b from-emerald-300/70 to-transparent animate-pulse shadow-[0_0_5px_rgba(16,185,129,0.5)]" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-20 left-2/3 w-px h-24 bg-gradient-to-t from-green-300/60 to-transparent animate-pulse shadow-[0_0_4px_rgba(34,197,94,0.4)]" style={{animationDelay: '1.5s'}}></div>
           
           {/* Additional Neon Grid Lines */}
-          <div className="absolute top-10 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400/20 to-transparent animate-pulse" style={{animationDelay: '2s'}}></div>
-          <div className="absolute bottom-10 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-300/15 to-transparent animate-pulse" style={{animationDelay: '2.5s'}}></div>
+          <div className="absolute top-10 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400/40 to-transparent animate-pulse shadow-[0_0_4px_rgba(34,197,94,0.4)]" style={{animationDelay: '2s'}}></div>
+          <div className="absolute bottom-10 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent animate-pulse shadow-[0_0_3px_rgba(16,185,129,0.3)]" style={{animationDelay: '2.5s'}}></div>
         </div>
         
         <div className="container mx-auto text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 relative">
+            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 relative z-20">
               Platform HR Cloud
-              <span className="text-primary neon-glow"> All-in-One</span>
+              <span className="text-green-400 neon-glow"> All-in-One</span>
               <br />
               untuk UMKM Indonesia
-              <div className="absolute -inset-2 bg-gradient-to-r from-green-400/20 via-emerald-300/10 to-green-400/20 blur-xl opacity-30 animate-pulse"></div>
+              <div className="absolute -inset-4 bg-gradient-to-r from-green-400/30 via-emerald-300/20 to-green-400/30 blur-2xl opacity-50 animate-pulse"></div>
             </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto relative z-20">
               TalentWhiz.ai UMKM Essentials mengganti pengelolaan SDM berbasis Excel, 
               mesin absensi konvensional, dan slip gaji kertas dengan satu aplikasi 
               SaaS yang aman, murah, dan mudah dipakai.
