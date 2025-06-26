@@ -53,9 +53,9 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-black">
       {/* Header */}
-      <header className="border-b border-[#2f4f2f]/20 bg-white/80 backdrop-blur-sm">
+      <header className="border-b border-green-400/20 bg-black/90 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -67,8 +67,8 @@ export default function Landing() {
                 />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#2f4f2f]">TalentWhiz.ai</h1>
-                <p className="text-xs text-[#519e51] font-medium">UMKM Essentials</p>
+                <h1 className="text-xl font-bold text-white">TalentWhiz.ai</h1>
+                <p className="text-xs text-green-400 font-medium">UMKM Essentials</p>
               </div>
             </div>
             <div className="flex space-x-2">
@@ -79,7 +79,7 @@ export default function Landing() {
                 </Button>
               </Link>
               <Link href="/employee-login">
-                <Button variant="outline" className="border-[#2f4f2f] text-[#2f4f2f] hover:bg-[#519e51] hover:text-white">
+                <Button variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black">
                   <UserCheck className="w-4 h-4 mr-2" />
                   Login Karyawan
                 </Button>
@@ -156,13 +156,13 @@ export default function Landing() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-16 px-4 bg-background/50">
+      <section className="py-16 px-4 bg-gray-900/50">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold text-foreground mb-4">
+            <h3 className="text-3xl font-bold text-white mb-4">
               8 Modul Lengkap untuk HR Modern
             </h3>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-gray-300 text-lg">
               Solusi terintegrasi dengan sentuhan AI dan otomasi untuk efisiensi maksimal
             </p>
           </div>
@@ -188,7 +188,7 @@ export default function Landing() {
       </section>
 
       {/* AI Features */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 bg-black">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <div className="ai-insight-card rounded-xl p-8 mb-8">
@@ -197,26 +197,26 @@ export default function Landing() {
                   <Brain className="w-8 h-8 text-primary-foreground" />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">
+              <h3 className="text-2xl font-bold text-white mb-4">
                 Momentum Loop™ dengan AI DeepSeek
               </h3>
-              <p className="text-muted-foreground text-lg mb-6">
+              <p className="text-gray-300 text-lg mb-6">
                 Fitur revolusioner yang menggunakan AI untuk memberikan insights prediktif, 
                 micro-coaching, dan reward system yang dinamis untuk meningkatkan 
                 engagement dan retensi karyawan.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="bg-background/80 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">ML Churn Model</h4>
-                  <p className="text-muted-foreground">Prediksi turnover dengan akurasi tinggi</p>
+                <div className="bg-gray-800/80 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2 text-white">ML Churn Model</h4>
+                  <p className="text-gray-300">Prediksi turnover dengan akurasi tinggi</p>
                 </div>
-                <div className="bg-background/80 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">GPT Micro-coaching</h4>
-                  <p className="text-muted-foreground">Coaching personal berbasis AI</p>
+                <div className="bg-gray-800/80 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2 text-white">GPT Micro-coaching</h4>
+                  <p className="text-gray-300">Coaching personal berbasis AI</p>
                 </div>
-                <div className="bg-background/80 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">Real-time Reward</h4>
-                  <p className="text-muted-foreground">Sistem reward dinamis dan otomatis</p>
+                <div className="bg-gray-800/80 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2 text-white">Real-time Reward</h4>
+                  <p className="text-gray-300">Sistem reward dinamis dan otomatis</p>
                 </div>
               </div>
             </div>
@@ -225,33 +225,33 @@ export default function Landing() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 px-4 bg-background/50">
+      <section className="py-16 px-4 bg-gray-900/50">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-primary mb-2">≤ 100</div>
-              <p className="text-muted-foreground">Karyawan per Perusahaan</p>
+              <div className="text-4xl font-bold text-green-400 mb-2">≤ 100</div>
+              <p className="text-gray-300">Karyawan per Perusahaan</p>
             </div>
             <div>
-              <div className="text-4xl font-bold text-secondary mb-2">8</div>
-              <p className="text-muted-foreground">Modul HR Terintegrasi</p>
+              <div className="text-4xl font-bold text-green-400 mb-2">8</div>
+              <p className="text-gray-300">Modul HR Terintegrasi</p>
             </div>
             <div>
-              <div className="text-4xl font-bold text-primary mb-2">1</div>
-              <p className="text-muted-foreground">Platform All-in-One</p>
+              <div className="text-4xl font-bold text-green-400 mb-2">1</div>
+              <p className="text-gray-300">Platform All-in-One</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 bg-black">
         <div className="container mx-auto text-center">
           <div className="max-w-2xl mx-auto">
-            <h3 className="text-3xl font-bold text-foreground mb-4">
+            <h3 className="text-3xl font-bold text-white mb-4">
               Siap Transformasi HR Perusahaan Anda?
             </h3>
-            <p className="text-muted-foreground text-lg mb-8">
+            <p className="text-gray-300 text-lg mb-8">
               Bergabunglah dengan ribuan UMKM yang telah mempercayai TalentWhiz.ai 
               untuk mengelola SDM mereka secara modern dan efisien.
             </p>
@@ -263,7 +263,7 @@ export default function Landing() {
                 </Button>
               </Link>
               <Link href="/employee-login">
-                <Button size="lg" variant="outline" className="border-[#2f4f2f] text-[#2f4f2f] hover:bg-[#519e51] hover:text-white">
+                <Button size="lg" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black">
                   <UserCheck className="w-5 h-5 mr-2" />
                   Login Karyawan
                 </Button>
@@ -274,7 +274,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#2f4f2f]/20 bg-white/80 py-8 px-4">
+      <footer className="border-t border-green-400/20 bg-black/90 py-8 px-4">
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg p-1">
@@ -284,9 +284,9 @@ export default function Landing() {
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="text-lg font-bold text-[#2f4f2f]">TalentWhiz.ai</span>
+            <span className="text-lg font-bold text-white">TalentWhiz.ai</span>
           </div>
-          <p className="text-[#519e51] text-sm">
+          <p className="text-green-400 text-sm">
             © 2025 TalentWhiz.ai. Platform HR Cloud untuk UMKM Indonesia.
           </p>
         </div>
