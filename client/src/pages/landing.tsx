@@ -108,14 +108,14 @@ export default function Landing() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/hr-login">
-                <Button size="lg" className="bg-[#2f4f2f] hover:bg-[#519e51] text-white w-full sm:w-auto relative overflow-hidden group px-8 py-4 text-lg">
+                <Button size="lg" className="bg-[#2f4f2f] hover:bg-[#2f4f2f]/80 text-white border border-[#2f4f2f] hover:border-green-400/60 hover:text-green-400 w-full sm:w-auto relative overflow-hidden group px-8 py-4 text-lg transition-all duration-300">
                   <Building2 className="w-6 h-6 mr-3" />
                   Login Admin/HR
                   <div className="absolute inset-0 shimmer-effect opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Button>
               </Link>
               <Link href="/employee-login">
-                <Button size="lg" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black w-full sm:w-auto relative overflow-hidden group px-8 py-4 text-lg">
+                <Button size="lg" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400/10 hover:text-green-400 hover:border-green-400/60 w-full sm:w-auto relative overflow-hidden group px-8 py-4 text-lg transition-all duration-300">
                   <UserCheck className="w-6 h-6 mr-3" />
                   Login Karyawan
                   <div className="absolute inset-0 shimmer-effect opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -230,15 +230,17 @@ export default function Landing() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/hr-login">
-                <Button size="lg" className="bg-[#2f4f2f] hover:bg-[#519e51] text-white">
+                <Button size="lg" className="bg-[#2f4f2f] hover:bg-[#2f4f2f]/80 text-white border border-[#2f4f2f] hover:border-green-400/60 hover:text-green-400 relative overflow-hidden group transition-all duration-300">
                   <Building2 className="w-5 h-5 mr-2" />
                   Login Admin/HR
+                  <div className="absolute inset-0 shimmer-effect opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Button>
               </Link>
               <Link href="/employee-login">
-                <Button size="lg" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black">
+                <Button size="lg" variant="outline" className="border-green-400 text-green-400 hover:bg-green-400/10 hover:text-green-400 hover:border-green-400/60 relative overflow-hidden group transition-all duration-300">
                   <UserCheck className="w-5 h-5 mr-2" />
                   Login Karyawan
+                  <div className="absolute inset-0 shimmer-effect opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Button>
               </Link>
             </div>
