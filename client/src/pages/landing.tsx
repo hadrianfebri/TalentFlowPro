@@ -73,15 +73,17 @@ export default function Landing() {
             </div>
             <div className="flex space-x-2">
               <Link href="/hr-login">
-                <Button className="bg-[#2f4f2f] hover:bg-[#519e51] text-white">
+                <Button className="bg-[#2f4f2f] hover:bg-[#2f4f2f]/80 text-white border border-[#2f4f2f] hover:border-green-400/60 hover:text-green-400 relative overflow-hidden group transition-all duration-300">
                   <Building2 className="w-4 h-4 mr-2" />
                   Login Admin/HR
+                  <div className="absolute inset-0 shimmer-effect opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Button>
               </Link>
               <Link href="/employee-login">
-                <Button variant="outline" className="border-green-400 text-green-400 hover:bg-green-400 hover:text-black">
+                <Button variant="outline" className="border-green-400 text-green-400 hover:bg-green-400/10 hover:text-green-400 hover:border-green-400/60 relative overflow-hidden group transition-all duration-300">
                   <UserCheck className="w-4 h-4 mr-2" />
                   Login Karyawan
+                  <div className="absolute inset-0 shimmer-effect opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Button>
               </Link>
             </div>
