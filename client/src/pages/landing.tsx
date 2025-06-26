@@ -94,10 +94,12 @@ export default function Landing() {
         {/* Animated Green Neon Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/70 via-gray-900/60 to-slate-800/70">
           {/* Dark overlay for better neon contrast */}
-          <div className="absolute inset-0 bg-black/30"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(34,197,94,0.3)_0%,transparent_60%)] wavy-glow"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(16,185,129,0.25)_0%,transparent_60%)] wavy-glow-delayed-1"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_80%,rgba(34,197,94,0.2)_0%,transparent_60%)] wavy-glow-delayed-2"></div>
+          <div className="absolute inset-0 bg-black/40"></div>
+          
+          {/* Organic Wave Background */}
+          <div className="absolute inset-0 wave-glow-bg"></div>
+          <div className="absolute inset-0 wave-glow-bg-2"></div>
+          <div className="absolute inset-0 wave-glow-bg-3"></div>
           
           {/* Floating Particles with Wavy Glow */}
           <div className="absolute top-1/4 left-10 w-2 h-2 bg-green-400 rounded-full wavy-glow-particle opacity-90 float-animation shadow-[0_0_15px_rgba(34,197,94,0.8)]"></div>

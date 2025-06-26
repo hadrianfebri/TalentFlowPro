@@ -280,28 +280,84 @@
   animation: float-particles 4s ease-in-out infinite;
 }
 
-/* Wavy Glow Animations */
-@keyframes wavy-glow {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(1);
-    filter: blur(0px);
-  }
-  25% {
-    opacity: 0.5;
-    transform: scale(1.05);
-    filter: blur(1px);
+/* Wave Glow Background Animations */
+@keyframes wave-flow {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.4;
   }
   50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-    filter: blur(2px);
+    background-position: 100% 50%;
+    opacity: 0.6;
   }
-  75% {
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.4;
+  }
+}
+
+@keyframes wave-flow-2 {
+  0% {
+    background-position: 100% 50%;
+    opacity: 0.3;
+  }
+  50% {
+    background-position: 0% 50%;
     opacity: 0.5;
-    transform: scale(1.05);
-    filter: blur(1px);
   }
+  100% {
+    background-position: 100% 50%;
+    opacity: 0.3;
+  }
+}
+
+@keyframes wave-flow-3 {
+  0% {
+    background-position: 50% 0%;
+    opacity: 0.2;
+  }
+  50% {
+    background-position: 50% 100%;
+    opacity: 0.4;
+  }
+  100% {
+    background-position: 50% 0%;
+    opacity: 0.2;
+  }
+}
+
+.wave-glow-bg {
+  background: linear-gradient(45deg, 
+    transparent 0%, 
+    rgba(34, 197, 94, 0.15) 25%, 
+    rgba(16, 185, 129, 0.2) 50%, 
+    rgba(34, 197, 94, 0.15) 75%, 
+    transparent 100%);
+  background-size: 400% 400%;
+  animation: wave-flow 8s ease-in-out infinite;
+  filter: blur(60px);
+}
+
+.wave-glow-bg-2 {
+  background: linear-gradient(-45deg, 
+    transparent 0%, 
+    rgba(16, 185, 129, 0.1) 25%, 
+    rgba(34, 197, 94, 0.15) 50%, 
+    rgba(16, 185, 129, 0.1) 75%, 
+    transparent 100%);
+  background-size: 300% 300%;
+  animation: wave-flow-2 12s ease-in-out infinite;
+  filter: blur(80px);
+}
+
+.wave-glow-bg-3 {
+  background: radial-gradient(ellipse at center, 
+    rgba(34, 197, 94, 0.08) 0%, 
+    rgba(16, 185, 129, 0.05) 40%, 
+    transparent 70%);
+  background-size: 200% 200%;
+  animation: wave-flow-3 15s ease-in-out infinite;
+  filter: blur(100px);
 }
 
 @keyframes wavy-glow-particle {
@@ -327,18 +383,19 @@
   }
 }
 
+@keyframes wavy-glow {
+  0%, 100% {
+    opacity: 0.5;
+    filter: blur(30px);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(20px);
+  }
+}
+
 .wavy-glow {
-  animation: wavy-glow 4s ease-in-out infinite;
-}
-
-.wavy-glow-delayed-1 {
-  animation: wavy-glow 4s ease-in-out infinite;
-  animation-delay: 1.3s;
-}
-
-.wavy-glow-delayed-2 {
-  animation: wavy-glow 4s ease-in-out infinite;
-  animation-delay: 2.6s;
+  animation: wavy-glow 6s ease-in-out infinite;
 }
 
 .wavy-glow-particle {
