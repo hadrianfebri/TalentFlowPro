@@ -326,7 +326,7 @@ export default function Landing() {
           
           <div className="text-center mt-12">
             <p className="text-gray-400 text-sm mb-4">
-              🎯 Semua paket termasuk trial gratis 14 hari • Batalkan kapan saja • Setup gratis
+              Semua paket termasuk trial gratis 14 hari • Batalkan kapan saja • Setup gratis
             </p>
             <p className="text-gray-300 text-sm">
               Butuh paket custom untuk perusahaan lebih besar? 
