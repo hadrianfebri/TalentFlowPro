@@ -169,15 +169,15 @@ export default function Landing() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="border-border/50 hover:shadow-lg transition-all duration-300 stats-card">
+              <Card key={index} className="glass-morphism border-green-400/20 hover:border-green-400/40 hover:shadow-xl hover:shadow-green-400/10 transition-all duration-500 group">
                 <CardHeader className="pb-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
-                    <feature.icon className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center mb-3 backdrop-blur-sm group-hover:bg-green-400/30 transition-all duration-300">
+                    <feature.icon className="w-6 h-6 text-green-400" />
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg text-white group-hover:text-green-400 transition-colors duration-300">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-sm leading-relaxed">
+                  <CardDescription className="text-sm leading-relaxed text-gray-300">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
@@ -191,7 +191,7 @@ export default function Landing() {
       <section className="py-16 px-4 bg-black">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="ai-insight-card rounded-xl p-8 mb-8">
+            <div className="glass-morphism-ai rounded-xl p-8 mb-8 border border-green-400/30 hover:border-green-400/50 transition-all duration-500">
               <div className="flex items-center justify-center mb-6">
                 <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
                   <Brain className="w-8 h-8 text-primary-foreground" />
@@ -206,16 +206,16 @@ export default function Landing() {
                 engagement dan retensi karyawan.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="bg-gray-800/80 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2 text-white">ML Churn Model</h4>
+                <div className="glass-morphism-small rounded-lg p-4 border border-green-400/20 hover:border-green-400/40 transition-all duration-300 group">
+                  <h4 className="font-semibold mb-2 text-white group-hover:text-green-400 transition-colors duration-300">ML Churn Model</h4>
                   <p className="text-gray-300">Prediksi turnover dengan akurasi tinggi</p>
                 </div>
-                <div className="bg-gray-800/80 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2 text-white">GPT Micro-coaching</h4>
+                <div className="glass-morphism-small rounded-lg p-4 border border-green-400/20 hover:border-green-400/40 transition-all duration-300 group">
+                  <h4 className="font-semibold mb-2 text-white group-hover:text-green-400 transition-colors duration-300">GPT Micro-coaching</h4>
                   <p className="text-gray-300">Coaching personal berbasis AI</p>
                 </div>
-                <div className="bg-gray-800/80 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2 text-white">Real-time Reward</h4>
+                <div className="glass-morphism-small rounded-lg p-4 border border-green-400/20 hover:border-green-400/40 transition-all duration-300 group">
+                  <h4 className="font-semibold mb-2 text-white group-hover:text-green-400 transition-colors duration-300">Real-time Reward</h4>
                   <p className="text-gray-300">Sistem reward dinamis dan otomatis</p>
                 </div>
               </div>
