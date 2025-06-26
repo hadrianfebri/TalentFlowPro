@@ -131,7 +131,7 @@ export default function Landing() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-16 px-4 bg-gradient-to-b from-black via-gray-900/70 to-gray-900/50">
+      <section className="py-16 px-4 bg-gradient-to-b from-black/0 via-gray-900/30 to-gray-900/50">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h3 className="text-3xl font-bold text-white mb-4">
