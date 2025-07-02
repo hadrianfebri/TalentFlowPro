@@ -123,6 +123,14 @@ The system uses 13 main tables:
 
 ## Recent Changes
 
+- **July 2, 2025**: Database export and backup system implementation
+  - ✅ Created complete database backup (49.7KB) with pg_dump
+  - ✅ Generated separate schema and data files for flexible restore options
+  - ✅ Built automated restore script with error handling
+  - ✅ Added comprehensive DATABASE_BACKUP_GUIDE.md documentation
+  - ✅ Standardized dashboard card heights (400px for main cards, 300px for reward wallet)
+  - ✅ Implemented flex layouts for optimal content distribution across all dashboard components
+
 - **June 26, 2025**: Enhanced landing page and login interfaces with comprehensive design improvements
   - ✅ Added pricing plans section with 3 tiers: UMKM Starter (Rp 99,000/month), Professional (Rp 299,000/month), Enterprise (Rp 599,000/month)
   - ✅ Implemented dynamic neon background elements across all landing page sections for visual consistency
